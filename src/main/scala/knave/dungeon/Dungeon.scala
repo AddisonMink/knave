@@ -1,0 +1,20 @@
+package knave.dungeon
+
+package object Size {
+  val height = 20
+  val width = 78
+}
+
+trait Dungeon {
+
+  def isFloor(c : Coord) : Boolean
+  def floorAt(c : Coord) : Option[Floor]
+
+  def isWall(c : Coord) : Boolean
+  def wallAt(c : Coord) : Option[Wall]
+}
+
+object Dungeon {
+
+  def default : Dungeon = new DefaultDungeon
+}
