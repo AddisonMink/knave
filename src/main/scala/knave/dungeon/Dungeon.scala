@@ -12,9 +12,12 @@ trait Dungeon {
 
   def isWall(c : Coord) : Boolean
   def wallAt(c : Coord) : Option[Wall]
+
+  def isDoor(c : Coord) : Boolean
+  def doorAt(c : Coord) : Option[Door]
 }
 
 object Dungeon {
 
-  def default : Dungeon = new DefaultDungeon
+  def createDefaultDungeon : Dungeon = new DefaultDungeon
 }

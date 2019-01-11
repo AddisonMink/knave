@@ -1,8 +1,9 @@
 package knave.main
 
-import org.scalajs.dom.document
+import knave.display.Display
+import knave.dungeon.Dungeon
 
 object Main extends App {
-  val map = document.getElementById("map")
-  map.innerHTML = "Hello, Knave!"
+  val dungeon = Dungeon.createDefaultDungeon
+  Display.display(dungeon)
 }
