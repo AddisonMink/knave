@@ -28,7 +28,6 @@ object Display {
         if(floor.isDefined) tileArray(y)(x) = show(".", floor.get.color)
         else if(wall.isDefined) tileArray(y)(x) = show("#", wall.get.color)
         else if(door.isDefined) tileArray(y)(x) = if (door.get.open) show("/", door.get.color) else show("+", door.get.color)
-        else " "
       }
   }
 
