@@ -10,7 +10,8 @@ lazy val root = (project in file(".")).
       version      := "0.1.0-SNAPSHOT"
     )),
     name := "knave",
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.6"
   )
 
 scalaJSUseMainModuleInitializer := true

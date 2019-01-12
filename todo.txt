@@ -1,0 +1,17 @@
+* Implement player movement.
+* Implement doors.
+* Implement field of vision.
+* Implement combat with bound servant enemies.
+* Implement armor.
+* Implement throwing knives.
+* Implement bound pontiffss.
+* Implement stealth.
+* Test Ruins map extensively to see if it's suitable.
+* Create Quarters map and test extensively.
+* Create Cathedral map and test extensively.
+* Create other weapons / items.
+* Implement Oracles.
+* Implement Lesser Angels.
+* Implement Sleeping Knights.
+* Implement Moving between floors.
+* Implement first boss Sepharim and arena.
