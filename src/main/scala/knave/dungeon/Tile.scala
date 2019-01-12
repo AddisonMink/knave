@@ -1,10 +1,12 @@
 package knave.dungeon
 
-private class InnerFloor(var color : String)
+private sealed trait Tile
 
-private class InnerWall(var color : String)
+private class InnerFloor(var color : String) extends Tile
 
-private class InnerDoor(var color : String, var open : Boolean)
+private class InnerWall(var color : String) extends Tile
+
+private class InnerDoor(var color : String, var open : Boolean) extends Tile
 
 case class Floor(color : String)
 
