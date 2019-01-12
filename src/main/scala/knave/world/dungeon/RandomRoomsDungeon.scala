@@ -114,5 +114,10 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     case _ => None
   }
 
+  override def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
+    case d : InnerDoor => d.open = true
+    case _ => ()
+  }
+
   override def rooms: List[Room] = aggregates.map(Room.createShapeRoom(_))
 }

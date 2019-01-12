@@ -8,9 +8,18 @@ sealed trait Action {
 }
 
 case class PlayerMove(c : Coord) extends Action {
+  override def updateWorld(w: World): Vector[Action] =
+    if(w.dungeon.isWalkable(c)) {
+      w.player.pos = c
+      Vector()
+    }
+    else if(w.dungeon.isDoor(c)) Vector(OpenDoor(c))
+    else Vector()
+}
+
+case class OpenDoor(c : Coord) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
-    val valid = w.dungeon.isWalkable(c)
-    if(valid) w.player.pos = c
+    w.dungeon.openDoor(c)
     Vector()
   }
 }

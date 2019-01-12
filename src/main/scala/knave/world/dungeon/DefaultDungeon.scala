@@ -43,5 +43,7 @@ private class DefaultDungeon extends Dungeon {
 
   override def doorAt(c: Coord): Option[Door] = if (c == doorCoord) Some(Door(door.color, door.open)) else None
 
+  override def openDoor(c: Coord): Unit = if (c == doorCoord) door.open = true
+
   override val rooms = List(Room.createShapeRoom(List(room1)), Room.createShapeRoom(List(room2)))
 }

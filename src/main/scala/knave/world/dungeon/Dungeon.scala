@@ -15,6 +15,7 @@ trait Dungeon {
 
   def isDoor(c : Coord) : Boolean
   def doorAt(c : Coord) : Option[Door]
+  def openDoor(c : Coord) : Unit
 
   final def isWalkable(c : Coord) : Boolean =
     isFloor(c) || doorAt(c).map(_.open).getOrElse(false)
