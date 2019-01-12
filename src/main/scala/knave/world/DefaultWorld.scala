@@ -3,7 +3,7 @@ package knave.world
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.player.Player
 
-class DefaultWorld extends World {
+private class DefaultWorld extends World {
 
   val dungeon = Dungeon.createDefaultDungeon
 

@@ -2,14 +2,22 @@ package knave.main
 
 import org.scalajs.dom.document
 import knave.display.Display
+import knave.game.Action
 import knave.world.World
-import org.scalajs.dom.raw.KeyboardEvent
+
+import scala.scalajs.js
 
 object Main extends App {
 
   var input = ""
-  document.onkeydown = (e : KeyboardEvent) => input = e.key ; println(input)
+  document.onkeydown = { e => input = e.key }
 
-  val world = World.createDefaultWorld
+  val world = World.createRandomRoomsWorld(100)
   Display.display(world)
+  js.timers.setInterval(100)({
+    val actions = InputProcessor.process(world, input)
+    input = ""
+    Action.applyActions(world, actions)
+    Display.display(world)
+  })
 }

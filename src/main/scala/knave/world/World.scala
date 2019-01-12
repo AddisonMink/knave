@@ -13,4 +13,6 @@ trait World {
 object World {
 
   def createDefaultWorld : World = new DefaultWorld
+
+  def createRandomRoomsWorld(seed : Int) : World = new RandomRoomsWorld(seed)
 }
