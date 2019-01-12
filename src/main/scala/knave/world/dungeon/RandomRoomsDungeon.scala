@@ -2,19 +2,23 @@ package knave.world.dungeon
 
 import knave.world.dungeon.Size.{height, width}
 
+import scala.collection.immutable.HashSet.HashSet1
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 private class RandomRoomsDungeon(seed : Int) extends Dungeon {
 
   private val color = "#D3D3D3"
+  private val darkColor = "#A9A9A9"
 
   private val doorColor = "orange"
+  private val doorDarkColor = "#FF8C00"
 
   private val tileArray = Array.ofDim[Tile](width,height)
   for(x <- 0 until width)
     for(y <- 0 until height)
-      tileArray(x)(y) = new InnerWall(color)
+      tileArray(x)(y) = new InnerWall(color, darkColor)
 
   private val rng = new Random(seed)
 
@@ -36,7 +40,7 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     loop(List(), 125)
   }
   for(c <- rects.flatMap(_.fill))
-    tileArray(c.x)(c.y) = new InnerFloor(color)
+    tileArray(c.x)(c.y) = new InnerFloor(color, darkColor)
 
   private val aggregates = {
     def loop(rectangles : List[List[Rectangle]], aggregates : List[List[Rectangle]]) : List[List[Rectangle]] = {
@@ -55,7 +59,6 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     loop(rects.map(List(_)), List())
   }
 
-  // TODO : Make corridors connect all rects.
   private val corridors = {
     def loop(rs : List[Rectangle], corrs : List[List[Coord]]) : List[List[Coord]] =
       rs match {
@@ -77,7 +80,7 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     loop(rects.sortBy(_.x), List())
   }
   for(c <- corridors.flatten)
-    tileArray(c.x)(c.y) = new InnerFloor(color)
+    tileArray(c.x)(c.y) = new InnerFloor(color, darkColor)
   println((7 to 2).toList)
 
   private val endPoints = corridors.flatMap(_ match {
@@ -91,26 +94,26 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     adjs.filter(c => tileArray(c.x)(c.y).isInstanceOf[InnerWall]).length == 2
   })
   for(c <- doors)
-    tileArray(c.x)(c.y) = new InnerDoor(doorColor, false)
+    tileArray(c.x)(c.y) = new InnerDoor(doorColor, doorDarkColor, false)
 
   override def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
   override def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(Floor(f.color))
+    case f : InnerFloor => Some(Floor(f.color, f.darkColor))
     case _ => None
   }
 
   override def isWall(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerWall]
 
   override def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(Wall(w.color))
+    case w : InnerWall => Some(Wall(w.color, w.darkColor))
     case _ => None
   }
 
   override def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
 
   override def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(Door(d.color, d.open))
+    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open))
     case _ => None
   }
 

@@ -17,6 +17,14 @@ trait Dungeon {
   def doorAt(c : Coord) : Option[Door]
   def openDoor(c : Coord) : Unit
 
+  private val visitedCoords = collection.mutable.Set[Coord]()
+
+  final def visited : Set[Coord] =
+    visitedCoords.toSet
+
+  final def visitCoords(cs : Iterable[Coord]) : Unit =
+    visitedCoords ++= cs
+
   final def isWalkable(c : Coord) : Boolean =
     isFloor(c) || doorAt(c).map(_.open).getOrElse(false)
 
@@ -43,17 +51,6 @@ trait Dungeon {
       })
     rim.flatMap(visibleLine(center,_)).distinct
   }
-
-  /*
-  def circle(radius : Int) : Stream[Coord] = {
-    val rim = ((-radius) to radius).toStream
-      .flatMap(tempX => {
-        val tempY = radius - Math.abs(tempX)
-        Stream(Coord(tempX,tempY), Coord(tempX,-tempY))
-      }).map(c => Coord(c.x + x, c.y + y))
-    rim.flatMap(lineTo(_)).distinct.filter(inBounds)
-  }
-  */
 
   def rooms : List[Room]
 }

@@ -3,7 +3,7 @@ package knave.world.dungeon
 case class Coord(x : Int, y : Int) {
 
   private def inBounds(c : Coord) : Boolean =
-    c.x > 0 && c.x < Size.width && c.y > 0 && c.y < Size.height
+    c.x >= 0 && c.x < Size.width && c.y >= 0 && c.y < Size.height
 
   def lineTo(c : Coord) : Stream[Coord] = {
     val dy = c.y - this.y

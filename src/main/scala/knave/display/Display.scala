@@ -40,15 +40,27 @@ object Display {
     else if(door.isDefined) tileArray(c.y)(c.x) = if (door.get.open) show("/", door.get.color) else show("+", door.get.color)
   }
 
+  private def setTileDark(d : Dungeon, c : Coord) : Unit = {
+    lazy val floor = d.floorAt(c)
+    lazy val wall = d.wallAt(c)
+    lazy val door = d.doorAt(c)
+    if(floor.isDefined) tileArray(c.y)(c.x) = show(".", floor.get.darkColor)
+    else if(wall.isDefined) tileArray(c.y)(c.x) = show("#", wall.get.darkColor)
+    else if(door.isDefined) tileArray(c.y)(c.x) = if (door.get.open) show("/", door.get.color) else show("+", door.get.darkColor)
+  }
+
   private def setDungeon(d : Dungeon) : Unit = {
     for(y <- 0 until height)
       for(x <- 0 until width)
         setTile(d, Coord(x,y))
   }
 
-  private def setDungeonFov(d : Dungeon, cs : Iterable[Coord]) : Unit =
+  private def setDungeonFov(d : Dungeon, cs : Iterable[Coord]) : Unit = {
+    for(c <- d.visited)
+      setTileDark(d, c)
     for(c <- cs)
       setTile(d, c)
+  }
 
   private def setPlayer(p : Player) : Unit =
     tileArray(p.pos.y)(p.pos.x) = "@"
@@ -62,7 +74,9 @@ object Display {
 
   def display(w : World) : Unit = {
     resetTileArray
-    val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision)
+    val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
+    w.dungeon.visitCoords(fov)
+
     setDungeonFov(w.dungeon, fov)
     setPlayer(w.player)
     map.innerHTML = buildString
