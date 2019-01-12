@@ -16,8 +16,10 @@ trait Dungeon {
   def isDoor(c : Coord) : Boolean
   def doorAt(c : Coord) : Option[Door]
 
-  def isWalkable(c : Coord) : Boolean =
+  final def isWalkable(c : Coord) : Boolean =
     isFloor(c) || doorAt(c).map(_.open).getOrElse(false)
+
+  def rooms : List[Room]
 }
 
 object Dungeon {

@@ -1,10 +1,29 @@
 package knave.world.dungeon
-
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
+
+trait Room {
+
+  def randomCoord(rng : Random) : Coord
+}
+
+private object Room {
+  def createShapeRoom(shapes : List[Shape]) : Room = ShapeRoom(shapes)
+}
+
+private case class ShapeRoom(shapes : List[Shape]) extends Room {
+
+  override def randomCoord(rng: Random): Coord = {
+    val i = rng.nextInt(shapes.length)
+    shapes(i).randomCoord(rng)
+  }
+}
 
 private sealed trait Shape {
 
-   def fill : List[Coord]
+  def fill : List[Coord]
+
+  def randomCoord(rng : Random) : Coord
 }
 
 private object Shape {
@@ -49,6 +68,9 @@ private case class Rectangle(x : Int, y : Int, width : Int, height : Int) extend
         cs += Coord(x,y)
     cs.toList
   }
+
+  def randomCoord(rng : Random) : Coord =
+    Coord(rng.nextInt(width) + x, rng.nextInt(height) + y)
 }
 
 

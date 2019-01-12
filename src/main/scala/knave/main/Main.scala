@@ -14,10 +14,12 @@ object Main extends App {
 
   val world = World.createRandomRoomsWorld(100)
   Display.display(world)
-  js.timers.setInterval(100)({
+  js.timers.setInterval(10)({
     val actions = InputProcessor.process(world, input)
     input = ""
-    Action.applyActions(world, actions)
-    Display.display(world)
+    if(actions.nonEmpty) {
+      Action.applyActions(world, actions)
+      Display.display(world)
+    }
   })
 }

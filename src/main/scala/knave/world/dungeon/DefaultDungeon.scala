@@ -14,11 +14,10 @@ private class DefaultDungeon extends Dungeon {
   private val xMiddle = width / 2
   private val yMiddle = height / 2
 
-  val floors = {
-    val room1 = Rectangle(1, 1, width / 2 - 2, height - 2).fill
-    val room2 = Rectangle(width / 2, 1, width / 2 - 1, height - 2).fill
-    (room1 ++ room2).map((_,new InnerFloor(color))).toMap
-  }
+  private val room1 = Rectangle(1, 1, width / 2 - 2, height - 2)
+  private val room2 = Rectangle(width / 2, 1, width / 2 - 1, height - 2)
+
+  val floors = (room1.fill ++ room2.fill).map((_,new InnerFloor(color))).toMap
 
   val (doorCoord, door) = (Coord(width / 2 - 1, height / 2), new InnerDoor(doorColor, false))
 
@@ -43,4 +42,6 @@ private class DefaultDungeon extends Dungeon {
   override def isDoor(c: Coord): Boolean = c == doorCoord
 
   override def doorAt(c: Coord): Option[Door] = if (c == doorCoord) Some(Door(door.color, door.open)) else None
+
+  override val rooms = List(Room.createShapeRoom(List(room1)), Room.createShapeRoom(List(room2)))
 }

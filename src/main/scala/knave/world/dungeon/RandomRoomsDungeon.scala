@@ -113,4 +113,6 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     case d : InnerDoor => Some(Door(d.color, d.open))
     case _ => None
   }
+
+  override def rooms: List[Room] = aggregates.map(Room.createShapeRoom(_))
 }
