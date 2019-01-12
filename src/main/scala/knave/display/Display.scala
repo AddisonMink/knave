@@ -1,8 +1,10 @@
 package knave.display
 
+import knave.world.World
 import org.scalajs.dom.document
-import knave.dungeon.{Coord, Dungeon}
-import knave.dungeon.Size.{height, width}
+import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.Size.{height, width}
+import knave.world.player.Player
 
 object Display {
 
@@ -31,9 +33,13 @@ object Display {
       }
   }
 
-  def display(d : Dungeon) = {
+  private def setPlayer(p : Player) : Unit =
+    tileArray(p.pos.y)(p.pos.x) = "@"
+
+  def display(w : World) = {
     resetTileArray
-    setDungeon(d)
+    setDungeon(w.dungeon)
+    setPlayer(w.player)
     val str = new StringBuilder
     for(y <- 0 until height) {
       for (x <- 0 until width)

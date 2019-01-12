@@ -1,3 +1,3 @@
-package knave.dungeon
+package knave.world.dungeon
 
 case class Coord(x : Int, y : Int)

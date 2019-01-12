@@ -1,4 +1,4 @@
-package knave.dungeon
+package knave.world.dungeon
 
 package object Size {
   val height = 20

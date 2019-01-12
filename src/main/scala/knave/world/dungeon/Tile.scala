@@ -1,4 +1,4 @@
-package knave.dungeon
+package knave.world.dungeon
 
 private sealed trait Tile
 

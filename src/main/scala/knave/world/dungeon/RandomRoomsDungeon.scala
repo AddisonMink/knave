@@ -1,6 +1,6 @@
-package knave.dungeon
+package knave.world.dungeon
 
-import knave.dungeon.Size.{height, width}
+import knave.world.dungeon.Size.{height, width}
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
