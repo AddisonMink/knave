@@ -46,12 +46,24 @@ object Display {
         setTile(d, Coord(x,y))
   }
 
+  private def setDungeonFov(d : Dungeon, cs : Iterable[Coord]) : Unit =
+    for(c <- cs)
+      setTile(d, c)
+
   private def setPlayer(p : Player) : Unit =
     tileArray(p.pos.y)(p.pos.x) = "@"
 
-  def display(w : World) = {
+  def displayFull(w : World) : Unit = {
     resetTileArray
     setDungeon(w.dungeon)
+    setPlayer(w.player)
+    map.innerHTML = buildString
+  }
+
+  def display(w : World) : Unit = {
+    resetTileArray
+    val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision)
+    setDungeonFov(w.dungeon, fov)
     setPlayer(w.player)
     map.innerHTML = buildString
   }

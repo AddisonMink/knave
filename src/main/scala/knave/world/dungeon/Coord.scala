@@ -36,8 +36,8 @@ case class Coord(x : Int, y : Int) {
         }
       }
 
-    if(Math.abs(dx) >= Math.abs(dy)) horizontalLoop(this, 0d).tail.filter(inBounds)
-    else verticalLoop(this, 0d).tail.filter(inBounds)
+    if(Math.abs(dx) >= Math.abs(dy)) horizontalLoop(this, 0d).tail.takeWhile(inBounds)
+    else verticalLoop(this, 0d).tail.takeWhile(inBounds)
   }
 
   def nextCoord(c: Coord) : Option[Coord] =
@@ -47,15 +47,6 @@ case class Coord(x : Int, y : Int) {
     val dx = c.x.toDouble - x
     val dy = c.y.toDouble - y
     Math.sqrt(dx*dx + dy*dy).toInt
-  }
-
-  def circle(radius : Int) : Stream[Coord] = {
-    val rim = ((-radius) to radius).toStream
-      .flatMap(tempX => {
-        val tempY = radius - Math.abs(tempX)
-        Stream(Coord(tempX,tempY), Coord(tempX,-tempY))
-      }).map(c => Coord(c.x + x, c.y + y))
-    rim.flatMap(lineTo(_)).distinct.filter(inBounds)
   }
 }
 
