@@ -1,5 +1,3 @@
-* Implement player movement.
-* Implement doors.
 * Implement field of vision.
 * Implement combat with bound servant enemies.
 * Implement armor.
