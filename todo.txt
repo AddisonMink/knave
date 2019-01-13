@@ -1,7 +1,9 @@
-* Implement combat with bound servant enemies.
+* Implement hud and messages.
+* Implement Game Start and Game Over
+* Implement weapons.
 * Implement armor.
 * Implement throwing knives.
-* Implement bound pontiffss.
+* Implement bound pontiffs.
 * Implement stealth.
 * Test Ruins map extensively to see if it's suitable.
 * Create Quarters map and test extensively.
