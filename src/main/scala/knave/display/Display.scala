@@ -69,12 +69,24 @@ object Display {
   private def setEnemy(e : Enemy) : Unit =
     tileArray(e.pos.y)(e.pos.x) = show(e.symbol.toString, e.color)
 
+  private def createHud(p : Player) : String = {
+    val str = new StringBuilder
+    str ++= "Knave\n"
+    val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
+      case x if x >= 0.75 => "green"
+      case x if x >= 0.25 => "yellow"
+      case _ => "red"
+    }
+    str ++= s"Health: ${show(p.hp + "%", healthColor)}\n"
+    str.toString
+  }
+
   def displayFull(w : World) : Unit = {
     resetTileArray
     setDungeon(w.dungeon)
     setPlayer(w.player)
     for(e <- w.getEnemies) setEnemy(e)
-    map.innerHTML = buildString
+    map.innerHTML = buildString + createHud(w.player)
   }
 
   def display(w : World) : Unit = {
@@ -86,6 +98,6 @@ object Display {
     setDungeonFov(w.dungeon, fov)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
-    map.innerHTML = buildString
+    map.innerHTML = buildString + createHud(w.player)
   }
 }
