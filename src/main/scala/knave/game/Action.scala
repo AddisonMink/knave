@@ -69,6 +69,15 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
     }
 }
 
+case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.player.hp -= damage
+    println(s"${enemyName} did ${damage} damage to you.")
+    if(w.player.hp <= 0) println(s"You have been slain!")
+    Vector()
+  }
+}
+
 object Action {
   def applyActions(w : World, actions : Vector[Action]) : Unit =
     if(actions.nonEmpty) {

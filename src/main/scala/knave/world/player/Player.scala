@@ -9,6 +9,10 @@ class Player(c : Coord) {
 
   var pos = c
 
+  val maxHp = 100
+
+  var hp = maxHp
+
   private var equippedWeapon : Option[Weapon] = None
 
   def weapon = equippedWeapon.getOrElse(Fist)
