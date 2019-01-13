@@ -6,6 +6,7 @@ import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Size.{height, width}
 import knave.world.enemy.Enemy
 import knave.world.player.Player
+import knave.world.player.weapon.Fist
 
 object Display {
 
@@ -78,15 +79,20 @@ object Display {
       case _ => "red"
     }
     str ++= s"Health: ${show(p.hp + "%", healthColor)}\n"
+
+    val weapon = p.weapon match {
+      case Fist => s"Weapon: ${Fist.name} (inf)"
+      case w => s"Weapon: ${w.name} (${w.durability} / ${w.maxDurability})"
+    }
+    str ++= weapon
+
     str.toString
   }
 
   private var logs = List("", "", "", "Welcome to Knave!")
   private def createLog(newLogs : List[String]) : String = {
     logs = logs ++ newLogs
-    println(logs)
     logs = logs.drop(logs.length - 4)
-    println(logs)
     val str = new StringBuilder
     for(l <- logs)
       str ++= l + "\n"

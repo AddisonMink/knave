@@ -1,8 +1,6 @@
-* Implement hud and messages.
-* Implement Game Start and Game Over
-* Implement weapons.
 * Implement armor.
 * Implement throwing knives.
+* Implement blood.
 * Implement bound pontiffs.
 * Implement stealth.
 * Test Ruins map extensively to see if it's suitable.

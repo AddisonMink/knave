@@ -23,7 +23,7 @@ case class PlayerMove(c : Coord) extends Action {
           w.player.pos = c
           Vector()
         }
-        case EnemyCollision(id) => Vector(w.player.weapon.attack(id))
+        case EnemyCollision(id) => Vector(w.player.weapon.attack(id), DamagePlayerWeapon(w.player.weapon.attackCost))
         case _ => Vector()
       }
     }
@@ -88,6 +88,17 @@ case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
     w.player.hp -= damage
     addLog(s"${enemyName} did ${damage} damage to you.")
     if(w.player.hp <= 0) addLog(color("You have been slain!", "red"))
+    Vector()
+  }
+}
+
+case class DamagePlayerWeapon(damage : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.player.weapon.durability -= damage
+    if(w.player.weapon.durability <= 0) {
+      w.player.destroyWeapon
+      addLog(color("Your weapon broke!", "red"))
+    }
     Vector()
   }
 }
