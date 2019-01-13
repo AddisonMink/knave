@@ -19,6 +19,8 @@ object Main extends App {
     input = ""
     if(actions.nonEmpty) {
       Action.applyActions(world, actions)
+      val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
+      Action.applyActions(world, enemyActions)
       Display.display(world)
     }
   })

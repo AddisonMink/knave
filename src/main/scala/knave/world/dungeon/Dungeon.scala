@@ -52,6 +52,9 @@ trait Dungeon {
     rim.flatMap(visibleLine(center,_)).distinct
   }
 
+  final def castRay(start : Coord, end : Coord) : Boolean =
+    visibleLine(start,end).contains(end)
+
   def rooms : List[Room]
 }
 

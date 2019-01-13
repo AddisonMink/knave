@@ -4,6 +4,7 @@ import knave.world.World
 import org.scalajs.dom.document
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Size.{height, width}
+import knave.world.enemy.Enemy
 import knave.world.player.Player
 
 object Display {
@@ -65,20 +66,26 @@ object Display {
   private def setPlayer(p : Player) : Unit =
     tileArray(p.pos.y)(p.pos.x) = "@"
 
+  private def setEnemy(e : Enemy) : Unit =
+    tileArray(e.pos.y)(e.pos.x) = show(e.symbol.toString, e.color)
+
   def displayFull(w : World) : Unit = {
     resetTileArray
     setDungeon(w.dungeon)
     setPlayer(w.player)
+    for(e <- w.getEnemies) setEnemy(e)
     map.innerHTML = buildString
   }
 
   def display(w : World) : Unit = {
     resetTileArray
+
     val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
     w.dungeon.visitCoords(fov)
 
     setDungeonFov(w.dungeon, fov)
     setPlayer(w.player)
+    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
     map.innerHTML = buildString
   }
 }
