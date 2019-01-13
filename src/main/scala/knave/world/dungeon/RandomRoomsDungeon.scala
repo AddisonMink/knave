@@ -81,7 +81,6 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
   }
   for(c <- corridors.flatten)
     tileArray(c.x)(c.y) = new InnerFloor(color, darkColor)
-  println((7 to 2).toList)
 
   private val endPoints = corridors.flatMap(_ match {
     case Nil => Nil

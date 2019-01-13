@@ -8,6 +8,8 @@ trait Enemy {
 
   var pos : Coord
 
+  val maxHp : Int
+
   var hp : Int
 
   val symbol : Char

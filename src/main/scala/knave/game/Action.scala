@@ -3,8 +3,16 @@ package knave.game
 import knave.world.{EnemyCollision, NoCollision, World}
 import knave.world.dungeon.Coord
 
+import scala.collection.mutable.ListBuffer
+
 sealed trait Action {
   def updateWorld(w : World) : Vector[Action]
+
+  final protected def addLog(l : String) : Unit =
+    Action.logs += l
+
+  final protected def color(message : String, color : String) : String =
+    "<span style=\"color : " + color + "\">" + message + "</span>"
 }
 
 case class PlayerMove(c : Coord) extends Action {
@@ -56,12 +64,18 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
       case Some(enemy) => {
         if(enemy.hp <= damage) {
           w.destroyEnemy(id)
-          println(s"You have slain the  ${enemy.name}!")
+          addLog(color(s"You have slain the ${enemy.name}!", "light-green"))
           Vector()
         }
         else {
           enemy.hp -= damage
-          println(s"You did ${damage} damage to the ${enemy.name}.")
+          val status = enemy.hp.toFloat / enemy.maxHp.toFloat match {
+            case x if x == 1.0 => color("unharmed", "light-green")
+            case x if x > 0.75 => color("scratched", "light-green")
+            case x if x > 0.25 => color("wounded", "yellow")
+            case _ => color("near death", "red")
+          }
+          addLog(s"You did ${damage} damage to the ${enemy.name} (${status}).")
           Vector()
         }
       }
@@ -72,16 +86,26 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
 case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.player.hp -= damage
-    println(s"${enemyName} did ${damage} damage to you.")
-    if(w.player.hp <= 0) println(s"You have been slain!")
+    addLog(s"${enemyName} did ${damage} damage to you.")
+    if(w.player.hp <= 0) addLog(color("You have been slain!", "red"))
     Vector()
   }
 }
 
 object Action {
-  def applyActions(w : World, actions : Vector[Action]) : Unit =
-    if(actions.nonEmpty) {
-      val newActions = actions.head.updateWorld(w)
-      applyActions(w, newActions ++ actions.tail)
-    }
+
+  private val logs = new ListBuffer[String]
+
+  def applyActions(w : World, actions : Vector[Action]) : List[String] = {
+    logs.clear()
+
+    def loop(as : Vector[Action]) : Unit =
+      if(as.nonEmpty) {
+        val newActions = as.head.updateWorld(w)
+        loop(newActions ++ as.tail)
+      }
+    loop(actions)
+
+    logs.toList
+  }
 }

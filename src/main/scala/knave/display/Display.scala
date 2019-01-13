@@ -81,15 +81,27 @@ object Display {
     str.toString
   }
 
-  def displayFull(w : World) : Unit = {
+  private var logs = List("", "", "", "Welcome to Knave!")
+  private def createLog(newLogs : List[String]) : String = {
+    logs = logs ++ newLogs
+    println(logs)
+    logs = logs.drop(logs.length - 4)
+    println(logs)
+    val str = new StringBuilder
+    for(l <- logs)
+      str ++= l + "\n"
+    str.toString
+  }
+
+  def displayFull(w : World, logs : List[String] = List()) : Unit = {
     resetTileArray
     setDungeon(w.dungeon)
     setPlayer(w.player)
     for(e <- w.getEnemies) setEnemy(e)
-    map.innerHTML = buildString + createHud(w.player)
+    map.innerHTML = createLog(logs) + buildString + createHud(w.player)
   }
 
-  def display(w : World) : Unit = {
+  def display(w : World, logs : List[String] = List()) : Unit = {
     resetTileArray
 
     val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
@@ -98,6 +110,6 @@ object Display {
     setDungeonFov(w.dungeon, fov)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
-    map.innerHTML = buildString + createHud(w.player)
+    map.innerHTML = createLog(logs) + buildString + createHud(w.player)
   }
 }

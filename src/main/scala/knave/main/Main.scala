@@ -18,10 +18,10 @@ object Main extends App {
     val actions = InputProcessor.process(world, input)
     input = ""
     if(actions.nonEmpty) {
-      Action.applyActions(world, actions)
+      val playerLogs = Action.applyActions(world, actions)
       val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
-      Action.applyActions(world, enemyActions)
-      Display.display(world)
+      val logs = Action.applyActions(world, enemyActions)
+      Display.display(world, playerLogs ++ logs)
     }
   })
 }

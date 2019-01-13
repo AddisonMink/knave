@@ -9,7 +9,9 @@ class BoundServant(id : Int, c : Coord, rng : Random) extends Enemy {
 
   override var pos: Coord = c
 
-  override var hp: Int = 20
+  override val maxHp: Int = 20
+
+  override var hp: Int = maxHp
 
   override val symbol: Char = 's'
 
