@@ -1,6 +1,6 @@
 package knave.game
 
-import knave.world.{NoCollision, World}
+import knave.world.{EnemyCollision, NoCollision, World}
 import knave.world.dungeon.Coord
 
 sealed trait Action {
@@ -15,6 +15,7 @@ case class PlayerMove(c : Coord) extends Action {
           w.player.pos = c
           Vector()
         }
+        case EnemyCollision(id) => Vector(w.player.weapon.attack(id))
         case _ => Vector()
       }
     }
@@ -46,6 +47,26 @@ case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
     }
     else Vector()
   }
+}
+
+case class AttackOnEnemy(id : Int, damage : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] =
+    w.enemy(id) match {
+      case None => Vector()
+      case Some(enemy) => {
+        if(enemy.hp <= damage) {
+          w.destroyEnemy(id)
+          println(s"You have slain the  ${enemy.name}!")
+          Vector()
+        }
+        else {
+          enemy.hp -= damage
+          println(s"You did ${damage} damage to the ${enemy.name}.")
+          Vector()
+        }
+      }
+      case _ => Vector()
+    }
 }
 
 object Action {

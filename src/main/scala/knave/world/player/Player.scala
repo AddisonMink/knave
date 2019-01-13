@@ -1,6 +1,7 @@
 package knave.world.player
 
 import knave.world.dungeon.Coord
+import knave.world.player.weapon.{Fist, Weapon}
 
 class Player(c : Coord) {
 
@@ -8,5 +9,7 @@ class Player(c : Coord) {
 
   var pos = c
 
+  private var equippedWeapon : Option[Weapon] = None
 
+  def weapon = equippedWeapon.getOrElse(Fist)
 }

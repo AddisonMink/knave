@@ -26,6 +26,9 @@ trait World {
   final def getEnemies : Iterable[Enemy] =
     enemies.values
 
+  final def destroyEnemy(id : Int) : Unit =
+    enemies.remove(id)
+
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision
     else {
