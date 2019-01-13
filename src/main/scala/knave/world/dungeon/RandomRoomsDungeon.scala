@@ -10,7 +10,7 @@ import scala.util.Random
 private class RandomRoomsDungeon(seed : Int) extends Dungeon {
 
   private val color = "#D3D3D3"
-  private val darkColor = "#A9A9A9"
+  private val darkColor = "#808080"
 
   private val doorColor = "orange"
   private val doorDarkColor = "#FF8C00"
