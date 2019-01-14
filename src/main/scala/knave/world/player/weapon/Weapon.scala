@@ -6,6 +6,8 @@ trait Weapon {
 
   val name : String
 
+  val color : String
+
   val maxDurability : Int
 
   var durability : Int

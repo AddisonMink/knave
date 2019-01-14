@@ -1,6 +1,6 @@
 package knave.main
 
-import knave.game.{Action, PlayerMove}
+import knave.game.{Action, PickUpItem, PlayerMove}
 import knave.world.World
 import knave.world.dungeon.Coord
 
@@ -25,6 +25,7 @@ object InputProcessor {
       case "s" => move(pos.copy(y = pos.y + 1))
       case "a" => move(pos.copy(x = pos.x - 1))
       case "d" => move(pos.copy(x = pos.x + 1))
+      case "g" => if(w.itemAt(w.player.pos).nonEmpty) Vector(PickUpItem(w.player.pos)) else Vector()
       case _ => Vector()
     }
   }

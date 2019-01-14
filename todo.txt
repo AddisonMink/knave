@@ -1,8 +1,10 @@
 * Implement armor.
 * Implement throwing knives.
+* Implement inventory.
 * Implement blood.
-* Implement bound pontiffs.
 * Implement stealth.
+* Implement bound pontiffs.
+* Implement start screen.
 * Test Ruins map extensively to see if it's suitable.
 * Create Quarters map and test extensively.
 * Create Cathedral map and test extensively.

@@ -3,6 +3,7 @@ package knave.world
 import knave.game.Action
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.enemy.Enemy
+import knave.world.item.Item
 import knave.world.player.Player
 
 trait World {
@@ -28,6 +29,21 @@ trait World {
 
   final def destroyEnemy(id : Int) : Unit =
     enemies.remove(id)
+
+  protected val items = collection.mutable.Map[Coord,Item]()
+
+  final def addItem(i : Item) : Unit =
+    items += ((i.pos, i))
+
+  final def itemAt(c : Coord) : Option[Item] =
+    items.get(c)
+
+  final def removeItemAt(c : Coord) : Unit =
+    items.remove(c)
+
+  final def getItems : Iterable[Item] =
+    items.values
+
 
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision

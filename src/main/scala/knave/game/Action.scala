@@ -2,6 +2,7 @@ package knave.game
 
 import knave.world.{EnemyCollision, NoCollision, World}
 import knave.world.dungeon.Coord
+import knave.world.item.WeaponItem
 
 import scala.collection.mutable.ListBuffer
 
@@ -21,6 +22,8 @@ case class PlayerMove(c : Coord) extends Action {
       w.checkCollision(c) match {
         case NoCollision => {
           w.player.pos = c
+          if(w.itemAt(c).isDefined)
+            addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
           Vector()
         }
         case EnemyCollision(id) => Vector(w.player.weapon.attack(id), DamagePlayerWeapon(w.player.weapon.attackCost))
@@ -29,6 +32,20 @@ case class PlayerMove(c : Coord) extends Action {
     }
     else if(w.dungeon.isDoor(c)) Vector(OpenDoor(c))
     else Vector()
+}
+
+case class PickUpItem(c : Coord) extends  Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.itemAt(c) match {
+      case Some(WeaponItem(weapon,_)) => {
+        w.player.equipWeapon(weapon)
+        w.removeItemAt(c)
+        addLog(s"You pick up the ${weapon.name}.")
+        Vector()
+      }
+      case _ => Vector()
+    }
+  }
 }
 
 case class OpenDoor(c : Coord) extends Action {

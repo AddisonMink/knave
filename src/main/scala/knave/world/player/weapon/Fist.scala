@@ -4,6 +4,8 @@ object Fist extends Weapon {
 
   override val name: String = "fist"
 
+  override val color: String = "white"
+
   override val maxDurability: Int = 1
 
   override var durability: Int = 1

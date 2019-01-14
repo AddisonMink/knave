@@ -13,11 +13,14 @@ class Player(c : Coord) {
 
   var hp = maxHp
 
-  private var equippedWeapon : Option[Weapon] = Some(new Knife)
+  private var equippedWeapon : Option[Weapon] = None
 
   def weapon : Weapon =
     equippedWeapon.getOrElse(Fist)
 
   def destroyWeapon : Unit =
     equippedWeapon = None
+
+  def equipWeapon(w : Weapon) : Unit =
+    equippedWeapon = Some(w)
 }

@@ -5,6 +5,7 @@ import org.scalajs.dom.document
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Size.{height, width}
 import knave.world.enemy.Enemy
+import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.Fist
 
@@ -64,6 +65,13 @@ object Display {
       setTile(d, c)
   }
 
+  private def setItems(is : Iterable[Item]) : Unit =
+    for(i <- is)
+      i match {
+        case WeaponItem(w, c) => tileArray(c.y)(c.x) = show(WeaponItem(w,c).symbol, w.color)
+        case _ => ()
+      }
+
   private def setPlayer(p : Player) : Unit =
     tileArray(p.pos.y)(p.pos.x) = "@"
 
@@ -82,14 +90,14 @@ object Display {
 
     val weapon = p.weapon match {
       case Fist => s"Weapon: ${Fist.name} (inf)"
-      case w => s"Weapon: ${w.name} (${w.durability} / ${w.maxDurability})"
+      case w => "Weapon: " + show(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
     }
     str ++= weapon
 
     str.toString
   }
 
-  private var logs = List("", "", "", "Welcome to Knave!")
+  private var logs = List("", "", "", "Welcome to Knave! Use 'wasd' to move.")
   private def createLog(newLogs : List[String]) : String = {
     logs = logs ++ newLogs
     logs = logs.drop(logs.length - 4)
@@ -102,6 +110,7 @@ object Display {
   def displayFull(w : World, logs : List[String] = List()) : Unit = {
     resetTileArray
     setDungeon(w.dungeon)
+    setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies) setEnemy(e)
     map.innerHTML = createLog(logs) + buildString + createHud(w.player)
@@ -112,8 +121,8 @@ object Display {
 
     val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
     w.dungeon.visitCoords(fov)
-
     setDungeonFov(w.dungeon, fov)
+    setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
     map.innerHTML = createLog(logs) + buildString + createHud(w.player)
