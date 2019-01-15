@@ -8,13 +8,15 @@ object InputProcessor {
 
   sealed trait InputState
   case object Start extends InputState
+  case object Look extends InputState
 
-  private var internalState = Start
+  private var internalState : InputState = Start
   def state = internalState
 
   def process(w : World, input : String) : Vector[Action] =
     internalState match {
       case Start => processStart(w, input)
+      case _ => processLook(input)
     }
 
   def processStart(w : World, input : String) : Vector[Action] = {
@@ -26,7 +28,20 @@ object InputProcessor {
       case "a" => move(pos.copy(x = pos.x - 1))
       case "d" => move(pos.copy(x = pos.x + 1))
       case "g" => if(w.itemAt(w.player.pos).nonEmpty) Vector(PickUpItem(w.player.pos)) else Vector()
+      case "l" => {
+        internalState = Look
+        Vector()
+      }
       case _ => Vector()
     }
   }
+
+  def processLook(input : String) : Vector[Action] =
+    input match {
+      case "l" => {
+        internalState = Start
+        Vector()
+      }
+      case _ => Vector()
+    }
 }

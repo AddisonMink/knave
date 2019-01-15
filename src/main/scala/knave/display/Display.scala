@@ -1,6 +1,6 @@
 package knave.display
 
-import knave.world.World
+import knave.world.{PlayerCollision, World}
 import org.scalajs.dom.document
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Size.{height, width}
@@ -14,7 +14,7 @@ object Display {
 
   val map = document.getElementById("map").asInstanceOf[Div]
 
-  private val tileWidth = 10
+  private val tileWidth = 9.5
 
   private val tileHeight = 16
 
@@ -133,9 +133,18 @@ object Display {
     map.innerHTML = createLog(logs) + buildString + createHud(w.player)
   }
 
+  def displayLook(w : World, mouse : Coord, oldMouse : Coord) : Unit =
+    if(mouse != oldMouse) {
+      val log = w.checkCollision(mouse) match {
+        case PlayerCollision => "You are here."
+        case _ => ""
+      }
+      if(log.nonEmpty) display(w, List(log))
+    }
+
   def normalize(x : Int, y : Int) : Coord = {
     val nx = x / tileWidth
-    val ny = y / tileHeight - 4
+    val ny = y / tileHeight - 3
     val trueY =
       if(ny < 0) 0
       else if (ny >= height) height - 1

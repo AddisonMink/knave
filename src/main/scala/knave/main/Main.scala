@@ -3,6 +3,7 @@ package knave.main
 import org.scalajs.dom.document
 import knave.display.Display
 import knave.game.Action
+import knave.main.InputProcessor.{Look, Start}
 import knave.world.World
 import knave.world.dungeon.Coord
 
@@ -13,12 +14,15 @@ object Main extends App {
   var input = ""
   document.onkeydown = { e => input = e.key }
 
-  var mouse : Coord = Coord(0,0)
+  var oldMouse = Coord(0,0)
+  var mouse  = Coord(0,0)
   Display.map.onmousemove = { e => {
     val x = e.pageX - Display.map.offsetLeft
     val y = e.pageY - Display.map.offsetTop
+    oldMouse = mouse
     mouse = Display.normalize(x.toInt, y.toInt)
     println(mouse)
+    println("Player: " + world.player.pos)
   }}
 
   val world = World.createRandomRoomsWorld(100)
@@ -31,6 +35,12 @@ object Main extends App {
       val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
       val logs = Action.applyActions(world, enemyActions)
       Display.display(world, playerLogs ++ logs)
+    }
+    else InputProcessor.state match {
+      case Start => ()
+      case Look => {
+        Display.displayLook(world, mouse, oldMouse)
+      }
     }
   })
 }
