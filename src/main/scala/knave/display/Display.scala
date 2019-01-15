@@ -18,12 +18,15 @@ object Display {
 
   private var mouse = Coord(0,0)
 
+  def mousePos : Coord =
+    mouse
+
   val map = document.getElementById("map").asInstanceOf[Div]
   for(y <- 0 until height) {
     val row = document.createElement("div").asInstanceOf[Div]
     for(x <- 0 until width) {
       val col = document.createElement("span").asInstanceOf[Span]
-      col.id = x.toString + y.toString
+      col.id = x.toString + "-" + y.toString
       col.onmousemove = { e => {
           oldMouse = mouse
           mouse = Coord(x,y)
@@ -43,10 +46,10 @@ object Display {
   private def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
-        document.getElementById(x.toString + y.toString).innerHTML = " "
+        show(Coord(x,y)," ", "white")
 
   private def show(c : Coord, symbol : String, color : String) : Unit = {
-    val tile = document.getElementById(c.x.toString + c.y.toString).asInstanceOf[Span]
+    val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
     tile.style = s"color : ${color}"
     tile.innerHTML = symbol
   }
@@ -117,8 +120,6 @@ object Display {
     str.toString
   }
 
-  private var oldLogs : List[String] = List()
-
   private def createLog(logs : List[String]) : String = {
     val ls = logs.length match {
       case l if l > 4 => logs.drop(l - 4)
@@ -126,10 +127,8 @@ object Display {
       case 3 => " " :: logs
       case 2 => " " :: " " :: logs
       case 1 => " " :: " " :: " " :: logs
-      case 0 => oldLogs
+      case 0 => " " :: " " :: " " :: " " :: Nil
     }
-
-    if(logs.nonEmpty) oldLogs = logs
 
     val str = new StringBuilder
     for(l <- ls)
@@ -150,12 +149,14 @@ object Display {
   def display(w : World, logs : List[String] = List()) : Unit = {
     clearMap
 
-    val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
+    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision).toList
     w.dungeon.visitCoords(fov)
+
     setDungeonFov(w.dungeon, fov)
     setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
+
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
   }
@@ -169,6 +170,15 @@ object Display {
         case _ => ""
       }
       if(log.nonEmpty) display(w, List(log, "You are in look mode. Press escape to exit look mode."))
+      else display(w, List("You are in look mode. Press escape to exit look mode."))
     }
-    if(!oldLogs.contains("You are in look mode. Press escape to exit look mode.")) log.innerHTML = createLog(List("You are in look mode. Press escape to exit look mode."))
+
+
+  def displayRayAttack(w : World, range : Int) : Unit =
+    if(mouse != oldMouse) {
+      display(w, List("Select target. Press 'f' to confirm or escape to cancel."))
+      val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
+      for(c <- ray)
+        show(c, "*", "red")
+    }
 }

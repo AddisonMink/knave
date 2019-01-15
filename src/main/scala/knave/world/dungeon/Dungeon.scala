@@ -42,7 +42,7 @@ trait Dungeon {
     })
   }
 
-  final def fieldOfVisioin(center : Coord, radius : Int) : Stream[Coord] = {
+  final def fieldOfVision(center : Coord, radius : Int) : Stream[Coord] = {
     val rim = ((center.x - radius) to (center.x + radius)).toStream
       .flatMap(tempX => {
         val dx = Math.abs(center.x - tempX)

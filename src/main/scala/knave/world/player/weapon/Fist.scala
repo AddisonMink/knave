@@ -13,4 +13,6 @@ object Fist extends Weapon {
   override val attackDamage: Int = 10
 
   override val attackCost: Int = 0
+
+  override val special: SpecialAttack = NoSpecial
 }

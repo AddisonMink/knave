@@ -40,7 +40,7 @@ case class PickUpItem(c : Coord) extends  Action {
       case Some(WeaponItem(weapon,_)) => {
         w.player.equipWeapon(weapon)
         w.removeItemAt(c)
-        addLog(s"You pick up the ${weapon.name}.")
+        addLog(s"You pick up the ${weapon.name}. Press 'f' to use it's special attack.")
         Vector()
       }
       case _ => Vector()

@@ -7,4 +7,6 @@ class Knife extends Weapon {
   override var durability: Int = maxDurability
   override val attackDamage: Int = 20
   override val attackCost: Int = 1
+
+  override val special: SpecialAttack = Ray(5, attackDamage, attackCost * 2)
 }

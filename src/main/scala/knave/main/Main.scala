@@ -17,19 +17,19 @@ object Main extends App {
   val world = World.createRandomRoomsWorld(100)
   Display.display(world, List("Welcome to Knave...", "Use 'wasd' to move and space to look around."))
   js.timers.setInterval(10)({
-    val actions = InputProcessor.process(world, input)
+    val oldState = InputProcessor.state
+    val actions = InputProcessor.process(world, input, Display.mousePos)
     input = ""
     if(actions.nonEmpty) {
-      val playerLogs = Action.applyActions(world, actions)
       val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
-      val logs = Action.applyActions(world, enemyActions)
-      Display.display(world, playerLogs ++ logs)
+      val logs = Action.applyActions(world, actions ++ enemyActions)
+      Display.display(world, logs)
     }
     else InputProcessor.state match {
-      case Start => ()
-      case Look => {
-        Display.displayLook(world)
-      }
+      case Start => if (InputProcessor.state != oldState) Display.display(world) else ()
+      case Look => Display.displayLook(world)
+      case InputProcessor.RayAttack(range, _, _) => Display.displayRayAttack(world, range)
+      case _ => ()
     }
   })
 }
