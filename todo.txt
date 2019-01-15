@@ -1,7 +1,12 @@
+* Implement look.
+* Enhance logs.
+* Add goal.
+* Enhance logs with 'more' option.
 * Implement armor.
 * Implement throwing knives.
 * Implement inventory.
 * Implement blood.
+* Implement speed.
 * Implement stealth.
 * Implement bound pontiffs.
 * Implement start screen.
