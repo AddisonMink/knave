@@ -28,7 +28,7 @@ object InputProcessor {
       case "a" => move(pos.copy(x = pos.x - 1))
       case "d" => move(pos.copy(x = pos.x + 1))
       case "g" => if(w.itemAt(w.player.pos).nonEmpty) Vector(PickUpItem(w.player.pos)) else Vector()
-      case "l" => {
+      case "space" => {
         internalState = Look
         Vector()
       }
@@ -38,7 +38,7 @@ object InputProcessor {
 
   def processLook(input : String) : Vector[Action] =
     input match {
-      case "l" => {
+      case "escape" => {
         internalState = Start
         Vector()
       }

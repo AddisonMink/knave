@@ -12,21 +12,10 @@ import scala.scalajs.js
 object Main extends App {
 
   var input = ""
-  document.onkeydown = { e => input = e.key }
-
-  var oldMouse = Coord(0,0)
-  var mouse  = Coord(0,0)
-  Display.map.onmousemove = { e => {
-    val x = e.pageX - Display.map.offsetLeft
-    val y = e.pageY - Display.map.offsetTop
-    oldMouse = mouse
-    mouse = Display.normalize(x.toInt, y.toInt)
-    println(mouse)
-    println("Player: " + world.player.pos)
-  }}
+  document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
   val world = World.createRandomRoomsWorld(100)
-  Display.display(world)
+  Display.display(world, List("Welcome to Knave...", "Use 'wasd' to move and space to look around."))
   js.timers.setInterval(10)({
     val actions = InputProcessor.process(world, input)
     input = ""
@@ -39,7 +28,7 @@ object Main extends App {
     else InputProcessor.state match {
       case Start => ()
       case Look => {
-        Display.displayLook(world, mouse, oldMouse)
+        Display.displayLook(world)
       }
     }
   })

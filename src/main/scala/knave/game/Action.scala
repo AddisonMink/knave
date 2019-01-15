@@ -86,13 +86,7 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
         }
         else {
           enemy.hp -= damage
-          val status = enemy.hp.toFloat / enemy.maxHp.toFloat match {
-            case x if x == 1.0 => color("unharmed", "light-green")
-            case x if x > 0.75 => color("scratched", "light-green")
-            case x if x > 0.25 => color("wounded", "yellow")
-            case _ => color("near death", "red")
-          }
-          addLog(s"You did ${damage} damage to the ${enemy.name} (${status}).")
+          addLog(s"You did ${damage} damage to the ${enemy.description}")
           Vector()
         }
       }

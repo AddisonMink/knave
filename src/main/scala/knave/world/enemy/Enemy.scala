@@ -18,5 +18,19 @@ trait Enemy {
 
   val name : String
 
+  final def description : String = {
+    def color(str : String, color : String) =
+      "<span style=\"color : " + color + "\">" + str + "</span>"
+
+    val status = hp.toFloat / maxHp.toFloat match {
+      case x if x == 1.0 => "unharmed"
+      case x if x > 0.74 => color("scratched", "light-gray")
+      case x if x > 0.25 => color("wounded", "yellow")
+      case _ => color("near death", "red")
+    }
+
+    s"${name} (${status})"
+  }
+
   def act(w : World) : Vector[Action]
 }

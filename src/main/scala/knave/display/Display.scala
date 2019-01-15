@@ -1,6 +1,6 @@
 package knave.display
 
-import knave.world.{PlayerCollision, World}
+import knave.world.{EnemyCollision, PlayerCollision, World}
 import org.scalajs.dom.document
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Size.{height, width}
@@ -14,12 +14,21 @@ object Display {
 
   private val log = document.getElementById("log").asInstanceOf[Div]
 
+  private var oldMouse = Coord(0,0)
+
+  private var mouse = Coord(0,0)
+
   val map = document.getElementById("map").asInstanceOf[Div]
   for(y <- 0 until height) {
     val row = document.createElement("div").asInstanceOf[Div]
     for(x <- 0 until width) {
       val col = document.createElement("span").asInstanceOf[Span]
       col.id = x.toString + y.toString
+      col.onmousemove = { e => {
+          oldMouse = mouse
+          mouse = Coord(x,y)
+        }
+      }
       row.appendChild(col)
     }
     map.appendChild(row)
@@ -108,12 +117,22 @@ object Display {
     str.toString
   }
 
-  private var logs = List("", "", "", "Welcome to Knave! Use 'wasd' to move.")
-  private def createLog(newLogs : List[String]) : String = {
-    logs = logs ++ newLogs
-    logs = logs.drop(logs.length - 4)
+  private var oldLogs : List[String] = List()
+
+  private def createLog(logs : List[String]) : String = {
+    val ls = logs.length match {
+      case l if l > 4 => logs.drop(l - 4)
+      case 4 => logs
+      case 3 => " " :: logs
+      case 2 => " " :: " " :: logs
+      case 1 => " " :: " " :: " " :: logs
+      case 0 => oldLogs
+    }
+
+    if(logs.nonEmpty) oldLogs = logs
+
     val str = new StringBuilder
-    for(l <- logs)
+    for(l <- ls)
       str ++= l + "\n"
     str.toString
   }
@@ -141,22 +160,15 @@ object Display {
     hud.innerHTML = createHud(w.player)
   }
 
-  def displayLook(w : World, mouse : Coord, oldMouse : Coord) : Unit =
+  def displayLook(w : World) : Unit =
     if(mouse != oldMouse) {
       val log = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
+        case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("")
+        case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name
         case _ => ""
       }
-      if(log.nonEmpty) display(w, List(log))
+      if(log.nonEmpty) display(w, List(log, "You are in look mode. Press escape to exit look mode."))
     }
-
-  def normalize(x : Int, y : Int) : Coord = {
-    val nx = x / tileWidth
-    val ny = y / tileHeight - 3
-    val trueY =
-      if(ny < 0) 0
-      else if (ny >= height) height - 1
-      else ny
-    Coord(nx, trueY)
-  }
+    if(!oldLogs.contains("You are in look mode. Press escape to exit look mode.")) log.innerHTML = createLog(List("You are in look mode. Press escape to exit look mode."))
 }
