@@ -12,9 +12,13 @@ import org.scalajs.dom.html.Div
 
 object Display {
 
+  private val log = document.getElementById("log").asInstanceOf[Div]
+
   val map = document.getElementById("map").asInstanceOf[Div]
 
-  private val tileWidth = 9.5
+  private val hud = document.getElementById("hud").asInstanceOf[Div]
+
+  private val tileWidth = 10
 
   private val tileHeight = 16
 
@@ -118,7 +122,9 @@ object Display {
     setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies) setEnemy(e)
-    map.innerHTML = createLog(logs) + buildString + createHud(w.player)
+    log.innerHTML = createLog(logs)
+    map.innerHTML = buildString
+    hud.innerHTML = createHud(w.player)
   }
 
   def display(w : World, logs : List[String] = List()) : Unit = {
@@ -130,7 +136,9 @@ object Display {
     setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
-    map.innerHTML = createLog(logs) + buildString + createHud(w.player)
+    log.innerHTML = createLog(logs)
+    map.innerHTML = buildString
+    hud.innerHTML = createHud(w.player)
   }
 
   def displayLook(w : World, mouse : Coord, oldMouse : Coord) : Unit =
