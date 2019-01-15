@@ -1,5 +1,3 @@
-* Implement look.
-* Enhance logs.
 * Add goal.
 * Enhance logs with 'more' option.
 * Implement armor.
