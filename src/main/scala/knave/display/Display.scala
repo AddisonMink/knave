@@ -8,13 +8,22 @@ import knave.world.enemy.Enemy
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.Fist
-import org.scalajs.dom.html.Div
+import org.scalajs.dom.html.{Div, Span}
 
 object Display {
 
   private val log = document.getElementById("log").asInstanceOf[Div]
 
   val map = document.getElementById("map").asInstanceOf[Div]
+  for(y <- 0 until height) {
+    val row = document.createElement("div").asInstanceOf[Div]
+    for(x <- 0 until width) {
+      val col = document.createElement("span").asInstanceOf[Span]
+      col.id = x.toString + y.toString
+      row.appendChild(col)
+    }
+    map.appendChild(row)
+  }
 
   private val hud = document.getElementById("hud").asInstanceOf[Div]
 
@@ -22,43 +31,36 @@ object Display {
 
   private val tileHeight = 16
 
-  private val tileArray = Array.ofDim[String](height,width)
-
-  private def resetTileArray : Unit =
+  private def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
-        tileArray(y)(x) = " "
-  resetTileArray
+        document.getElementById(x.toString + y.toString).innerHTML = " "
 
-  private def buildString : String = {
-    val str = new StringBuilder
-    for(y <- 0 until height) {
-      for (x <- 0 until width)
-        str ++= tileArray(y)(x)
-      str += '\n'
-    }
-    str.toString
+  private def show(c : Coord, symbol : String, color : String) : Unit = {
+    val tile = document.getElementById(c.x.toString + c.y.toString).asInstanceOf[Span]
+    tile.style = s"color : ${color}"
+    tile.innerHTML = symbol
   }
 
-  private def show(symbol : String, color : String) : String =
+  private def color(symbol : String, color : String) : String =
     "<span style=\"color : " + color + "\">" + symbol + "</span>"
 
   private def setTile(d : Dungeon, c : Coord) : Unit = {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
-    if(floor.isDefined) tileArray(c.y)(c.x) = show(".", floor.get.color)
-    else if(wall.isDefined) tileArray(c.y)(c.x) = show("#", wall.get.color)
-    else if(door.isDefined) tileArray(c.y)(c.x) = if (door.get.open) show("/", door.get.color) else show("+", door.get.color)
+    if(floor.isDefined) show(c, ".", floor.get.color)
+    else if(wall.isDefined) show(c, "#", wall.get.color)
+    else if(door.isDefined) if (door.get.open) show(c, "/", door.get.color) else show(c, "+", door.get.color)
   }
 
   private def setTileDark(d : Dungeon, c : Coord) : Unit = {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
-    if(floor.isDefined) tileArray(c.y)(c.x) = show(".", floor.get.darkColor)
-    else if(wall.isDefined) tileArray(c.y)(c.x) = show("#", wall.get.darkColor)
-    else if(door.isDefined) tileArray(c.y)(c.x) = if (door.get.open) show("/", door.get.color) else show("+", door.get.darkColor)
+    if(floor.isDefined) show(c, ".", floor.get.darkColor)
+    else if(wall.isDefined) show(c, "#", wall.get.darkColor)
+    else if(door.isDefined) if (door.get.open) show(c, "/", door.get.darkColor) else show(c, "+", door.get.darkColor)
   }
 
   private def setDungeon(d : Dungeon) : Unit = {
@@ -77,15 +79,15 @@ object Display {
   private def setItems(is : Iterable[Item]) : Unit =
     for(i <- is)
       i match {
-        case WeaponItem(w, c) => tileArray(c.y)(c.x) = show(WeaponItem(w,c).symbol, w.color)
+        case WeaponItem(w, c) => show(c, WeaponItem(w,c).symbol, w.color)
         case _ => ()
       }
 
   private def setPlayer(p : Player) : Unit =
-    tileArray(p.pos.y)(p.pos.x) = "@"
+    show(p.pos, "@", "white")
 
   private def setEnemy(e : Enemy) : Unit =
-    tileArray(e.pos.y)(e.pos.x) = show(e.symbol.toString, e.color)
+    show(e.pos, e.symbol.toString, e.color)
 
   private def createHud(p : Player) : String = {
     val str = new StringBuilder
@@ -95,11 +97,11 @@ object Display {
       case x if x >= 0.25 => "yellow"
       case _ => "red"
     }
-    str ++= s"Health: ${show(p.hp + "%", healthColor)}\n"
+    str ++= s"Health: ${color(p.hp + "%", healthColor)}\n"
 
     val weapon = p.weapon match {
       case Fist => s"Weapon: ${Fist.name} (inf)"
-      case w => "Weapon: " + show(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
+      case w => "Weapon: " + color(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
     }
     str ++= weapon
 
@@ -117,18 +119,17 @@ object Display {
   }
 
   def displayFull(w : World, logs : List[String] = List()) : Unit = {
-    resetTileArray
+    clearMap
     setDungeon(w.dungeon)
     setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies) setEnemy(e)
     log.innerHTML = createLog(logs)
-    map.innerHTML = buildString
     hud.innerHTML = createHud(w.player)
   }
 
   def display(w : World, logs : List[String] = List()) : Unit = {
-    resetTileArray
+    clearMap
 
     val fov = w.dungeon.fieldOfVisioin(w.player.pos, w.player.vision).toList
     w.dungeon.visitCoords(fov)
@@ -137,7 +138,6 @@ object Display {
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
     log.innerHTML = createLog(logs)
-    map.innerHTML = buildString
     hud.innerHTML = createHud(w.player)
   }
 
