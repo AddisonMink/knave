@@ -44,9 +44,9 @@ case class Coord(x : Int, y : Int) {
     this.lineTo(c).filter(inBounds).headOption
 
   def distance(c : Coord) : Int = {
-    val dx = c.x - x
-    val dy = c.y - y
-    dx + dy
+    val dx = (c.x - x).toFloat
+    val dy = (c.y - y).toFloat
+    Math.sqrt(dx*dx + dy*dy).toInt
   }
 }
 
