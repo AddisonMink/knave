@@ -8,10 +8,15 @@ import knave.world.enemy.Enemy
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.Fist
+import org.scalajs.dom.html.Div
 
 object Display {
 
-  private val map = document.getElementById("map")
+  val map = document.getElementById("map").asInstanceOf[Div]
+
+  private val tileWidth = 10
+
+  private val tileHeight = 16
 
   private val tileArray = Array.ofDim[String](height,width)
 
@@ -126,5 +131,15 @@ object Display {
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
     map.innerHTML = createLog(logs) + buildString + createHud(w.player)
+  }
+
+  def normalize(x : Int, y : Int) : Coord = {
+    val nx = x / tileWidth
+    val ny = y / tileHeight - 4
+    val trueY =
+      if(ny < 0) 0
+      else if (ny >= height) height - 1
+      else ny
+    Coord(nx, trueY)
   }
 }
