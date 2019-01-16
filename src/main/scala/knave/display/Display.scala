@@ -175,9 +175,6 @@ object Display {
 
     setDungeonFov(w.dungeon, fov)
 
-    if(fov.contains(w.stairs))
-      show(w.stairs, "<", "white")
-
     setItems(w.getItems)
     setPlayer(w.player)
     for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w)

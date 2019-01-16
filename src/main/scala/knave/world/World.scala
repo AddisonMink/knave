@@ -46,8 +46,6 @@ trait World {
   final def getItems : Iterable[Item] =
     items.values
 
-  val stairs : Coord
-
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision
     else {

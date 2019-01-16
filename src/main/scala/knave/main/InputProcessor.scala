@@ -49,7 +49,7 @@ object InputProcessor {
           case _ => Vector()
         }
       case "<" =>
-        if(w.player.pos == w.stairs) Vector(AscendStairs)
+        if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)
         else Vector()
       case _ => Vector()
     }

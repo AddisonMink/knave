@@ -95,6 +95,11 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
   for(c <- doors)
     tileArray(c.x)(c.y) = new InnerDoor(doorColor, doorDarkColor, false)
 
+  override def rooms: List[Room] = aggregates.map(Room.createShapeRoom(_))
+
+  private val stairsCoord = rooms.last.randomCoord(rng)
+  tileArray(stairsCoord.x)(stairsCoord.y) = new Stairs(color, darkColor)
+
   override def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
   override def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
@@ -121,7 +126,7 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     case _ => ()
   }
 
-  override def rooms: List[Room] = aggregates.map(Room.createShapeRoom(_))
+  override def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
 
   override def bloodyTile(c: Coord): Unit = {
     val tile = tileArray(c.x)(c.y)

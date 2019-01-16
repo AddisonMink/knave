@@ -18,6 +18,10 @@ private class Corpse(color : String, darkColor : String) extends InnerFloor(colo
   override val symbol = "%"
 }
 
+private class Stairs(color : String, darkColor : String) extends InnerFloor(color, darkColor) {
+  override val symbol: String = "<"
+}
+
 private class InnerWall(var color : String, var darkColor : String) extends Tile {
   val symbol = "#"
 }

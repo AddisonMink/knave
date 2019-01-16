@@ -25,6 +25,8 @@ trait Dungeon {
 
   def createCorpse(c : Coord) : Unit
 
+  def isStairs(c : Coord) : Boolean
+
   private val visitedCoords = collection.mutable.Set[Coord]()
 
   final def visited : Set[Coord] =

@@ -28,6 +28,4 @@ private class RandomRoomsWorld(seed : Int) extends World {
   val c = randomCoordFromRoom(dungeon.rooms.head, rng)
   val knife = WeaponItem(new Knife, c)
   addItem(knife)
-
-  override val stairs = randomCoordFromRoom(dungeon.rooms.last, rng)
 }
