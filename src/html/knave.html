@@ -1,48 +1,62 @@
 <!DOCTYPE html>
 <html>
 <body>
-<div id="container">
-    <div id="log" class="knave"></div>
-    <div id="map" class="knave"></div>
-    <div id="hud" class="knave"></div>
-</div>
+    <div id="outer">
+        <div id="container">
+            <div id="log" class="knave"></div>
+            <div id="map" class="knave"></div>
+            <div id="hud" class="knave"></div>
+        </div>
+    </div>
 
 
-<style>
-        body {
-            background-color: dark-gray;
-        }
+    <style>
+            body {
+                background-color : gray;
+            }
 
-        #container {
-            text-align: center;
-         }
+            #outer {
+                text-align : center;
+            }
 
-        .knave {
-            text-align : left;
-            display: inline-block;
-            background-color: black;
-            font-family : "Courier New", Courier, monospace;
-            white-space: pre;
-            color: white;
-            padding: 5px;
-            width: 750px;
-        }
+            #container {
+                display : inline-block;
 
-        #log {
-            display : block
-        }
+                -webkit-touch-callout: none; /* iOS Safari */
+                -webkit-user-select: none; /* Safari */
+                -khtml-user-select: none; /* Konqueror HTML */
+                -moz-user-select: none; /* Firefox */
+                -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+            }
 
-        #map {
-            display : block
-        }
+            .knave {
+                text-align : left;
+                display: inline-block;
+                background-color: black;
+                font-family : "Courier New", Courier, monospace;
+                white-space: pre;
+                color: white;
+                padding: 5px;
+                width: 750px;
+            }
 
-        #hud {
-            display : block
-         }
+            #log {
+                display : block
+            }
+
+            #map {
+                display : block
+            }
+
+            #hud {
+                display : block
+             }
 
 
-    </style>
+        </style>
 
-<script src="../../target/scala-2.12\knave-fastopt.js" style="margin : auto"></script>
+    <script src="../../target/scala-2.12\knave-fastopt.js" style="margin : auto"></script>
 </body>
 </html>
