@@ -186,8 +186,8 @@ object Display {
     hud.innerHTML = createHud(w.player)
   }
 
-  def displayLook(w : World) : Unit =
-    if(mouse != oldMouse) {
+  def displayLook(w : World, stateChanged : Boolean) : Unit =
+    if(mouse != oldMouse || stateChanged) {
       val log = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
         case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("")
@@ -199,8 +199,8 @@ object Display {
     }
 
 
-  def displayRayAttack(w : World, range : Int) : Unit =
-    if(mouse != oldMouse) {
+  def displayRayAttack(w : World, range : Int, stateChanged : Boolean) : Unit =
+    if(mouse != oldMouse || stateChanged) {
       display(w, List("Select target. Press 'f' to confirm or escape to cancel."))
       val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
       for(c <- ray)

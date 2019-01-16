@@ -46,8 +46,8 @@ object Main extends App {
       }
       else InputProcessor.state match {
         case Start => if (InputProcessor.state != oldState) Display.display(world) else ()
-        case Look => Display.displayLook(world)
-        case InputProcessor.RayAttack(range, _, _) => Display.displayRayAttack(world, range)
+        case Look => Display.displayLook(world, InputProcessor.state == oldState)
+        case InputProcessor.RayAttack(range, _, _) => Display.displayRayAttack(world, range, InputProcessor.state == oldState)
         case _ => ()
       }
     }
