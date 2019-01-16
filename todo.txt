@@ -1,4 +1,6 @@
 Objectives for v0.5
+* BUG: Make the screen redraw when input state changes to look or rayattack.
+* BUG: Make stairs show up in visited tiles.
 * Implement stealth.
 	* Draw enemy fov.
 	* Implement player stealth state.
@@ -17,5 +19,3 @@ Objectives for v0.75
 * Implement Sleeping Knights.
 * Implement Moving between floors.
 * Implement first boss Sepharim and arena.
-
-799026
