@@ -1,6 +1,8 @@
 Objectives for v0.5
-* Implement blood.
 * Implement stealth.
+	* Draw enemy fov.
+	* Implement player stealth state.
+	* Change enemy behavior to depend on stealth state.
 * Implement bound pontiffs.
 * Implement start screen.
 * Test and make playable.
@@ -15,3 +17,5 @@ Objectives for v0.75
 * Implement Sleeping Knights.
 * Implement Moving between floors.
 * Implement first boss Sepharim and arena.
+
+799026
