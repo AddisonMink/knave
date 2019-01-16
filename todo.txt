@@ -1,11 +1,9 @@
 Objectives for v0.5
-* Add success and failure states.
-* Implement inventory and health items.
-* Implement armor.
 * Implement blood.
 * Implement stealth.
 * Implement bound pontiffs.
 * Implement start screen.
+* Test and make playable.
 
 Objectives for v0.75
 * Test Ruins map extensively to see if it's suitable.
