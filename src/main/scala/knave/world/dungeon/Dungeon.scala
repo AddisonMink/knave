@@ -50,14 +50,14 @@ trait Dungeon {
     })
   }
 
-  final def fieldOfVision(center : Coord, radius : Int) : Stream[Coord] = {
+  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val rim = ((center.x - radius) to (center.x + radius)).toStream
       .flatMap(tempX => {
         val dx = Math.abs(center.x - tempX)
         val dy = radius - dx
         Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
       })
-    rim.flatMap(visibleLine(center,_)).distinct
+    rim.flatMap(visibleLine(center,_)).toSet
   }
 
   final def castRay(start : Coord, end : Coord) : Boolean =

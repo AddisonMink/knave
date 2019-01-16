@@ -23,6 +23,8 @@ class BoundServant(id : Int, c : Coord, rng : Random) extends Enemy {
 
   override val blood: Int = 1
 
+  override val vision: Int = 3
+
   override def act(w: World): Vector[Action] =
     if(w.dungeon.castRay(pos, w.player.pos)) {
       val c = pos.nextCoord(w.player.pos).get

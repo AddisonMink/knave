@@ -57,13 +57,13 @@ object Display {
   private def color(symbol : String, color : String) : String =
     "<span style=\"color : " + color + "\">" + symbol + "</span>"
 
-  private def setTile(d : Dungeon, c : Coord) : Unit = {
+  private def setTile(d : Dungeon, c : Coord, color : Option[String] = None) : Unit = {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
-    if(floor.isDefined) show(c, floor.get.symbol, floor.get.color)
-    else if(wall.isDefined) show(c, wall.get.symbol, wall.get.color)
-    else if(door.isDefined) show(c, door.get.symbol, door.get.color)
+    if(floor.isDefined) show(c, floor.get.symbol, color.getOrElse(floor.get.color))
+    else if(wall.isDefined) show(c, wall.get.symbol, color.getOrElse(wall.get.color))
+    else if(door.isDefined) show(c, door.get.symbol, color.getOrElse(door.get.color))
   }
 
   private def setTileDark(d : Dungeon, c : Coord) : Unit = {
@@ -98,8 +98,12 @@ object Display {
   private def setPlayer(p : Player) : Unit =
     show(p.pos, "@", "white")
 
-  private def setEnemy(e : Enemy) : Unit =
+  private def setEnemy(e : Enemy, playerFov : Set[Coord], d : Dungeon) : Unit = {
     show(e.pos, e.symbol.toString, e.color)
+    val enemyFov = d.fieldOfVision(e.pos, e.vision)
+    for(c <- enemyFov.intersect(playerFov))
+      setTile(d, c, Some("orange"))
+  }
 
   private def createHud(p : Player) : String = {
     val str = new StringBuilder
@@ -136,6 +140,7 @@ object Display {
     str.toString
   }
 
+  /*
   def displayFull(w : World, logs : List[String] = List()) : Unit = {
     clearMap
     setDungeon(w.dungeon)
@@ -145,11 +150,13 @@ object Display {
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
   }
+  */
+
 
   def display(w : World, logs : List[String] = List()) : Unit = {
     clearMap
 
-    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision).toList
+    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision)
     w.dungeon.visitCoords(fov)
 
     setDungeonFov(w.dungeon, fov)
@@ -159,7 +166,7 @@ object Display {
 
     setItems(w.getItems)
     setPlayer(w.player)
-    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e)
+    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w.dungeon)
 
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
