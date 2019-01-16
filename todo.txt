@@ -1,14 +1,13 @@
-* Allow the player to move diagonally.
-* Add goal.
-* Enhance logs with 'more' option.
+Objectives for v0.5
+* Add success and failure states.
+* Implement inventory and health items.
 * Implement armor.
-* Implement throwing knives.
-* Implement inventory.
 * Implement blood.
-* Implement speed.
 * Implement stealth.
 * Implement bound pontiffs.
 * Implement start screen.
+
+Objectives for v0.75
 * Test Ruins map extensively to see if it's suitable.
 * Create Quarters map and test extensively.
 * Create Cathedral map and test extensively.
