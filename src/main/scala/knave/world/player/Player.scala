@@ -5,6 +5,8 @@ import knave.world.player.weapon.{Fist, Knife, Weapon}
 
 class Player(c : Coord) {
 
+  var ascended : Boolean = false
+
   val vision = 8
 
   var pos = c

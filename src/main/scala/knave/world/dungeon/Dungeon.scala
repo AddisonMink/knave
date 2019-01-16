@@ -60,7 +60,5 @@ trait Dungeon {
 
 object Dungeon {
 
-  def createDefaultDungeon : Dungeon = new DefaultDungeon
-
   def createRandomRoomsDungeon(seed : Int) : Dungeon = new RandomRoomsDungeon(seed)
 }

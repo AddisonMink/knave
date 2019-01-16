@@ -17,7 +17,7 @@ private class RandomRoomsWorld(seed : Int) extends World {
   private val playerPos = dungeon.rooms.head.randomCoord(rng)
   val player = new Player(playerPos)
 
-  for(room <- dungeon.rooms) {
+  for(room <- dungeon.rooms.tail) {
     var c = room.randomCoord(rng)
     while(checkCollision(c) != NoCollision)
       c = room.randomCoord(rng)
@@ -25,9 +25,9 @@ private class RandomRoomsWorld(seed : Int) extends World {
     addEnemy(servant)
   }
 
-  var c = dungeon.rooms.head.randomCoord(rng)
-  while(checkCollision(c) != NoCollision)
-    c = dungeon.rooms.head.randomCoord(rng)
+  val c = randomCoordFromRoom(dungeon.rooms.head, rng)
   val knife = WeaponItem(new Knife, c)
   addItem(knife)
+
+  override val stairs = randomCoordFromRoom(dungeon.rooms.last, rng)
 }

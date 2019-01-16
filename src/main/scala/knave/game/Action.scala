@@ -24,6 +24,8 @@ case class PlayerMove(c : Coord) extends Action {
           w.player.pos = c
           if(w.itemAt(c).isDefined)
             addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
+          if(c == w.stairs)
+            addLog(s"You have reached the stairs. Press '<' to ascend.")
           Vector()
         }
         case EnemyCollision(id) => Vector(w.player.weapon.attack(id), DamagePlayerWeapon(w.player.weapon.attackCost))
@@ -109,6 +111,16 @@ case class DamagePlayerWeapon(damage : Int) extends Action {
     if(w.player.weapon.durability <= 0) {
       w.player.destroyWeapon
       addLog(color("Your weapon broke!", "red"))
+    }
+    Vector()
+  }
+}
+
+case object AscendStairs extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    if(w.player.pos == w.stairs) {
+      w.player.ascended = true
+      addLog(color("You win!", "green"))
     }
     Vector()
   }

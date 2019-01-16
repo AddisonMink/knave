@@ -1,10 +1,12 @@
 package knave.world
 
 import knave.game.Action
-import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.{Coord, Dungeon, Room}
 import knave.world.enemy.Enemy
 import knave.world.item.Item
 import knave.world.player.Player
+
+import scala.util.Random
 
 trait World {
 
@@ -44,6 +46,7 @@ trait World {
   final def getItems : Iterable[Item] =
     items.values
 
+  val stairs : Coord
 
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision
@@ -53,11 +56,19 @@ trait World {
       else if(!dungeon.isWalkable(c)) OutOfBounds
       else NoCollision
     }
+
+  protected def randomCoordFromRoom(r : Room, rng : Random, tries : Int = 100) : Coord = {
+    var c = r.randomCoord(rng)
+    var i = tries
+    while(checkCollision(c) != NoCollision && i > 0) {
+      c = r.randomCoord(rng)
+      i -= 1
+    }
+    c
+  }
 }
 
 object World {
-
-  def createDefaultWorld : World = new DefaultWorld
 
   def createRandomRoomsWorld(seed : Int) : World = new RandomRoomsWorld(seed)
 }

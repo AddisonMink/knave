@@ -48,6 +48,9 @@ object InputProcessor {
           }
           case _ => Vector()
         }
+      case "<" =>
+        if(w.player.pos == w.stairs) Vector(AscendStairs)
+        else Vector()
       case _ => Vector()
     }
   }
