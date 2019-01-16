@@ -98,22 +98,36 @@ object Display {
   private def setPlayer(p : Player) : Unit =
     show(p.pos, "@", "white")
 
-  private def setEnemy(e : Enemy, playerFov : Set[Coord], d : Dungeon) : Unit = {
+  private def setEnemy(e : Enemy, playerFov : Set[Coord], w : World) : Unit = {
     show(e.pos, e.symbol.toString, e.color)
-    val enemyFov = d.fieldOfVision(e.pos, e.vision)
-    for(c <- enemyFov.intersect(playerFov))
-      setTile(d, c, Some("orange"))
+
+    if(w.player.hidden) {
+      val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision)
+      for(c <- enemyFov.intersect(playerFov))
+        setTile(w.dungeon, c, Some("orange"))
+    }
+    else {
+      val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision*2)
+      for(c <- enemyFov.intersect(playerFov))
+        setTile(w.dungeon, c, Some("red"))
+    }
   }
 
   private def createHud(p : Player) : String = {
     val str = new StringBuilder
     str ++= "Knave\n"
+
+
     val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
       case x if x >= 0.75 => "green"
       case x if x >= 0.25 => "yellow"
       case _ => "red"
     }
-    str ++= s"Health: ${color(p.hp + "%", healthColor)}\n"
+    str ++= s"Health: ${color(p.hp + "%", healthColor)}\t"
+
+    if(p.hidden) str ++= color("Hidden", "green")
+    else str ++= color("Alert", "red")
+    str += '\n'
 
     val weapon = p.weapon match {
       case Fist => s"Weapon: ${Fist.name} (inf)"
@@ -166,7 +180,7 @@ object Display {
 
     setItems(w.getItems)
     setPlayer(w.player)
-    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w.dungeon)
+    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w)
 
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)

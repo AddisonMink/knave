@@ -15,6 +15,8 @@ class Player(c : Coord) {
 
   var hp = maxHp
 
+  var hidden = true
+
   private var equippedWeapon : Option[Weapon] = None
 
   def weapon : Weapon =

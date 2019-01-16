@@ -140,6 +140,23 @@ case object AscendStairs extends Action {
   }
 }
 
+case object SpotSplayer extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.player.hidden = false
+    addLog(color("You have been spotted!", "red"))
+    Vector()
+  }
+}
+
+case object HidePlayer extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.player.hidden = true
+    addLog(color("You've managed to lose your pursuers.","green"))
+    Vector()
+  }
+}
+
+
 object Action {
 
   private val logs = new ListBuffer[String]

@@ -2,7 +2,7 @@ package knave.main
 
 import org.scalajs.dom.document
 import knave.display.Display
-import knave.game.Action
+import knave.game.{Action, HidePlayer, SpotSplayer}
 import knave.main.InputProcessor.{Look, Start}
 import knave.world.World
 import knave.world.dungeon.Coord
@@ -26,12 +26,19 @@ object Main extends App {
   js.timers.setInterval(10)({
     if(state == Ongoing) {
       val oldState = InputProcessor.state
-      val actions = InputProcessor.process(world, input, Display.mousePos)
+      val playerActions = InputProcessor.process(world, input, Display.mousePos)
       input = ""
-      if(actions.nonEmpty) {
+      if(playerActions.nonEmpty) {
         val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
-        val logs = Action.applyActions(world, actions ++ enemyActions)
-        Display.display(world, logs)
+        val logs = Action.applyActions(world, playerActions ++ enemyActions)
+
+        val stealthActions =
+          if(world.player.hidden && world.getEnemies.exists(_.canSeePlayer(world))) Vector(SpotSplayer)
+          else if(!world.player.hidden && !world.getEnemies.exists(_.canSeePlayer(world))) Vector(HidePlayer)
+          else Vector()
+        val stealthLogs = Action.applyActions(world, stealthActions)
+
+        Display.display(world, logs ++ stealthLogs)
         if(world.player.hp <= 0)
           state = Dead
         else if(world.player.ascended)

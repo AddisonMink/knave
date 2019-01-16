@@ -1,10 +1,14 @@
 package knave.world.enemy
 
-import knave.game.Action
+import knave.game.{Action, EnemyMove}
 import knave.world.World
 import knave.world.dungeon.Coord
 
+import scala.util.Random
+
 trait Enemy {
+
+  val id : Int
 
   var pos : Coord
 
@@ -35,6 +39,23 @@ trait Enemy {
 
     s"${name} (${status})"
   }
+
+  final protected def randomMove(rng : Random): EnemyMove = {
+    val i = rng.nextInt(4)
+    val c = i match {
+      case 0 => pos.copy(y = pos.y - 1)
+      case 1 => pos.copy(y = pos.y + 1)
+      case 2 => pos.copy(x = pos.x - 1)
+      case 3 => pos.copy(x = pos.x + 1)
+    }
+    EnemyMove(id,c,false)
+  }
+
+  final def canSeePlayer(w : World) : Boolean =
+    if(w.player.hidden)
+      w.dungeon.castRay(pos, w.player.pos, vision)
+    else
+      w.dungeon.castRay(pos, w.player.pos, vision*2)
 
   def act(w : World) : Vector[Action]
 }

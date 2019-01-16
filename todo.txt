@@ -1,13 +1,11 @@
 Objectives for v0.5
 * BUG: Make the screen redraw when input state changes to look or rayattack.
 * BUG: Make stairs show up in visited tiles.
-* Implement stealth.
-	* Draw enemy fov.
-	* Implement player stealth state.
-	* Change enemy behavior to depend on stealth state.
-* Implement bound pontiffs.
-* Implement start screen.
-* Test and make playable.
+* ENHANCEMENT: Enemy fov's should have a better color.
+* ENHANCEMENT: Font size for map should be bigger.
+* FEATURE: Implement bound pontiffs.
+* TESTING: Test and make playable.
+* FEATURE: dImplement start screen.
 
 Objectives for v0.75
 * Test Ruins map extensively to see if it's suitable.

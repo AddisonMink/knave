@@ -63,6 +63,9 @@ trait Dungeon {
   final def castRay(start : Coord, end : Coord) : Boolean =
     visibleLine(start,end).contains(end)
 
+  final def castRay(start : Coord, end : Coord, limit : Int) : Boolean =
+    visibleLine(start,end).take(limit).contains(end)
+
   def rooms : List[Room]
 }
 
