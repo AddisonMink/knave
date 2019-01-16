@@ -1,5 +1,5 @@
 Objectives for v0.5
-* BUG: Make the screen redraw when input state changes to look or rayattack.
+* ENHANCEMENT: Make ray attacks show the full ray.
 * BUG: Make stairs show up in visited tiles.
 * ENHANCEMENT: Enemy fov's should have a better color.
 * ENHANCEMENT: Font size for map should be bigger.
