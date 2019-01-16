@@ -61,18 +61,18 @@ object Display {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
-    if(floor.isDefined) show(c, ".", floor.get.color)
-    else if(wall.isDefined) show(c, "#", wall.get.color)
-    else if(door.isDefined) if (door.get.open) show(c, "/", door.get.color) else show(c, "+", door.get.color)
+    if(floor.isDefined) show(c, floor.get.symbol, floor.get.color)
+    else if(wall.isDefined) show(c, wall.get.symbol, wall.get.color)
+    else if(door.isDefined) show(c, door.get.symbol, door.get.color)
   }
 
   private def setTileDark(d : Dungeon, c : Coord) : Unit = {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
-    if(floor.isDefined) show(c, ".", floor.get.darkColor)
-    else if(wall.isDefined) show(c, "#", wall.get.darkColor)
-    else if(door.isDefined) if (door.get.open) show(c, "/", door.get.darkColor) else show(c, "+", door.get.darkColor)
+    if(floor.isDefined) show(c, floor.get.symbol, floor.get.darkColor)
+    else if(wall.isDefined) show(c, wall.get.symbol, wall.get.darkColor)
+    else if(door.isDefined) show(c, door.get.symbol, door.get.darkColor)
   }
 
   private def setDungeon(d : Dungeon) : Unit = {

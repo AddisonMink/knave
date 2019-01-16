@@ -18,6 +18,8 @@ trait Enemy {
 
   val name : String
 
+  val blood : Int
+
   final def description : String = {
     def color(str : String, color : String) =
       "<span style=\"color : " + color + "\">" + str + "</span>"

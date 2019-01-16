@@ -7,6 +7,10 @@ package object Size {
 
 trait Dungeon {
 
+  final protected val bloodColor = "#DC143C"
+
+  final protected  val darkBloodColor = "#8B0000"
+
   def isFloor(c : Coord) : Boolean
   def floorAt(c : Coord) : Option[Floor]
 
@@ -16,6 +20,10 @@ trait Dungeon {
   def isDoor(c : Coord) : Boolean
   def doorAt(c : Coord) : Option[Door]
   def openDoor(c : Coord) : Unit
+
+  def bloodyTile(c : Coord) : Unit
+
+  def createCorpse(c : Coord) : Unit
 
   private val visitedCoords = collection.mutable.Set[Coord]()
 

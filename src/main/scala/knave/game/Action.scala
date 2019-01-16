@@ -5,6 +5,7 @@ import knave.world.dungeon.Coord
 import knave.world.item.WeaponItem
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 sealed trait Action {
   def updateWorld(w : World) : Vector[Action]
@@ -81,11 +82,8 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
     w.enemy(id) match {
       case None => Vector()
       case Some(enemy) => {
-        if(enemy.hp <= damage) {
-          w.destroyEnemy(id)
-          addLog(color(s"You have slain the ${enemy.name}!", "light-green"))
-          Vector()
-        }
+        if(enemy.hp <= damage)
+          Vector(EnemyDeath(id))
         else {
           enemy.hp -= damage
           addLog(s"You did ${damage} damage to the ${enemy.description}")
@@ -93,6 +91,22 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
         }
       }
       case _ => Vector()
+    }
+}
+
+case class EnemyDeath(id : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] =
+    w.enemy(id) match {
+      case None => Vector()
+      case Some(enemy) => {
+        w.destroyEnemy(id)
+        addLog(color(s"You have slain the ${enemy.name}!", "white"))
+        w.dungeon.createCorpse(enemy.pos)
+        for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
+          w.dungeon.bloodyTile(c)
+
+        Vector()
+      }
     }
 }
 

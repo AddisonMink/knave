@@ -40,7 +40,7 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     loop(List(), 125)
   }
   for(c <- rects.flatMap(_.fill))
-    tileArray(c.x)(c.y) = new InnerFloor(color, darkColor)
+    tileArray(c.x)(c.y) = new PlainFloor(color, darkColor)
 
   private val aggregates = {
     def loop(rectangles : List[List[Rectangle]], aggregates : List[List[Rectangle]]) : List[List[Rectangle]] = {
@@ -80,7 +80,7 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
     loop(rects.sortBy(_.x), List())
   }
   for(c <- corridors.flatten)
-    tileArray(c.x)(c.y) = new InnerFloor(color, darkColor)
+    tileArray(c.x)(c.y) = new PlainFloor(color, darkColor)
 
   private val endPoints = corridors.flatMap(_ match {
     case Nil => Nil
@@ -98,21 +98,21 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
   override def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
   override def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(Floor(f.color, f.darkColor))
+    case f : InnerFloor => Some(Floor(f.color, f.darkColor, f.symbol))
     case _ => None
   }
 
   override def isWall(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerWall]
 
   override def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(Wall(w.color, w.darkColor))
+    case w : InnerWall => Some(Wall(w.color, w.darkColor, w.symbol))
     case _ => None
   }
 
   override def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
 
   override def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open))
+    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open, d.symbol))
     case _ => None
   }
 
@@ -122,4 +122,15 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
   }
 
   override def rooms: List[Room] = aggregates.map(Room.createShapeRoom(_))
+
+  override def bloodyTile(c: Coord): Unit = {
+    val tile = tileArray(c.x)(c.y)
+    tile.color = bloodColor
+    tile.darkColor = darkBloodColor
+  }
+
+  override def createCorpse(c: Coord): Unit = {
+    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor])
+      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
+  }
 }
