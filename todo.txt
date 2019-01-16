@@ -1,10 +1,7 @@
 Objectives for v0.5
-* ENHANCEMENT: Make ray attacks show the full ray.
-* ENHANCEMENT: Enemy fov's should have a better color.
 * ENHANCEMENT: Font size for map should be bigger.
 * FEATURE: Implement bound pontiffs.
 * TESTING: Test and make playable.
-* FEATURE: dImplement start screen.
 
 Objectives for v0.75
 * Test Ruins map extensively to see if it's suitable.
