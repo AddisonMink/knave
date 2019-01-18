@@ -1,12 +1,12 @@
 package knave.world.enemy
 
-import knave.game.{Action, EnemyMove}
+import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
 import knave.world.dungeon.Coord
 
 import scala.util.Random
 
-trait Enemy {
+abstract class Enemy {
 
   val id : Int
 
@@ -25,6 +25,12 @@ trait Enemy {
   val blood : Int
 
   val vision : Int
+
+  var speed : Speed
+
+  def onAlert : Unit = ()
+
+  def onHidden : Unit = ()
 
   final def description : String = {
     def color(str : String, color : String) =

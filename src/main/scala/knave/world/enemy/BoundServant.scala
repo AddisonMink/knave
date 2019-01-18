@@ -1,5 +1,5 @@
 package knave.world.enemy
-import knave.game.{Action, AttackOnPlayer, EnemyMove, SpotSplayer}
+import knave.game._
 import knave.world.World
 import knave.world.dungeon.Coord
 
@@ -27,11 +27,18 @@ class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
 
   override val vision: Int = 3
 
-  /*
-  Bound Servants move randomly if the player is hidden.
-  If the player has been spotted, they will move toward the player and attack if they have line of sight to the player.
-  Otherwise, they will move randomly.
-   */
+  override var speed: Speed = Slow
+
+  override def onAlert: Unit = {
+    println("Speed up")
+    speed = Fast
+  }
+
+  override def onHidden: Unit = {
+    println("Slow down")
+    speed = Slow
+  }
+
   override def act(w: World): Vector[Action] =
     if(w.player.hidden)
       Vector(randomMove(rng))

@@ -1,5 +1,6 @@
 package knave.display
 
+import knave.game.{Fast, Slow}
 import knave.world.{EnemyCollision, PlayerCollision, World}
 import org.scalajs.dom.document
 import knave.world.dungeon.{Coord, Dungeon}
@@ -98,8 +99,12 @@ object Display {
   private def setPlayer(p : Player) : Unit =
     show(p.pos, "@", "white")
 
-  private def setEnemy(e : Enemy, playerFov : Set[Coord], w : World) : Unit = {
-    show(e.pos, e.symbol.toString, e.color)
+  private def setEnemy(e : Enemy, playerFov : Set[Coord], w : World, speedRound : Boolean) : Unit = {
+    val color =
+      if (speedRound && e.speed == Fast) "red"
+      else if (speedRound && e.speed == Slow) "blue"
+      else e.color
+    show(e.pos, e.symbol.toString, color)
 
     if(w.player.hidden) {
       val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision)
@@ -167,7 +172,7 @@ object Display {
   */
 
 
-  def display(w : World, logs : List[String] = List()) : Unit = {
+  def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
 
     val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision)
@@ -177,13 +182,13 @@ object Display {
 
     setItems(w.getItems)
     setPlayer(w.player)
-    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w)
+    for(e <- w.getEnemies.filter(e => fov.contains(e.pos))) setEnemy(e, fov, w, speedRound)
 
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
   }
 
-  def displayLook(w : World, stateChanged : Boolean) : Unit =
+  def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
       val log = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
@@ -191,14 +196,14 @@ object Display {
         case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name
         case _ => ""
       }
-      if(log.nonEmpty) display(w, List(log, "You are in look mode. Press escape to exit look mode."))
-      else display(w, List("You are in look mode. Press escape to exit look mode."))
+      if(log.nonEmpty) display(w, List(log, "You are in look mode. Press escape to exit look mode."), speedRound)
+      else display(w, List("You are in look mode. Press escape to exit look mode."), speedRound)
     }
 
 
-  def displayRayAttack(w : World, range : Int, stateChanged : Boolean) : Unit =
+  def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
-      display(w, List("Select target. Press 'f' to confirm or escape to cancel."))
+      display(w, List("Select target. Press 'f' to confirm or escape to cancel."), speedRound)
       val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
       for(c <- ray)
         show(c, "*", "red")

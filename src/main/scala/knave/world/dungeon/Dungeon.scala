@@ -5,7 +5,7 @@ package object Size {
   val width = 78
 }
 
-trait Dungeon {
+abstract class Dungeon {
 
   final protected val bloodColor = "#DC143C"
 

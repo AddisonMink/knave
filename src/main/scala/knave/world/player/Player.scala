@@ -1,9 +1,10 @@
 package knave.world.player
 
+import knave.game.{Normal, Speed}
 import knave.world.dungeon.Coord
 import knave.world.player.weapon.{Fist, Knife, Weapon}
 
-class Player(c : Coord) {
+sealed class Player(c : Coord) {
 
   var ascended : Boolean = false
 
@@ -17,6 +18,8 @@ class Player(c : Coord) {
 
   var hidden = true
 
+  var speed : Speed = Normal
+
   private var equippedWeapon : Option[Weapon] = None
 
   def weapon : Weapon =
@@ -28,3 +31,4 @@ class Player(c : Coord) {
   def equipWeapon(w : Weapon) : Unit =
     equippedWeapon = Some(w)
 }
+

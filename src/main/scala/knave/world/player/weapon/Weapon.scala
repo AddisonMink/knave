@@ -4,7 +4,7 @@ import knave.game.{Action, AttackOnEnemy}
 import knave.world.World
 import knave.world.dungeon.Coord
 
-trait Weapon {
+abstract class Weapon {
 
   val name : String
 
