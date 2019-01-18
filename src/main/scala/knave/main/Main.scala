@@ -25,7 +25,7 @@ object Main extends App {
 
 
   val world = World.createRandomRoomsWorld(100)
-  Display.display(world, List("Welcome to Knave...", "Use 'wasd' to move and space to look around."), false)
+  Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
   js.timers.setInterval(10)({
     if(state == Ongoing) {
       val oldState = InputProcessor.state
