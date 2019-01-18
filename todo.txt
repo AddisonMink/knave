@@ -1,15 +1,23 @@
-Objectives for v0.5
-* ENHANCEMENT: Font size for map should be bigger.
-* FEATURE: Implement bound pontiffs.
-* TESTING: Test and make playable.
+Objectives for v0.1
+* FEATURE: Implement speed.
+* ENHANCEMENT: Make start prompt mention diagonal movement with 'qezc'.
+* ENHANCEMENT: Make look and rayattack logs mention that you aim with the mouse.
+* ENHANCEMENT: Make weapon HUD more informative.
+* FEATURE: Add "more" option to log if the log overflows.
+* FEATURE: Add "more" option to look mode.
 
-Objectives for v0.75
-* Test Ruins map extensively to see if it's suitable.
+Objectives for v0.2
+* FEATURE: Implement bound pontiffs.
+* FEATURE: Implement staff.
+* FEATURE: Implement inventory and equip screen.
+* FEATURE: Implement fountain of life.
+* FEATURE: Implement moving between floors and create 5-floor game.
+
+Other Objectives
 * Create Quarters map and test extensively.
 * Create Cathedral map and test extensively.
 * Create other weapons / items.
 * Implement Oracles.
 * Implement Lesser Angels.
 * Implement Sleeping Knights.
-* Implement Moving between floors.
 * Implement first boss Sepharim and arena.
