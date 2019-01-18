@@ -1,5 +1,5 @@
 Objectives for v0.1
-* FEATURE: Implement speed.
+* ENHANCEMENT: Make a shared color palette.
 * ENHANCEMENT: Make start prompt mention diagonal movement with 'qezc'.
 * ENHANCEMENT: Make look and rayattack logs mention that you aim with the mouse.
 * ENHANCEMENT: Make weapon HUD more informative.
