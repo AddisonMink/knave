@@ -2,6 +2,7 @@ package knave.world.enemy
 import knave.game._
 import knave.world.World
 import knave.world.dungeon.Coord
+import knave.display.Palette.{white}
 
 import scala.util.Random
 
@@ -17,7 +18,7 @@ class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
 
   override val symbol: Char = 's'
 
-  override val color: String = "white"
+  override val color: String = white
 
   override val name: String = "bound servant"
 
@@ -30,12 +31,10 @@ class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
   override var speed: Speed = Slow
 
   override def onAlert: Unit = {
-    println("Speed up")
     speed = Fast
   }
 
   override def onHidden: Unit = {
-    println("Slow down")
     speed = Slow
   }
 

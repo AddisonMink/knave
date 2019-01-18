@@ -1,5 +1,7 @@
 package knave.world.dungeon
 
+import knave.display.Palette._
+
 package object Size {
   val height = 20
   val width = 78
@@ -7,9 +9,9 @@ package object Size {
 
 abstract class Dungeon {
 
-  final protected val bloodColor = "#DC143C"
+  final protected val bloodColor = crimson
 
-  final protected  val darkBloodColor = "#8B0000"
+  final protected  val darkBloodColor = darkRed
 
   def isFloor(c : Coord) : Boolean
   def floorAt(c : Coord) : Option[Floor]

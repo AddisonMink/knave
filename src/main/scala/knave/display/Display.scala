@@ -10,6 +10,7 @@ import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.Fist
 import org.scalajs.dom.html.{Div, Span}
+import Palette._
 
 object Display {
 
@@ -47,7 +48,7 @@ object Display {
   private def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
-        show(Coord(x,y)," ", "white")
+        show(Coord(x,y)," ", white)
 
   private def show(c : Coord, symbol : String, color : String) : Unit = {
     val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
@@ -97,24 +98,24 @@ object Display {
       }
 
   private def setPlayer(p : Player) : Unit =
-    show(p.pos, "@", "white")
+    show(p.pos, "@", white)
 
   private def setEnemy(e : Enemy, playerFov : Set[Coord], w : World, speedRound : Boolean) : Unit = {
     val color =
-      if (speedRound && e.speed == Fast) "red"
-      else if (speedRound && e.speed == Slow) "blue"
+      if (speedRound && e.speed == Fast) red
+      else if (speedRound && e.speed == Slow) cyan
       else e.color
     show(e.pos, e.symbol.toString, color)
 
     if(w.player.hidden) {
       val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision)
       for(c <- enemyFov.intersect(playerFov))
-        setTile(w.dungeon, c, Some("orange"))
+        setTile(w.dungeon, c, Some(orange))
     }
     else {
       val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision*2)
       for(c <- enemyFov.intersect(playerFov))
-        setTile(w.dungeon, c, Some("red"))
+        setTile(w.dungeon, c, Some(red))
     }
   }
 
@@ -124,14 +125,14 @@ object Display {
 
 
     val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
-      case x if x >= 0.75 => "green"
-      case x if x >= 0.25 => "yellow"
-      case _ => "red"
+      case x if x >= 0.75 => green
+      case x if x >= 0.25 => yellow
+      case _ => red
     }
     str ++= s"Health: ${color(p.hp + "%", healthColor)}\t"
 
-    if(p.hidden) str ++= color("Hidden", "green")
-    else str ++= color("Alert", "red")
+    if(p.hidden) str ++= color("Hidden", green)
+    else str ++= color("Alert", red)
     str += '\n'
 
     val weapon = p.weapon match {
@@ -206,6 +207,6 @@ object Display {
       display(w, List("Select target. Press 'f' to confirm or escape to cancel."), speedRound)
       val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
       for(c <- ray)
-        show(c, "*", "red")
+        show(c, "*", red)
     }
 }

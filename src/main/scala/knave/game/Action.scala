@@ -7,6 +7,8 @@ import knave.world.item.WeaponItem
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+import knave.display.Palette._
+
 sealed trait Action {
   def updateWorld(w : World) : Vector[Action]
 
@@ -100,7 +102,7 @@ case class EnemyDeath(id : Int) extends Action {
       case None => Vector()
       case Some(enemy) => {
         w.destroyEnemy(id)
-        addLog(color(s"You have slain the ${enemy.name}!", "white"))
+        addLog(color(s"You have slain the ${enemy.name}!", red))
         w.dungeon.createCorpse(enemy.pos)
         for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
           w.dungeon.bloodyTile(c)
@@ -114,7 +116,7 @@ case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.player.hp -= damage
     addLog(s"${enemyName} did ${damage} damage to you.")
-    if(w.player.hp <= 0) addLog(color("You have been slain!", "red"))
+    if(w.player.hp <= 0) addLog(color("You have been slain!", red))
     Vector()
   }
 }
@@ -124,7 +126,7 @@ case class DamagePlayerWeapon(damage : Int) extends Action {
     w.player.weapon.durability -= damage
     if(w.player.weapon.durability <= 0) {
       w.player.destroyWeapon
-      addLog(color("Your weapon broke!", "red"))
+      addLog(color("Your weapon broke!", red))
     }
     Vector()
   }
@@ -134,7 +136,7 @@ case object AscendStairs extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     if(w.dungeon.isStairs(w.player.pos)) {
       w.player.ascended = true
-      addLog(color("You win!", "green"))
+      addLog(color("You win!", green))
     }
     Vector()
   }
@@ -143,7 +145,7 @@ case object AscendStairs extends Action {
 case object SpotSplayer extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.player.hidden = false
-    addLog(color("You have been spotted!", "red"))
+    addLog(color("You have been spotted!", red))
     Vector()
   }
 }
@@ -151,7 +153,7 @@ case object SpotSplayer extends Action {
 case object HidePlayer extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.player.hidden = true
-    addLog(color("You've managed to lose your pursuers.","green"))
+    addLog(color("You've managed to lose your pursuers.",green))
     Vector()
   }
 }

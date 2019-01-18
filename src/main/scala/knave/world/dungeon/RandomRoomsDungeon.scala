@@ -6,14 +6,15 @@ import scala.collection.immutable.HashSet.HashSet1
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
+import knave.display.Palette._
 
 private class RandomRoomsDungeon(seed : Int) extends Dungeon {
 
-  private val color = "#D3D3D3"
-  private val darkColor = "#808080"
+  private val color = lightGray
+  private val darkColor = darkGray
 
-  private val doorColor = "orange"
-  private val doorDarkColor = "#FF8C00"
+  private val doorColor = orange
+  private val doorDarkColor = darkOrange
 
   private val tileArray = Array.ofDim[Tile](width,height)
   for(x <- 0 until width)
