@@ -197,14 +197,14 @@ object Display {
         case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name
         case _ => ""
       }
-      if(log.nonEmpty) display(w, List(log, "You are in look mode. Press escape to exit look mode."), speedRound)
-      else display(w, List("You are in look mode. Press escape to exit look mode."), speedRound)
+      if(log.nonEmpty) display(w, List(log, "You are in look mode. Look at points of interest with your mouse. Press 'esc' to exit."), speedRound)
+      else display(w, List("You are in look mode. Look at points of interest with your mouse. Press 'esc' to exit."), speedRound)
     }
 
 
   def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
-      display(w, List("Select target. Press 'f' to confirm or escape to cancel."), speedRound)
+      display(w, List("Select target with mouse. Press 'f' to confirm or 'esc' to cancel."), speedRound)
       val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
       for(c <- ray)
         show(c, "*", red)
