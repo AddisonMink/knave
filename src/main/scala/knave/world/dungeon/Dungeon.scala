@@ -95,7 +95,7 @@ abstract class Dungeon {
   final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     var i = radius
-    while(i >= 4) {
+    do {
       val rim = ((center.x - i) to (center.x + i)).toStream
         .flatMap(tempX => {
           val dx = Math.abs(center.x - tempX)
@@ -104,7 +104,7 @@ abstract class Dungeon {
         })
       cs ++= rim.flatMap(visibleLine(center,_)).toList
       i -= 1
-    }
+    } while(i > 3)
     cs.toSet
   }
 
