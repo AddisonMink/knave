@@ -1,10 +1,11 @@
 Objectives for v0.1
-* BUG: FOV has holes in it due to rounding errors.
-* FEATURE: Add "more" option to log if the log overflows.
-* FEATURE: Add "more" option to look mode.
 * TESTING: Playtesting.
+	* Knife should have lower durability, but enemies should sometimes drop knives.
+	* Rooms should have enemies proportional to their size.
 
 Objectives for v0.2
+* FEATURE: Add "more" option to log if the log overflows.
+* FEATURE: Add "more" option to look mode.
 * FEATURE: Implement bound pontiffs.
 * FEATURE: Implement staff.
 * FEATURE: Implement inventory and equip screen.
