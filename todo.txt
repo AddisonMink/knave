@@ -1,5 +1,4 @@
 Objectives for v0.2
-* FEATURE: Add "more" option to log if the log overflows.
 * FEATURE: Add "more" option to look mode.
 * FEATURE: Implement fountain of life.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.
