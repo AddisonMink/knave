@@ -1,10 +1,9 @@
 Objectives for v0.1
-* ENHANCEMENT: Make a shared color palette.
-* ENHANCEMENT: Make start prompt mention diagonal movement with 'qezc'.
-* ENHANCEMENT: Make look and rayattack logs mention that you aim with the mouse.
-* ENHANCEMENT: Make weapon HUD more informative.
+* BUG: FOV has holes in it due to rounding errors.
+* BUG: Enemies are not always alerted.
 * FEATURE: Add "more" option to log if the log overflows.
 * FEATURE: Add "more" option to look mode.
+* TESTING: Playtesting.
 
 Objectives for v0.2
 * FEATURE: Implement bound pontiffs.
