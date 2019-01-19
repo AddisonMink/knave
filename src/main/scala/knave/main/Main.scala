@@ -5,7 +5,6 @@ import knave.display.Display
 import knave.game._
 import knave.main.InputProcessor.{Look, Start}
 import knave.world.World
-import knave.world.dungeon.Coord
 
 import scala.scalajs.js
 
@@ -25,7 +24,6 @@ object Main extends App {
 
 
   val world = World.createRandomRoomsWorld(100)
-  //val world = World.createOpenWorld
 
   Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
   js.timers.setInterval(10)({

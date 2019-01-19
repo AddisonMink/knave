@@ -1,8 +1,3 @@
-Objectives for v0.1
-* TESTING: Playtesting.
-	* Knife should have lower durability, but enemies should sometimes drop knives.
-	* Rooms should have enemies proportional to their size.
-
 Objectives for v0.2
 * FEATURE: Add "more" option to log if the log overflows.
 * FEATURE: Add "more" option to look mode.
