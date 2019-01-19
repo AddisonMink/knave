@@ -68,7 +68,10 @@ trait World {
 
 object World {
 
-  def createRandomRoomsWorld(seed : Int) : World = new RandomRoomsWorld(seed)
+  def createRandomRoomsWorld(seed: Int): World = new RandomRoomsWorld(seed)
+
+  def createOpenWorld: World = new OpenWorld
+
 }
 
 sealed trait Collision

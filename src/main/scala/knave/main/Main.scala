@@ -24,7 +24,9 @@ object Main extends App {
   var round = 1
 
 
-  val world = World.createRandomRoomsWorld(100)
+  //val world = World.createRandomRoomsWorld(100)
+  val world = World.createOpenWorld
+
   Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
   js.timers.setInterval(10)({
     if(state == Ongoing) {

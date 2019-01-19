@@ -3,6 +3,8 @@ package knave.world.dungeon
 import knave.display.Palette._
 import knave.world.dungeon.Size.{height, width}
 
+import scala.collection.mutable.ListBuffer
+
 package object Size {
   val height = 20
   val width = 78
@@ -80,7 +82,7 @@ abstract class Dungeon {
     })
   }
 
-  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
+  final def fieldOfVisionPartial(center : Coord, radius : Int) : Set[Coord] = {
     val rim = ((center.x - radius) to (center.x + radius)).toStream
       .flatMap(tempX => {
         val dx = Math.abs(center.x - tempX)
@@ -88,6 +90,22 @@ abstract class Dungeon {
         Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
       })
     rim.flatMap(visibleLine(center,_)).toSet
+  }
+
+  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
+    val cs = new ListBuffer[Coord]
+    var i = radius
+    while(i >= 4) {
+      val rim = ((center.x - i) to (center.x + i)).toStream
+        .flatMap(tempX => {
+          val dx = Math.abs(center.x - tempX)
+          val dy = i - dx
+          Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
+        })
+      cs ++= rim.flatMap(visibleLine(center,_)).toList
+      i -= 1
+    }
+    cs.toSet
   }
 
   final def castRay(start : Coord, end : Coord) : Boolean =
@@ -102,4 +120,6 @@ abstract class Dungeon {
 object Dungeon {
 
   def createRandomRoomsDungeon(seed : Int) : Dungeon = new RandomRoomsDungeon(seed)
+
+  def createOpenDungeon : Dungeon = new OpenDungeon
 }
