@@ -40,8 +40,16 @@ object Main extends App {
           val fastLogs = Action.applyActions(world, fastActions)
 
           val stealthActions =
-            if(world.player.hidden && world.getEnemies.exists(_.canSeePlayer(world))) Vector(SpotSplayer)
-            else if(!world.player.hidden && !world.getEnemies.exists(_.canSeePlayer(world))) Vector(HidePlayer)
+            if(world.player.hidden && world.getEnemies.exists(_.canSeePlayer(world))) {
+              for(e <- world.getEnemies)
+                e.onAlert
+              Vector(SpotSplayer)
+            }
+            else if(!world.player.hidden && !world.getEnemies.exists(_.canSeePlayer(world))) {
+              for(e <- world.getEnemies)
+                e.onHidden
+              Vector(HidePlayer)
+            }
             else Vector()
           val stealthLogs = Action.applyActions(world, stealthActions)
 
