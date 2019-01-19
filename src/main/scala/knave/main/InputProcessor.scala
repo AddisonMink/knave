@@ -12,6 +12,7 @@ object InputProcessor {
   case object Start extends InputState
   case object Look extends InputState
   case class RayAttack(range : Int, damage : Int, cost : Int) extends InputState
+  case object LogMore extends InputState
 
   private var internalState : InputState = Start
   def state = internalState
@@ -21,6 +22,7 @@ object InputProcessor {
       case Start => processStart(w, input)
       case Look => processLook(input)
       case RayAttack(range, damage, cost) => processRayAttack(w, input, mouse, range, damage, cost)
+      case LogMore => processLogMore(input)
     }
 
   def processStart(w : World, input : String) : Vector[Action] = {
@@ -51,6 +53,10 @@ object InputProcessor {
       case "<" =>
         if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)
         else Vector()
+      case "m" => {
+        internalState = LogMore
+        Vector()
+      }
       case _ => Vector()
     }
   }
@@ -80,4 +86,11 @@ object InputProcessor {
       }
       case _ => Vector()
     }
+
+  def processLogMore(input : String) =
+    if(input == "escape") {
+      internalState = Start
+      Vector()
+    }
+    else Vector()
 }

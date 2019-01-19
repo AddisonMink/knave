@@ -3,7 +3,7 @@ package knave.main
 import org.scalajs.dom.document
 import knave.display.Display
 import knave.game._
-import knave.main.InputProcessor.{Look, Start}
+import knave.main.InputProcessor.{LogMore, Look, Start}
 import knave.world.World
 
 import scala.scalajs.js
@@ -85,9 +85,10 @@ object Main extends App {
         round += 1
       }
       else InputProcessor.state match {
-        case Start => if (InputProcessor.state != oldState) Display.display(world, List(), round % 3 == 0) else ()
+        case Start => if (InputProcessor.state != oldState) Display.display(world, List(), round % 3 == 0)
         case Look => Display.displayLook(world, InputProcessor.state == oldState, round % 3 == 0)
         case InputProcessor.RayAttack(range, _, _) => Display.displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
+        case LogMore => if(InputProcessor.state != oldState) Display.displayLogMore
         case _ => ()
       }
     }

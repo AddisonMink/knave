@@ -157,9 +157,11 @@ object Display {
     str.toString
   }
 
+  private var fullLog = List[String]()
   private def createLog(logs : List[String]) : String = {
+    fullLog = logs
     val ls = logs.length match {
-      case l if l > 4 => logs.drop(l - 4)
+      case l if l > 4 => logs.drop(l - 3) :+ "Press 'm' for more."
       case 4 => logs
       case 3 => " " :: logs
       case 2 => " " :: " " :: logs
@@ -224,4 +226,23 @@ object Display {
       for(c <- ray)
         show(c, "*", red)
     }
+
+  def displayLogMore : Unit = {
+    val rowsToDrop = fullLog.length - 3
+    for(x <- 0 until width) {
+      for (y <- 0 to rowsToDrop)
+        show(Coord(x, y), "", "")
+      val ys = if (rowsToDrop < 0) 0 else rowsToDrop
+      for (y <- ys until height)
+        show(Coord(x,y), " ", "")
+    }
+
+    val str = new StringBuilder
+    for(l <- fullLog)
+      str ++= (l + "\n")
+    str ++= "You are in log mode. Press 'esc' to exit."
+    for(_ <- 0 until 4 - fullLog.length)
+      str += '\n'
+    log.innerHTML = str.toString
+  }
 }
