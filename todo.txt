@@ -22,10 +22,7 @@ Objectvies for v0.4
 * Implement boss weapon/item.
 
 Other Objectives
-* Create Quarters map and test extensively.
-* Create Cathedral map and test extensively.
-* Create other weapons / items.
-* Implement Oracles.
-* Implement Lesser Angels.
-* Implement Sleeping Knights.
-* Implement first boss Sepharim and arena.
+* Create additional map types:
+	* castle
+	* cathedral
+* Create 25-level game with bosses on every 5th level.
