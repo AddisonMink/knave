@@ -1,11 +1,25 @@
 Objectives for v0.2
 * FEATURE: Add "more" option to log if the log overflows.
 * FEATURE: Add "more" option to look mode.
+* FEATURE: Implement fountain of life.
+* FEATURE: Make bound servants drop knives. Decrease knife's max durability.
+* FEATURE: Implement inventory and equip screen.
 * FEATURE: Implement bound pontiffs.
 * FEATURE: Implement staff.
-* FEATURE: Implement inventory and equip screen.
-* FEATURE: Implement fountain of life.
 * FEATURE: Implement moving between floors and create 5-floor game.
+
+Objectives for v0.3
+* Implement oracles.
+* Implement crystal ball.
+* Implement lesser angels.
+* Implement bow.
+* Implement sleeping knight.
+* Implement sword.
+* Implement depth-dependent difficulty.
+
+Objectvies for v0.4
+* Implement boss arena and 1st boss.
+* Implement boss weapon/item.
 
 Other Objectives
 * Create Quarters map and test extensively.
