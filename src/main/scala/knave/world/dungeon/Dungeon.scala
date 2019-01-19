@@ -1,6 +1,7 @@
 package knave.world.dungeon
 
 import knave.display.Palette._
+import knave.world.dungeon.Size.{height, width}
 
 package object Size {
   val height = 20
@@ -13,21 +14,46 @@ abstract class Dungeon {
 
   final protected  val darkBloodColor = darkRed
 
-  def isFloor(c : Coord) : Boolean
-  def floorAt(c : Coord) : Option[Floor]
+  protected val tileArray = Array.ofDim[Tile](width,height)
 
-  def isWall(c : Coord) : Boolean
-  def wallAt(c : Coord) : Option[Wall]
+  final def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
-  def isDoor(c : Coord) : Boolean
-  def doorAt(c : Coord) : Option[Door]
-  def openDoor(c : Coord) : Unit
+  final def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
+    case f : InnerFloor => Some(Floor(f.color, f.darkColor, f.symbol))
+    case _ => None
+  }
 
-  def bloodyTile(c : Coord) : Unit
+  final def isWall(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerWall]
 
-  def createCorpse(c : Coord) : Unit
+  final def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
+    case w : InnerWall => Some(Wall(w.color, w.darkColor, w.symbol))
+    case _ => None
+  }
 
-  def isStairs(c : Coord) : Boolean
+  final def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
+
+  final def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
+    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open, d.symbol))
+    case _ => None
+  }
+
+  final def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
+    case d : InnerDoor => d.open = true
+    case _ => ()
+  }
+
+  final def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
+
+  final def bloodyTile(c: Coord): Unit = {
+    val tile = tileArray(c.x)(c.y)
+    tile.color = bloodColor
+    tile.darkColor = darkBloodColor
+  }
+
+  final def createCorpse(c: Coord): Unit = {
+    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor])
+      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
+  }
 
   private val visitedCoords = collection.mutable.Set[Coord]()
 

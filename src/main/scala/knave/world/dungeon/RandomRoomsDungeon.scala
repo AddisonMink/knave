@@ -16,7 +16,6 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
   private val doorColor = orange
   private val doorDarkColor = darkOrange
 
-  private val tileArray = Array.ofDim[Tile](width,height)
   for(x <- 0 until width)
     for(y <- 0 until height)
       tileArray(x)(y) = new InnerWall(color, darkColor)
@@ -100,43 +99,4 @@ private class RandomRoomsDungeon(seed : Int) extends Dungeon {
 
   private val stairsCoord = rooms.last.randomCoord(rng)
   tileArray(stairsCoord.x)(stairsCoord.y) = new Stairs(color, darkColor)
-
-  override def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
-
-  override def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(Floor(f.color, f.darkColor, f.symbol))
-    case _ => None
-  }
-
-  override def isWall(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerWall]
-
-  override def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(Wall(w.color, w.darkColor, w.symbol))
-    case _ => None
-  }
-
-  override def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
-
-  override def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open, d.symbol))
-    case _ => None
-  }
-
-  override def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => d.open = true
-    case _ => ()
-  }
-
-  override def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
-
-  override def bloodyTile(c: Coord): Unit = {
-    val tile = tileArray(c.x)(c.y)
-    tile.color = bloodColor
-    tile.darkColor = darkBloodColor
-  }
-
-  override def createCorpse(c: Coord): Unit = {
-    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor])
-      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
-  }
 }

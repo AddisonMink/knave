@@ -1,6 +1,6 @@
 package knave.world.dungeon
 
-private sealed trait Tile {
+protected sealed trait Tile {
   def symbol : String
   var color : String
   var darkColor : String
