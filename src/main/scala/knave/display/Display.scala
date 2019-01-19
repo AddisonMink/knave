@@ -121,7 +121,10 @@ object Display {
 
   private def createHud(p : Player) : String = {
     val str = new StringBuilder
-    str ++= "Knave\n"
+
+    val hidden = if(p.hidden) color("Hidden", green) else color("Alert",red)
+
+    str ++= s"Knave\t${hidden}\n"
 
 
     val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
@@ -129,11 +132,7 @@ object Display {
       case x if x >= 0.25 => yellow
       case _ => red
     }
-    str ++= s"Health: ${color(p.hp + "%", healthColor)}\t"
-
-    if(p.hidden) str ++= color("Hidden", green)
-    else str ++= color("Alert", red)
-    str += '\n'
+    str ++= s"Health: ${color(p.hp + "%", healthColor)}\n"
 
     val weapon = p.weapon match {
       case Fist => {
@@ -144,10 +143,10 @@ object Display {
       }
       case w => {
         val line1 = "Weapon: " + color(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
-        val line2 = s"\n\tAttack: ${w.attackDamage} damage, ${w.attackCost} durability"
+        val line2 = color(s"\n\tAttack: ${w.attackDamage} damage, ${w.attackCost} durability", w.color)
         val line3 = w.special match {
-          case Ray(range, damage, cost) => s"\n\tSpecial: ${damage} damage, ${cost} durability, ${range}-tile ray."
-          case _ => "\n\tNo Special"
+          case Ray(range, damage, cost) => color(s"\n\tSpecial: ${damage} damage, ${cost} durability, ${range}-tile ray.", w.color)
+          case _ => color("\n\tNo Special", w.color)
         }
         line1 + line2 + line3
       }
