@@ -8,7 +8,7 @@ import knave.world.dungeon.Size.{height, width}
 import knave.world.enemy.Enemy
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
-import knave.world.player.weapon.Fist
+import knave.world.player.weapon.{Fist, Ray}
 import org.scalajs.dom.html.{Div, Span}
 import Palette._
 
@@ -136,8 +136,21 @@ object Display {
     str += '\n'
 
     val weapon = p.weapon match {
-      case Fist => s"Weapon: ${Fist.name} (inf)"
-      case w => "Weapon: " + color(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
+      case Fist => {
+        val line1 = s"Weapon: ${Fist.name} (inf)"
+        val line2 = s"\n\tAttack: ${Fist.attackDamage} damage"
+        val line3 = "\n\tNo Special"
+        line1 + line2 + line3
+      }
+      case w => {
+        val line1 = "Weapon: " + color(s"${w.name} (${w.durability} / ${w.maxDurability})", w.color)
+        val line2 = s"\n\tAttack: ${w.attackDamage} damage, ${w.attackCost} durability"
+        val line3 = w.special match {
+          case Ray(range, damage, cost) => s"\n\tSpecial: ${damage} damage, ${cost} durability, ${range}-tile ray."
+          case _ => "\n\tNo Special"
+        }
+        line1 + line2 + line3
+      }
     }
     str ++= weapon
 
