@@ -1,4 +1,5 @@
 Objectives for v0.2
+* FEATURE: Give bound servants patrol paths. Make their fov a cone. Enable player sneak attacks.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.
 * FEATURE: Implement inventory and equip screen.
 * BUG: Log overflow in log mode will change the size of the screen.
