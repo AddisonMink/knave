@@ -13,6 +13,7 @@ object InputProcessor {
   case object Look extends InputState
   case class RayAttack(range : Int, damage : Int, cost : Int) extends InputState
   case object LogMore extends InputState
+  case object LookMore extends InputState
 
   private var internalState : InputState = Start
   def state = internalState
@@ -23,6 +24,7 @@ object InputProcessor {
       case Look => processLook(input)
       case RayAttack(range, damage, cost) => processRayAttack(w, input, mouse, range, damage, cost)
       case LogMore => processLogMore(input)
+      case LookMore => processLookMore(input)
     }
 
   def processStart(w : World, input : String) : Vector[Action] = {
@@ -67,6 +69,10 @@ object InputProcessor {
         internalState = Start
         Vector()
       }
+      case "m" => {
+        internalState = LookMore
+        Vector()
+      }
       case _ => Vector()
     }
 
@@ -87,7 +93,14 @@ object InputProcessor {
       case _ => Vector()
     }
 
-  def processLogMore(input : String) =
+  def processLogMore(input : String) : Vector[Action] =
+    if(input == "escape") {
+      internalState = Start
+      Vector()
+    }
+    else Vector()
+
+  def processLookMore(input : String) : Vector[Action] =
     if(input == "escape") {
       internalState = Start
       Vector()

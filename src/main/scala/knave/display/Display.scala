@@ -210,8 +210,8 @@ object Display {
     if(mouse != oldMouse || stateChanged) {
       val log = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
-        case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("")
-        case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name
+        case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("") + " Press 'm' for more."
+        case _ if w.itemAt(mouse).nonEmpty => s"A ${w.itemAt(mouse).get.name} lies on the ground." + " Press 'm' for more."
         case _ => ""
       }
       if(log.nonEmpty) display(w, List(log, "You are in look mode. Look at points of interest with your mouse. Press 'esc' to exit."), speedRound)
@@ -243,6 +243,30 @@ object Display {
     str ++= "You are in log mode. Press 'esc' to exit."
     for(_ <- 0 until 4 - fullLog.length)
       str += '\n'
+    log.innerHTML = str.toString
+  }
+
+  def displayLookMore(w : World) : Unit = {
+    val description = w.checkCollision(mouse) match {
+      case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("") + "\nPress 'esc' to exit."
+      case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name + "\nPress 'esc' to exit."
+    }
+
+    val lines = description.lines.length
+    val rowsToDrop = lines - 3
+    for(x <- 0 until width) {
+      for (y <- 0 to rowsToDrop)
+        show(Coord(x, y), "", "")
+      val ys = if (rowsToDrop < 0) 0 else rowsToDrop
+      for (y <- ys until height)
+        show(Coord(x,y), " ", "")
+    }
+
+    val str = new StringBuilder(description)
+    println(lines)
+    for(_ <- 0 to (4 - lines))
+      str += '\n'
+
     log.innerHTML = str.toString
   }
 }
