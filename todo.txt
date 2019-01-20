@@ -1,5 +1,6 @@
 Objectives for v0.2
-* FEATURE: Add "more" option to look mode.
+* BUG: Log overflow in log mode will change the size of the screen.
+	* Display logs in the map screen.
 * FEATURE: Implement fountain of life.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.
 * FEATURE: Implement inventory and equip screen.
