@@ -248,25 +248,20 @@ object Display {
 
   def displayLookMore(w : World) : Unit = {
     val description = w.checkCollision(mouse) match {
-      case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("") + "\nPress 'esc' to exit."
-      case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.name + "\nPress 'esc' to exit."
+      case EnemyCollision(id) => w.enemy(id).map(_.fullDescription).getOrElse("") + "\nPress 'esc' to exit."
+      case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.description + "\nPress 'esc' to exit."
     }
 
-    val lines = description.lines.length
-    val rowsToDrop = lines - 3
-    for(x <- 0 until width) {
-      for (y <- 0 to rowsToDrop)
-        show(Coord(x, y), "", "")
-      val ys = if (rowsToDrop < 0) 0 else rowsToDrop
-      for (y <- ys until height)
-        show(Coord(x,y), " ", "")
-    }
-
-    val str = new StringBuilder(description)
+    val lines = description.lines.toVector
     println(lines)
-    for(_ <- 0 to (4 - lines))
-      str += '\n'
-
-    log.innerHTML = str.toString
+    val numLines = lines.length
+    for(y <- 0 until numLines) {
+      for(x <- 1 until width)
+        show(Coord(x,y), "", "")
+      show(Coord(0,y),lines(y), "")
+    }
+    for(y <- numLines until height)
+      for(x <- 0 until width)
+        show(Coord(x,y)," ","")
   }
 }

@@ -30,6 +30,11 @@ class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
 
   override var speed: Speed = Slow
 
+  override def flavorText: String =
+    """ A human who was slain while scaling the tower.
+      | Its soul is now bound to the tower, guarding it until the end of time.
+    """.stripMargin
+
   override def onAlert: Unit = {
     speed = Fast
   }

@@ -28,6 +28,8 @@ abstract class Enemy {
 
   var speed : Speed
 
+  def flavorText : String
+
   def onAlert : Unit = ()
 
   def onHidden : Unit = ()
@@ -45,6 +47,10 @@ abstract class Enemy {
 
     s"${name} (${status})"
   }
+
+  final def fullDescription : String =
+    s"${description}" +
+      s"\n${flavorText}"
 
   final protected def randomMove(rng : Random): EnemyMove = {
     val i = rng.nextInt(4)
