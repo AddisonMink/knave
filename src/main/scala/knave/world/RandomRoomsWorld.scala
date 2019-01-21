@@ -21,7 +21,7 @@ private class RandomRoomsWorld(seed : Int) extends World {
     var c = room.randomCoord(rng)
     while(checkCollision(c) != NoCollision)
       c = room.randomCoord(rng)
-    val servant = new BoundServant(nextId, c, rng)
+    val servant = new BoundServant(nextId, c, rng, room)
     addEnemy(servant)
   }
 

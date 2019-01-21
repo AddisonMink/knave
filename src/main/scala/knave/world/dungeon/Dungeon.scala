@@ -69,28 +69,21 @@ abstract class Dungeon {
     isFloor(c) || doorAt(c).map(_.open).getOrElse(false)
 
   final def visibleLine(start : Coord, end : Coord) : Stream[Coord] = {
-    var valid = true
+    var barrierEncountered = true
     start.lineTo(end).takeWhile(c => {
       if(!isWalkable(c)) {
-        if(valid) {
-          valid = false
+        if(barrierEncountered) {
+          barrierEncountered = false
           true
         }
         else false
       }
-      else valid
+      else barrierEncountered
     })
   }
 
-  final def fieldOfVisionPartial(center : Coord, radius : Int) : Set[Coord] = {
-    val rim = ((center.x - radius) to (center.x + radius)).toStream
-      .flatMap(tempX => {
-        val dx = Math.abs(center.x - tempX)
-        val dy = radius - dx
-        Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
-      })
-    rim.flatMap(visibleLine(center,_)).toSet
-  }
+  final def walkableLine(start : Coord, end : Coord) : Stream[Coord] =
+    start.lineTo(end).takeWhile(isWalkable(_))
 
   final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
@@ -113,6 +106,29 @@ abstract class Dungeon {
 
   final def castRay(start : Coord, end : Coord, limit : Int) : Boolean =
     visibleLine(start,end).take(limit).contains(end)
+
+  final def findPath(start : Coord, end : Coord) : List[Coord] = {
+
+    def loop(paths : List[List[Coord]], visited : Set[Coord]) : List[Coord] =
+      if(paths.isEmpty || paths.head.isEmpty) List()
+      else {
+        val path = paths.head
+        if(path.head == end) path
+        else {
+          val moves = path.head.adjacent.filter(c => !visited.contains(c) && isWalkable(c)).sortBy(_.distance(end)).toList
+          val newVisited = visited.union(moves.toSet)
+          val newPaths = moves.map(_ :: path) ++ paths.tail
+          loop(newPaths, newVisited)
+        }
+      }
+
+    if(start == end) List()
+    else {
+      val path = loop(List(List(start)), Set(start))
+      if(path.isEmpty) List()
+      else path.reverse.tail
+    }
+  }
 
   def rooms : List[Room]
 }

@@ -1,12 +1,27 @@
 package knave.world.enemy
 import knave.game._
 import knave.world.World
-import knave.world.dungeon.Coord
-import knave.display.Palette.{white}
+import knave.world.dungeon.{Coord, Room}
+import knave.display.Palette.white
 
 import scala.util.Random
 
-class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
+class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy {
+
+  private val patrolStart  = c
+
+  private val patrolEnd = {
+    var end = room.randomCoord(rng)
+    var tries = 10
+    while(end.distance(patrolStart) < 5 && tries > 0) {
+      end = room.randomCoord(rng)
+      tries -= 1
+    }
+
+    end
+  }
+
+  private var patrollingTowardsEnd = true
 
   override val id: Int = i
 
@@ -43,13 +58,51 @@ class BoundServant(i : Int, c : Coord, rng : Random) extends Enemy {
     speed = Slow
   }
 
+  private def move(c : Coord) : Vector[Action] = {
+    val m = EnemyMove(id,c,false)
+    Vector(m)
+  }
+
+  private def attack(c : Coord) : Vector[Action] = {
+    val a = AttackOnPlayer(name, attackDamage)
+    Vector(a)
+  }
+
   override def act(w: World): Vector[Action] =
-    if(w.player.hidden)
-      Vector(randomMove(rng))
-    else if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {
-      val c = pos.nextCoord(w.player.pos).get
-      if(pos.distance(w.player.pos) == 1) Vector(AttackOnPlayer(name, attackDamage))
-      else Vector(EnemyMove(id,c,false))
+    if(w.player.hidden) normalBehavior(w)
+    else alertedBehavior(w)
+
+  private def normalBehavior(w : World): Vector[Action] = {
+    val dest = if(patrollingTowardsEnd) patrolEnd else patrolStart
+    if(pos == dest) {
+      patrollingTowardsEnd = !patrollingTowardsEnd
+      Vector()
     }
-    else Vector(randomMove(rng))
+    else {
+      val path = w.dungeon.findPath(pos,dest)
+
+      // 23, 11
+      if(patrolStart == Coord(23,11)) {
+        println("Player pos: " + w.player.pos)
+        println("Enemy pos: " + pos)
+        println("Path: " + path)
+      }
+
+      if(path.nonEmpty) move(path.head)
+      else
+        Random.shuffle(pos.adjacent).filter(w.dungeon.isWalkable(_)).headOption match {
+          case Some(c) => move(c)
+          case _ => Vector()
+        }
+    }
+  }
+
+  private def alertedBehavior(w : World) : Vector[Action] = {
+    if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {
+      val c = pos.nextCoord(w.player.pos).get
+      if(pos.distance(w.player.pos) == 1) attack(c)
+      else move(c)
+    }
+    else normalBehavior(w)
+  }
 }
