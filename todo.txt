@@ -1,9 +1,6 @@
 Objectives for v0.2
-* FEATURE: Give bound servants patrol paths. Make their fov a cone. Enable player sneak attacks.
-	* Patrol paths working. Pathfinding is technically correct because it finds the shortest path,
-	  however because diagonal moves count as 1 square of movement, enemies sometimes take zig-zag
-	  paths when a strait line would have worked.
-
+* FEATURE: Give enemies facing and make their fov a cone.
+* FEATURE: Enable player sneak attacks.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.
 * FEATURE: Implement inventory and equip screen.
 * BUG: Log overflow in log mode will change the size of the screen.
