@@ -115,7 +115,7 @@ abstract class Dungeon {
         val path = paths.head
         if(path.head == end) path
         else {
-          val moves = path.head.adjacent.filter(c => !visited.contains(c) && isWalkable(c)).sortBy(_.distance(end)).toList
+          val moves = path.head.adjacent.filter(c => !visited.contains(c) && isWalkable(c)).sortBy(c => c.distance(end) + c.manhattanDistance(path.head)).toList
           val newVisited = visited.union(moves.toSet)
           val newPaths = moves.map(_ :: path) ++ paths.tail
           loop(newPaths, newVisited)

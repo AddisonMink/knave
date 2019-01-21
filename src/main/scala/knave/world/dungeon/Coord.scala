@@ -59,6 +59,12 @@ case class Coord(x : Int, y : Int) {
     val dy = (c.y - y).toFloat
     Math.sqrt(dx*dx + dy*dy).toInt
   }
+
+  def manhattanDistance(c : Coord) : Int = {
+    val dx = Math.abs(c.x - x)
+    val dy = Math.abs(c.y - y)
+    dx + dy
+  }
 }
 
 
