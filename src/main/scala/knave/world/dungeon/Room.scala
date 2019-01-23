@@ -71,6 +71,10 @@ private case class Rectangle(x : Int, y : Int, width : Int, height : Int) extend
 
   def randomCoord(rng : Random) : Coord =
     Coord(rng.nextInt(width) + x, rng.nextInt(height) + y)
+
+  def contains(c : Coord) : Boolean =
+     c.x >= x && c.x < x + width && c.y >= y && c.y < y + height
+
 }
 
 

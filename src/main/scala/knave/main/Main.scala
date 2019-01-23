@@ -18,7 +18,7 @@ case object Ascended extends GameState
 object Main extends App {
 
   val rng = new Random
-  val seed = rng.nextInt
+  val seed = 215784523
   println(seed)
   val dungeon = Dungeon.createHubDungeon(seed)
   Display.displayDungeon(dungeon)

@@ -3,6 +3,7 @@ package knave.world.dungeon
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import Size._
+import knave.display.Palette._
 
 private class HubDungeon(seed : Int) extends Dungeon {
 
@@ -19,6 +20,13 @@ private class HubDungeon(seed : Int) extends Dungeon {
   private val minSideHeight = 2
   private val maxSideHeight = 3
 
+  /*
+  for {
+    x <- 0 until width
+    y <- 0 until height
+  } yield tileArray(x)(y) = new InnerWall(lightGray,darkGray)
+  */
+
   private val hubPoints = {
     val points = new ListBuffer[Coord]
 
@@ -34,7 +42,6 @@ private class HubDungeon(seed : Int) extends Dungeon {
           x <- (point.x - (maxHubWidth - 1) - minHubDistance) to (point.x + maxHubWidth + minHubDistance)
           y <- (point.y - (maxHubHeight - 1) - minHubDistance) to (point.y + maxHubHeight + minHubDistance)
         } yield Coord(x, y)
-        //for(c <- neighborhood.filter(c => c.x >= 0 && c.x < width && c.y >= 0 && c.y < height)) tileArray(c.x)(c.y) = new PlainFloor("blue","white")
 
         placeHubs(validPoints -- neighborhood)
       }
@@ -50,16 +57,20 @@ private class HubDungeon(seed : Int) extends Dungeon {
   }
   println("Hub points set.")
 
-  private val hubRects : List[Rectangle] =
+  private val hubMap : Map[Coord,Rectangle] =
     hubPoints.map(c => {
       val w = rng.nextInt(maxHubWidth - minHubWidth) + minHubWidth
       val h = rng.nextInt(maxHubHeight - minHubHeight) + minHubHeight
       val x = c.x - (w - 1)
       val y = c.y - (h - 1)
-      Rectangle(x,y,w*2,h*2)
-    })
-  println("Hub rects set.")
+      (c,Rectangle(x,y,w*2,h*2))
+    }).toMap
 
+  private val hubRects = hubMap.values.toList
+
+  for(c <- hubRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
+
+  // TODO DISALLOW HORIZONTAL ADJACENCY
   private val sideRects = {
     def loop(rects : List[Rectangle], tries : Int) : List[Rectangle] =
       if(tries == 0) rects
@@ -78,7 +89,7 @@ private class HubDungeon(seed : Int) extends Dungeon {
   }
   println("Side rects set.")
 
-  private val hubEdges = {
+  private var hubEdges : Set[(Coord,Coord)] = {
     val edges = new ListBuffer[(Coord,Coord)]
     def placeEdges(points : List[Coord], p1 : Coord, p2 : Coord) : Unit =
       points match {
@@ -94,16 +105,155 @@ private class HubDungeon(seed : Int) extends Dungeon {
     val p2 = firstTwo.last
     edges += ((p1,p2))
     placeEdges(rest, p1, p2)
-    edges.toList
+    edges.toSet
   }
 
-  for(c <- hubRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("blue","white")
+  private val corridors : List[List[Coord]] = {
+    val corrs = new ListBuffer[List[Coord]]
+    val corr = new ListBuffer[Coord]
+
+
+
+    def placeCorridors(edges : Iterable[(Coord,Coord)]) : Unit = {
+      def handleIntersection(c1 : Coord, hubPoint : Coord, c2 : Coord, es : List[(Coord,Coord)]) : Unit = {
+        lazy val edge1Exists = hubEdges.contains((c1,hubPoint)) || hubEdges.contains((hubPoint,c1))
+        lazy val edge2Exists = hubEdges.contains((hubPoint,c2)) || hubEdges.contains((hubPoint,c2))
+        if(edge1Exists && edge2Exists)
+          placeCorridors(es)
+        else if(edge1Exists){
+          hubEdges = hubEdges + ((hubPoint,c2))
+          placeCorridors(((hubPoint,c2)) :: es)
+        }
+        else if(edge2Exists) {
+          hubEdges = hubEdges + ((hubPoint,c2))
+          placeCorridors((c1,hubPoint) :: es)
+        }
+        else {
+          hubEdges = hubEdges + ((hubPoint,c2))
+          hubEdges = hubEdges + ((hubPoint,c2))
+          placeCorridors((c1,hubPoint) :: ((hubPoint,c2)) :: es)
+        }
+      }
+
+      edges match {
+        case Nil => ()
+        case (c1,c2) :: es => {
+          val rect1 = hubMap.get(c1).get
+          val rect2 = hubMap.get(c2).get
+
+          lazy val horizontalOverlap = rect1.x >= rect2.x && rect1.x < rect2.x + rect2.width || rect2.x >= rect1.x && rect2.x < rect1.x + rect1.width
+          lazy val verticalOverlap = rect1.y >= rect2.y && rect1.y < rect2.y + rect2.height || rect2.y >= rect1.y && rect2.y < rect1.y + rect1.height
+
+          if(horizontalOverlap) {
+            val x = {
+              val intersection = (rect1.x until rect1.x + rect1.width).intersect(rect2.x until rect2.x + rect2.width)
+              val len = intersection.length
+              if(len == 1) intersection.head else intersection(len / 2)
+            }
+
+            val corridor = Coord(x,c1.y).lineTo(Coord(x,c2.y)).dropWhile(rect1.contains(_)).takeWhile(!rect2.contains(_))
+            val intersectingHubPoint = corridor.map(c => hubPoints.find(hubMap.get(_).get.contains(c))).filter(_.nonEmpty).map(_.get).headOption
+            if(intersectingHubPoint.nonEmpty)
+              handleIntersection(c1,intersectingHubPoint.get,c2,es)
+            else {
+              for(c <- corridor)
+                corr += c
+
+              corrs += corr.toList
+              corr.clear
+              placeCorridors(es)
+            }
+          }
+
+          else if(verticalOverlap) {
+            val y = {
+              val intersection = (rect1.y until rect1.y + rect1.height).intersect(rect2.y until rect2.y + rect2.height)
+              val len = intersection.length
+              if(len == 1) intersection.head else intersection(len / 2)
+            }
+
+            val corridor = Coord(c1.x,y).lineTo(Coord(c2.x,y)).dropWhile(rect1.contains(_)).takeWhile(!rect2.contains(_))
+
+            val intersectingHubPoint = corridor.map(c => hubPoints.find(hubMap.get(_).get.contains(c))).filter(_.nonEmpty).map(_.get).headOption
+            if(intersectingHubPoint.nonEmpty)
+              handleIntersection(c1,intersectingHubPoint.get,c2,es)
+            else {
+              for(c <- corridor)
+                corr += c
+
+              corrs += corr.toList
+              corr.clear
+              placeCorridors(es)
+            }
+          }
+
+          else {
+            val joint = Coord(c2.x,c1.y)
+            val horizontal = c1.lineTo(joint).dropWhile(rect1.contains(_))
+            val vertical = joint.lineTo(c2).takeWhile(!rect2.contains(_))
+
+            lazy val horizontalIntersectingHubPoint = horizontal.map(c => hubPoints.find(hubMap.get(_).get.contains(c))).filter(_.nonEmpty).map(_.get).headOption
+            lazy val verticalIntersectingHubPoint = vertical.map(c => hubPoints.find(hubMap.get(_).get.contains(c))).filter(_.nonEmpty).map(_.get).headOption
+
+            if(horizontalIntersectingHubPoint.nonEmpty)
+              handleIntersection(c1,horizontalIntersectingHubPoint.get,c2,es)
+            else if(verticalIntersectingHubPoint.nonEmpty)
+              handleIntersection(c1,verticalIntersectingHubPoint.get,c2,es)
+            else {
+              for(c <- horizontal)
+                corr += c
+              for(c <- vertical)
+                corr += c
+              corrs += corr.toList
+              corr.clear
+              placeCorridors(es)
+            }
+          }
+        }
+      }
+    }
+
+    placeCorridors(hubEdges.toList)
+    corrs.toList
+  }
+  println("Corridors set.")
 
   for(c <- hubPoints) tileArray(c.x)(c.y) = new PlainFloor("white","white")
 
-  for(c <- sideRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("red","white")
+  for(c <- sideRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("red","red")
 
-  for(c <- hubEdges.flatMap(e => e._1.lineTo(e._2).toList)) tileArray(c.x)(c.y) = new PlainFloor("green","white")
+  for(c <- corridors.flatten) tileArray(c.x)(c.y) = new PlainFloor("green","green")
 
   override def rooms: List[Room] = List()
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
