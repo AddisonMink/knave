@@ -264,4 +264,11 @@ object Display {
       for(x <- 0 until width)
         show(Coord(x,y)," ","")
   }
+
+  def displayDungeon(d : Dungeon) : Unit = {
+    clearMap
+    for(x <- 0 until width)
+      for(y <- 0 until height)
+        setTile(d, Coord(x,y))
+  }
 }

@@ -4,10 +4,11 @@ import knave.display.Palette._
 import knave.world.dungeon.Size.{height, width}
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 package object Size {
   val height = 20
-  val width = 78
+  val width = 80
 }
 
 abstract class Dungeon {
@@ -134,6 +135,8 @@ abstract class Dungeon {
 }
 
 object Dungeon {
+
+  def createHubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
 
   def createRandomRoomsDungeon(seed : Int) : Dungeon = new RandomRoomsDungeon(seed)
 

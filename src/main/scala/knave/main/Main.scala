@@ -5,8 +5,10 @@ import knave.display.Display
 import knave.game._
 import knave.main.InputProcessor.{LogMore, Look, LookMore, Start}
 import knave.world.World
+import knave.world.dungeon.Dungeon
 
 import scala.scalajs.js
+import scala.util.Random
 
 sealed trait GameState
 case object Ongoing extends GameState
@@ -15,6 +17,13 @@ case object Ascended extends GameState
 
 object Main extends App {
 
+  val rng = new Random
+  val seed = rng.nextInt
+  println(seed)
+  val dungeon = Dungeon.createHubDungeon(seed)
+  Display.displayDungeon(dungeon)
+
+  /*
   var input = ""
   document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
@@ -94,4 +103,5 @@ object Main extends App {
       }
     }
   })
+  */
 }
