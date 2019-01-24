@@ -77,7 +77,7 @@ private class HubDungeon(seed : Int) extends Dungeon {
         val x = rng.nextInt(width - 2 - w*2) + 1
         val y = rng.nextInt(height - 2 - h*2) + 1
         val rect = Rectangle(x, y, w*2, h*2)
-        if(rects.exists(Shape.intersects(_,rect)) || hubRects.exists(Shape.intersects(_,rect)))
+        if(rects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect)) || hubRects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect)))
           loop(rects, tries - 1)
         else
           loop(rect :: rects, tries - 1)

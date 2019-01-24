@@ -57,6 +57,17 @@ private object Shape {
         (horizontalAdjacent || verticalAdjacent) && !diagonalAdjacent
       }
     }
+
+  def diagonalAdjacent(s1 : Shape, s2 : Shape) : Boolean =
+    (s1,s2) match {
+      case (r1 : Rectangle, r2 : Rectangle) => {
+        lazy val left = r1.x + r1.width == r2.x
+        lazy val right = r2.x + r2.width == r1.x
+        lazy val up = r1.y + r1.height == r2.y
+        lazy val down = r2.y + r2.height == r1.y
+        left && up || left && down || right && up || right && down
+      }
+    }
 }
 
 private case class Rectangle(x : Int, y : Int, width : Int, height : Int) extends Shape {
