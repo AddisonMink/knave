@@ -20,12 +20,10 @@ private class HubDungeon(seed : Int) extends Dungeon {
   private val minSideHeight = 2
   private val maxSideHeight = 3
 
-  /*
   for {
     x <- 0 until width
     y <- 0 until height
   } yield tileArray(x)(y) = new InnerWall(lightGray,darkGray)
-  */
 
   private val hubPoints = {
     val points = new ListBuffer[Coord]
@@ -55,7 +53,6 @@ private class HubDungeon(seed : Int) extends Dungeon {
     placeHubs(coords)
     points.toList.sortBy(_.x)
   }
-  println("Hub points set.")
 
   private val hubMap : Map[Coord,Rectangle] =
     hubPoints.map(c => {
@@ -87,8 +84,6 @@ private class HubDungeon(seed : Int) extends Dungeon {
       }
     loop(List(), 200)
   }
-  for(c <- sideRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("red","red")
-  println("Side rects set.")
 
   private var hubEdges : Set[(Coord,Coord)] = {
     val edges = new ListBuffer[(Coord,Coord)]
@@ -217,7 +212,25 @@ private class HubDungeon(seed : Int) extends Dungeon {
     placeCorridors(hubEdges.toList)
     corrs.toList
   }
-  println("Corridors set.")
+
+  val sideRectsToInclude = {
+    val (rectsAdjacentToHubs, otherRects) = sideRects.partition(r => hubRects.exists(Shape.adjacent(_,r)))
+    val rectsIntersectedByCorridors = corridors.flatMap(corr => otherRects.filter(rect => corr.exists(rect.contains(_))))
+
+    val startingRects = rectsAdjacentToHubs ++ rectsIntersectedByCorridors
+
+    def addAdjacentRects(complex : List[Rectangle], rects : List[Rectangle]) : List[Rectangle] = {
+      if(rects.nonEmpty) {
+        val (adjacent, nonAdjacent) = rects.partition(r => complex.exists(Shape.adjacent(_, r)))
+        if(adjacent.nonEmpty)
+          addAdjacentRects(adjacent ++ complex, nonAdjacent)
+        else complex
+      }
+      else complex
+    }
+    addAdjacentRects(startingRects, otherRects).distinct
+  }
+  for(c <- sideRectsToInclude.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
 
   val trimmedCorridors = corridors.flatMap(corr => {
     val corrs = new ListBuffer[List[Coord]]
@@ -233,8 +246,7 @@ private class HubDungeon(seed : Int) extends Dungeon {
     corrs += cs.toList
     corrs.toList
   })
-  for(c <- trimmedCorridors.flatten) tileArray(c.x)(c.y) = new PlainFloor("green","green")
-  println("Corridors trimmed.")
+  for(c <- trimmedCorridors.flatten) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
 
   val doors = trimmedCorridors.flatMap(corr =>
     corr match {
@@ -244,7 +256,6 @@ private class HubDungeon(seed : Int) extends Dungeon {
       case cs => List(cs.head,cs.last)
   }).filter(_.cardinalAdjacent.count(isFloor(_)) == 2)
   for(c <- doors) tileArray(c.x)(c.y) = new InnerDoor(orange,darkOrange,false)
-  println("Doors set.")
 
   override def rooms: List[Room] = List()
 }
