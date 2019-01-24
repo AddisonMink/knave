@@ -251,10 +251,17 @@ private class HubDungeon(seed : Int) extends Dungeon {
   val doors = trimmedCorridors.flatMap(corr =>
     corr match {
       case Nil => List()
-      case c :: Nil => List(c)
-      case c :: _ :: Nil => List(c)
-      case cs => List(cs.head,cs.last)
-  }).filter(_.cardinalAdjacent.count(isFloor(_)) == 2)
+      case c :: Nil => if(c.cardinalAdjacent.count(isFloor(_)) == 2) List(c) else List()
+      case c :: _ :: Nil => if(c.cardinalAdjacent.count(isFloor(_)) == 2) List(c) else List()
+      case cs => {
+        val door1 = cs.find(_.cardinalAdjacent.count(isFloor(_)) == 2)
+        val door2 = cs.reverse.find(_.cardinalAdjacent.count(isFloor(_)) == 2)
+        (door1, door2) match {
+          case (Some(d1),Some(d2)) => if(d1.distance(d2) <= 1) List(d1) else List(d1,d2)
+          case _ => List()
+        }
+      }
+  })
   for(c <- doors) tileArray(c.x)(c.y) = new InnerDoor(orange,darkOrange,false)
 
   override def rooms: List[Room] = List()
