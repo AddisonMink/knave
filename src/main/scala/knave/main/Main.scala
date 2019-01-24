@@ -19,21 +19,12 @@ case object Ascended extends GameState
 
 object Main extends App {
 
-  val rng = new Random
-  val seed = -39849357
-  println(seed)
-  val dungeon = Dungeon.createHubDungeon(seed)
-
-  Display.displayDungeon(dungeon)
-
-  /*
   var input = ""
   document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
   var state : GameState = Ongoing
 
   var round = 1
-
 
   val world = World.createRandomRoomsWorld(100)
 
@@ -106,5 +97,4 @@ object Main extends App {
       }
     }
   })
-  */
 }
