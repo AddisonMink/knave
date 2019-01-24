@@ -54,6 +54,13 @@ case class Coord(x : Int, y : Int) {
     Coord(x+1,y+1)
   )
 
+  lazy val cardinalAdjacent : Stream[Coord] = Stream(
+    Coord(x,y-1),
+    Coord(x-1,y),
+    Coord(x+1,y),
+    Coord(x,y+1)
+  )
+
   def distance(c : Coord) : Int = {
     val dx = (c.x - x).toFloat
     val dy = (c.y - y).toFloat

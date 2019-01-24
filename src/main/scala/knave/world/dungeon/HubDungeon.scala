@@ -87,6 +87,7 @@ private class HubDungeon(seed : Int) extends Dungeon {
       }
     loop(List(), 200)
   }
+  for(c <- sideRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("red","red")
   println("Side rects set.")
 
   private var hubEdges : Set[(Coord,Coord)] = {
@@ -218,11 +219,32 @@ private class HubDungeon(seed : Int) extends Dungeon {
   }
   println("Corridors set.")
 
-  for(c <- hubPoints) tileArray(c.x)(c.y) = new PlainFloor("white","white")
+  val trimmedCorridors = corridors.flatMap(corr => {
+    val corrs = new ListBuffer[List[Coord]]
+    val cs = new ListBuffer[Coord]
+    for(c <- corr)
+      if(isFloor(c)) {
+        corrs += cs.toList
+        cs.clear
+      }
+      else
+        cs += c
 
-  for(c <- sideRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor("red","red")
+    corrs += cs.toList
+    corrs.toList
+  })
+  for(c <- trimmedCorridors.flatten) tileArray(c.x)(c.y) = new PlainFloor("green","green")
+  println("Corridors trimmed.")
 
-  for(c <- corridors.flatten) tileArray(c.x)(c.y) = new PlainFloor("green","green")
+  val doors = trimmedCorridors.flatMap(corr =>
+    corr match {
+      case Nil => List()
+      case c :: Nil => List(c)
+      case c :: _ :: Nil => List(c)
+      case cs => List(cs.head,cs.last)
+  }).filter(_.cardinalAdjacent.count(isFloor(_)) == 2)
+  for(c <- doors) tileArray(c.x)(c.y) = new InnerDoor(orange,darkOrange,false)
+  println("Doors set.")
 
   override def rooms: List[Room] = List()
 }
