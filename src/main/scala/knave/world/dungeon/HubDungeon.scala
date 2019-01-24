@@ -5,6 +5,8 @@ import scala.util.Random
 import Size._
 import knave.display.Palette._
 
+import scala.collection.mutable
+
 private class HubDungeon(seed : Int) extends Dungeon {
 
   private val rng = new Random(seed)
@@ -264,7 +266,25 @@ private class HubDungeon(seed : Int) extends Dungeon {
   })
   for(c <- doors) tileArray(c.x)(c.y) = new InnerDoor(orange,darkOrange,false)
 
-  override def rooms: List[Room] = List()
+  override def rooms: List[Room] = {
+    def fillSpace(start : Coord) : Set[Coord] = {
+      val space = mutable.Set[Coord](start)
+      var frontier = Stream(start)
+      do {
+        frontier = frontier.flatMap(_.cardinalAdjacent).filter(isFloor(_)).filter(!space.contains(_))
+        space ++= frontier
+      } while(frontier.nonEmpty)
+      space.toSet
+    }
+
+    hubRects.foldLeft(List[Set[Coord]]())((rooms, hub) => {
+      val origin = Coord(hub.x,hub.y)
+      if(rooms.exists(_.contains(origin)))
+        rooms
+      else
+        fillSpace(origin) :: rooms
+    }).map(SetRoom(_))
+  }
 }
 
 

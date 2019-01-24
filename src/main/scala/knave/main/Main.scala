@@ -1,5 +1,7 @@
 package knave.main
 
+import java.util.Calendar
+
 import org.scalajs.dom.document
 import knave.display.Display
 import knave.game._
@@ -21,6 +23,7 @@ object Main extends App {
   val seed = -39849357
   println(seed)
   val dungeon = Dungeon.createHubDungeon(seed)
+
   Display.displayDungeon(dungeon)
 
   /*

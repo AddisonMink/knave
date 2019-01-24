@@ -19,6 +19,16 @@ private case class ShapeRoom(shapes : List[Shape]) extends Room {
   }
 }
 
+private case class SetRoom(coords : Set[Coord]) extends Room {
+
+  private val coordVector = coords.toVector
+
+  override def randomCoord(rng: Random): Coord = {
+    val i = rng.nextInt(coordVector.length)
+    coordVector(i)
+  }
+}
+
 private sealed trait Shape {
 
   def fill : List[Coord]
