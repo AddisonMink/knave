@@ -1,15 +1,38 @@
 Objectives for v0.2
 * BUG: HubDungeon with seed -1326879088 has an extraneous door below the starting room.
+
 * BUG: HubDungeon with seed -1162988073 is not counting enough rooms.
+
+* FEATURE: Better Standard World Generation
+	* Identify small, single-rectangle rooms and put goodies inside.
+		* For now, but either a knife or a health pick-up in each treasure room.
+	* Decrease knife durability and make Bound Servants sometimes drop knives.
+
 * FEATURE: Give enemies facing and make their fov a cone.
-* FEATURE: Enable player sneak attacks.
-* FEATURE: Make bound servants drop knives. Decrease knife's max durability.
+	* When not alerted, each enemy should have a cone of vision in the direction they are facing.
+	  The cone should include the squares to the left and right, relative to their facing, but not
+	  the square behind them.
+
+* FEATURE: Implement sneak attacks.
+	* If a player does a melee attack while hidden, the attack should do double damage.
+	* If a player damages an enemy without killing them, the enemy should be alerted.
+
+* FEATURE: Implement bound cleric enemy.
+	* Bound clerics have 4 health (and 2 armor?) and only spawn in big rooms that already contain bound servants.
+	* Each round, clerics heal all bound servants in their line of sight by 10, to maximum of their
+	  max HP + 10.
+	* Bound clerics fight with a staff, which does 20 damage and can attack from 2 squares away.
+	* Bound clerics sometimes drop the Staff weapon.
+		* The staff weapon does 20 damage and can attack from 2 spaces away.
+
 * FEATURE: Implement inventory and equip screen.
+	* The player should be able to hold up to 5 items including 1 equipped item.
+	* Pressing "i" should bring up an inventory screen where players can look at detailed
+	  descriptions of their items and select an item to equip.
+
 * BUG: Log overflow in log mode will change the size of the screen.
-	* Display logs in the map screen.
-* FEATURE: Implement fountain of life.
-* FEATURE: Implement bound clerics.
-* FEATURE: Implement staff.
+	* Maybe fix height of container?s
+
 * FEATURE: Implement moving between floors and create 5-floor game.
 
 Objectives for v0.3
