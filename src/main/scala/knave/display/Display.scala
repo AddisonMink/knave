@@ -80,7 +80,8 @@ object Display {
   private def setDungeon(d : Dungeon) : Unit = {
     for(y <- 0 until height)
       for(x <- 0 until width)
-        setTile(d, Coord(x,y))
+        if((Coord(x,y) #:: Coord(x,y).adjacent).filter(_.inBounds).exists(d.isFloor(_)))
+          setTile(d, Coord(x,y))
   }
 
   private def setDungeonFov(d : Dungeon, cs : Iterable[Coord]) : Unit = {
@@ -175,17 +176,16 @@ object Display {
     str.toString
   }
 
-  /*
-  def displayFull(w : World, logs : List[String] = List()) : Unit = {
+  def displayFull(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
+    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision)
     setDungeon(w.dungeon)
     setItems(w.getItems)
     setPlayer(w.player)
-    for(e <- w.getEnemies) setEnemy(e)
+    for(e <- w.getEnemies) setEnemy(e,fov,w,speedRound)
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
   }
-  */
 
 
   def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {

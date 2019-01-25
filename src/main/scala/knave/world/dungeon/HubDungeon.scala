@@ -247,19 +247,26 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
   })
   for(c <- trimmedCorridors.flatten) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
 
-  val doors = trimmedCorridors.flatMap(corr =>
+  val doors = trimmedCorridors.flatMap(corr => {
+    def isValidDoor(c : Coord) : Boolean = {
+      val vertical = Seq(c.copy(y = c.y - 1), c.copy(y = c.y + 1))
+      val horizontal = Seq(c.copy(x = c.x - 1), c.copy(x = c.x + 1))
+      vertical.forall(isFloor) && horizontal.forall(!isFloor(_)) || vertical.forall(!isFloor(_)) && horizontal.forall(isFloor)
+    }
+
     corr match {
       case Nil => List()
-      case c :: Nil => if(c.cardinalAdjacent.count(isFloor(_)) == 2) List(c) else List()
-      case c :: _ :: Nil => if(c.cardinalAdjacent.count(isFloor(_)) == 2) List(c) else List()
+      case c :: Nil => if (isValidDoor(c)) List(c) else List()
+      case c :: _ :: Nil => if(isValidDoor(c)) List(c) else List()
       case cs => {
-        val door1 = cs.find(_.cardinalAdjacent.count(isFloor(_)) == 2)
-        val door2 = cs.reverse.find(_.cardinalAdjacent.count(isFloor(_)) == 2)
+        val door1 = cs.find(isValidDoor)
+        val door2 = cs.reverse.find(isValidDoor)
         (door1, door2) match {
-          case (Some(d1),Some(d2)) => if(d1.distance(d2) <= 1) List(d1) else List(d1,d2)
+          case (Some(d1), Some(d2)) => if (d1.distance(d2) <= 1) List(d1) else List(d1, d2)
           case _ => List()
         }
       }
+    }
   })
   for(c <- doors) tileArray(c.x)(c.y) = new InnerDoor(orange,darkOrange,false)
 

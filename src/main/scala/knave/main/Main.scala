@@ -26,10 +26,12 @@ object Main extends App {
 
   var round = 1
 
-  val seed = Random.nextInt
+  val seed = -1326879088
   println(seed)
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
+  Display.displayFull(world,List(),false)
 
+  /*
   Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
   js.timers.setInterval(10)({
     if(state == Ongoing) {
@@ -99,4 +101,5 @@ object Main extends App {
       }
     }
   })
+  */
 }

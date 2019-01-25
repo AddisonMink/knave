@@ -2,8 +2,8 @@ package knave.world.dungeon
 
 case class Coord(x : Int, y : Int) {
 
-  private def inBounds(c : Coord) : Boolean =
-    c.x >= 0 && c.x < Size.width && c.y >= 0 && c.y < Size.height
+  lazy val inBounds : Boolean =
+    x >= 0 && x < Size.width && y >= 0 && y < Size.height
 
   def lineTo(c : Coord) : Stream[Coord] = {
     val dy = c.y - this.y
@@ -36,12 +36,12 @@ case class Coord(x : Int, y : Int) {
         }
       }
 
-    if(Math.abs(dx) >= Math.abs(dy)) horizontalLoop(this, 0d).tail.takeWhile(inBounds)
-    else verticalLoop(this, 0d).tail.takeWhile(inBounds)
+    if(Math.abs(dx) >= Math.abs(dy)) horizontalLoop(this, 0d).tail.takeWhile(_.inBounds)
+    else verticalLoop(this, 0d).tail.takeWhile(_.inBounds)
   }
 
   def nextCoord(c: Coord) : Option[Coord] =
-    this.lineTo(c).filter(inBounds).headOption
+    this.lineTo(c).filter(_.inBounds).headOption
 
   lazy val adjacent : Stream[Coord] = Stream(
     Coord(x-1, y-1),
