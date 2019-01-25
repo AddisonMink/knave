@@ -1,5 +1,6 @@
 Objectives for v0.2
 * BUG: HubDungeon with seed -1326879088 has an extraneous door below the starting room.
+* BUG: HubDungeon with seed -1162988073 is not counting enough rooms.
 * FEATURE: Give enemies facing and make their fov a cone.
 * FEATURE: Enable player sneak attacks.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.
@@ -7,7 +8,7 @@ Objectives for v0.2
 * BUG: Log overflow in log mode will change the size of the screen.
 	* Display logs in the map screen.
 * FEATURE: Implement fountain of life.
-* FEATURE: Implement bound pontiffs.
+* FEATURE: Implement bound clerics.
 * FEATURE: Implement staff.
 * FEATURE: Implement moving between floors and create 5-floor game.
 
