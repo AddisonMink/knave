@@ -1,4 +1,6 @@
 Objectives for v0.2
+* ENHANCEMENT: Increase performance of HubDungeon generation.
+
 * BUG: HubDungeon with seed -1326879088 has an extraneous door below the starting room.
 
 * BUG: HubDungeon with seed -1162988073 is not counting enough rooms.
