@@ -5,10 +5,16 @@ import scala.util.Random
 trait Room {
 
   def randomCoord(rng : Random) : Coord
-}
 
-private object Room {
-  def createShapeRoom(shapes : List[Shape]) : Room = ShapeRoom(shapes)
+  final def randomCoordExcept(cs : Seq[Coord], rng : Random) : Option[Coord] = {
+    var tries = 100
+    var c = randomCoord(rng)
+    while(tries > 0 && cs.contains(c))
+      c = randomCoord(rng)
+    if(cs.contains(c)) None else Some(c)
+  }
+
+  def area : Int
 }
 
 private case class ShapeRoom(shapes : List[Shape]) extends Room {
@@ -17,6 +23,8 @@ private case class ShapeRoom(shapes : List[Shape]) extends Room {
     val i = rng.nextInt(shapes.length)
     shapes(i).randomCoord(rng)
   }
+
+  override def area: Int = shapes.map(_.area).sum
 }
 
 private case class SetRoom(coords : Set[Coord]) extends Room {
@@ -27,6 +35,8 @@ private case class SetRoom(coords : Set[Coord]) extends Room {
     val i = rng.nextInt(coordVector.length)
     coordVector(i)
   }
+
+  override def area: Int = coords.size
 }
 
 private sealed trait Shape {
@@ -34,6 +44,8 @@ private sealed trait Shape {
   def fill : List[Coord]
 
   def randomCoord(rng : Random) : Coord
+
+  def area : Int
 }
 
 private object Shape {
@@ -96,6 +108,7 @@ private case class Rectangle(x : Int, y : Int, width : Int, height : Int) extend
   def contains(c : Coord) : Boolean =
      c.x >= x && c.x < x + width && c.y >= y && c.y < y + height
 
+  override def area: Int = width*height
 }
 
 

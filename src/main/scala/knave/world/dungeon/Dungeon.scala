@@ -11,7 +11,9 @@ package object Size {
   val width = 80
 }
 
-abstract class Dungeon {
+abstract class Dungeon(seed : Int) {
+
+  final val rng = new Random(seed)
 
   final protected val bloodColor = crimson
 
@@ -46,6 +48,8 @@ abstract class Dungeon {
   }
 
   final def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
+
+  final def createStairs(c : Coord) : Unit = tileArray(c.x)(c.y) = new Stairs(lightGray,darkGray)
 
   final def bloodyTile(c: Coord): Unit = {
     val tile = tileArray(c.x)(c.y)
@@ -136,9 +140,7 @@ abstract class Dungeon {
 
 object Dungeon {
 
-  def createHubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
+  def hubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
 
-  def createRandomRoomsDungeon(seed : Int) : Dungeon = new RandomRoomsDungeon(seed)
-
-  def createOpenDungeon : Dungeon = new OpenDungeon
+  def openDungeon(seed : Int) : Dungeon = new OpenDungeon(seed)
 }

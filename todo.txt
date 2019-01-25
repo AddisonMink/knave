@@ -1,4 +1,5 @@
 Objectives for v0.2
+* BUG: HubDungeon with seed -1326879088 has an extraneous door below the starting room.
 * FEATURE: Give enemies facing and make their fov a cone.
 * FEATURE: Enable player sneak attacks.
 * FEATURE: Make bound servants drop knives. Decrease knife's max durability.

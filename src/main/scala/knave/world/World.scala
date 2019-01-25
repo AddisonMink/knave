@@ -8,22 +8,26 @@ import knave.world.player.Player
 
 import scala.util.Random
 
-trait World {
+abstract class World(d : Dungeon) {
 
-  val dungeon : Dungeon
+  final val dungeon = d
+
+  final val rng = d.rng
 
   val player : Player
 
-  protected val enemies = collection.mutable.Map[Int,Enemy]()
+  private val enemies = collection.mutable.Map[Int,Enemy]()
 
-  protected var nextId = 0
+  private var id = 0
+
+  protected def nextId = id
 
   final def enemy(id : Int) : Option[Enemy] =
     enemies.get(id)
 
   final def addEnemy(enemy : Enemy) : Unit = {
-    enemies. += ((nextId, enemy))
-    nextId += 1
+    enemies. += ((id, enemy))
+    id += 1
   }
 
   final def getEnemies : Iterable[Enemy] =
@@ -68,10 +72,9 @@ trait World {
 
 object World {
 
-  def createRandomRoomsWorld(seed: Int): World = new RandomRoomsWorld(seed)
+  def openWorld(d : Dungeon) : World = new EmptyWorld(d)
 
-  def createOpenWorld: World = new OpenWorld
-
+  def standardWorld(d : Dungeon) : World = new StandardWorld(d)
 }
 
 sealed trait Collision

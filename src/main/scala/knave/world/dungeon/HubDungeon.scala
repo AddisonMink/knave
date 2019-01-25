@@ -1,15 +1,12 @@
 package knave.world.dungeon
 
 import scala.collection.mutable.ListBuffer
-import scala.util.Random
 import Size._
 import knave.display.Palette._
 
 import scala.collection.mutable
 
-private class HubDungeon(seed : Int) extends Dungeon {
-
-  private val rng = new Random(seed)
+private class HubDungeon(seed : Int) extends Dungeon(seed) {
 
   private val minHubWidth = 3
   private val maxHubWidth = 5

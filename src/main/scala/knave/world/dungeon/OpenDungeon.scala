@@ -3,7 +3,7 @@ package knave.world.dungeon
 import Size._
 import knave.display.Palette._
 
-private class OpenDungeon extends Dungeon {
+private class OpenDungeon(seed : Int) extends Dungeon(seed) {
 
   private val rect = Rectangle(1, 1, width - 2, height - 2)
 
