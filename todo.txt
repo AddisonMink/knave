@@ -1,6 +1,4 @@
 Objectives for v0.2
-* BUG: HubDungeon with seed -1162988073 is not counting enough rooms.
-
 * FEATURE: Better Standard World Generation
 	* Identify small, single-rectangle rooms and put goodies inside.
 		* For now, but either a knife or a health pick-up in each treasure room.

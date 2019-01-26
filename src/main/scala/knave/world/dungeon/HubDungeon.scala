@@ -289,7 +289,7 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
       space.toSet
     }
 
-    hubRects.foldLeft(List[Set[Coord]]())((rooms, hub) => {
+    (hubRects ++ sideRectsToInclude).foldLeft(List[Set[Coord]]())((rooms, hub) => {
       val origin = Coord(hub.x,hub.y)
       if(rooms.exists(_.contains(origin)))
         rooms
