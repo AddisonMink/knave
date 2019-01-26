@@ -45,7 +45,7 @@ object Display {
 
   private val tileHeight = 16
 
-  private def clearMap : Unit =
+  def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
         show(Coord(x,y)," ", white)

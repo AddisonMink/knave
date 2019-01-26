@@ -26,9 +26,12 @@ object Main extends App {
 
   var round = 1
 
-  val seed = -1326879088
+  val seed = Random.nextInt
   println(seed)
+  Display.clearMap
+  //println("Generating dungeon...")
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
+  println("Done.")
   Display.displayFull(world,List(),false)
 
   /*

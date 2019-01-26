@@ -5,6 +5,7 @@ import Size._
 import knave.display.Palette._
 
 import scala.collection.mutable
+import scala.util.Random
 
 private class HubDungeon(seed : Int) extends Dungeon(seed) {
 
@@ -19,95 +20,95 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
   private val minSideHeight = 2
   private val maxSideHeight = 3
 
-  for {
-    x <- 0 until width
-    y <- 0 until height
-  } yield tileArray(x)(y) = new InnerWall(lightGray,darkGray)
+  // Make every tile a wall.
+  for(x <- 0 until width)
+    for(y <- 0 until height)
+      tileArray(x)(y) = new InnerWall(lightGray,darkGray)
 
+  // TODO After other performance improvments, go back to drop random selection and see if it hurts performacne to badly.
+  /*
+    Find as many points as possible that are far enough away from each other so that a maximum hub width rectangle can be placed around each point
+    and every rectangle will be at least minHubDistance away from each other.
+   */
   private val hubPoints = {
     val points = new ListBuffer[Coord]
 
+    val validPoints = new mutable.HashSet[Coord]
+    for(x <- maxHubWidth until (width - maxHubWidth))
+      for(y <- maxHubHeight until (height - maxHubHeight))
+        validPoints += Coord(x,y)
+    Random.shuffle(validPoints)
 
-    def placeHubs(validPoints : Set[Coord]) : Unit = {
-      if (validPoints.size == 1) points += validPoints.head
-      else if (validPoints.nonEmpty) {
+    while(validPoints.nonEmpty) {
+      val point = validPoints.head
+      validPoints -= point
+      points += point
 
-        val point = validPoints.drop(rng.nextInt(validPoints.size)).head
-        points += point
-
-        val neighborhood = for {
-          x <- (point.x - (maxHubWidth - 1) - minHubDistance) to (point.x + maxHubWidth + minHubDistance)
-          y <- (point.y - (maxHubHeight - 1) - minHubDistance) to (point.y + maxHubHeight + minHubDistance)
-        } yield Coord(x, y)
-
-        placeHubs(validPoints -- neighborhood)
-      }
+      for(x <- (point.x - (maxHubWidth - 1) - minHubDistance) to (point.x + maxHubWidth + minHubDistance))
+        for(y <- (point.y - (maxHubHeight - 1) - minHubDistance) to (point.y + maxHubHeight + minHubDistance))
+          validPoints -= Coord(x,y)
     }
 
-    val coords = (for {
-      x <- maxHubWidth until (width - maxHubWidth)
-      y <- maxHubHeight until (height - maxHubHeight)
-    } yield Coord(x,y)).toSet
-
-    placeHubs(coords)
-    points.toList.sortBy(_.x)
+    points.sortBy(_.x).toList
   }
 
-  private val hubMap : Map[Coord,Rectangle] =
-    hubPoints.map(c => {
+  // Build the hub rectangles around each hub points. Keep both a list of hub rectangles and a map of hub points to hub rectangles.
+  private val (hubMap, hubRects) : (Map[Coord,Rectangle], List[Rectangle]) = {
+    val m = new mutable.HashMap[Coord,Rectangle]()
+    val rs = new ListBuffer[Rectangle]
+    for(c <- hubPoints) {
       val w = rng.nextInt(maxHubWidth - minHubWidth) + minHubWidth
       val h = rng.nextInt(maxHubHeight - minHubHeight) + minHubHeight
       val x = c.x - (w - 1)
       val y = c.y - (h - 1)
-      (c,Rectangle(x,y,w*2,h*2))
-    }).toMap
-
-  private val hubRects = hubMap.values.toList
-
-  for(c <- hubRects.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
-
-  // TODO DISALLOW HORIZONTAL ADJACENCY
-  private val sideRects = {
-    def loop(rects : List[Rectangle], tries : Int) : List[Rectangle] =
-      if(tries == 0) rects
-      else {
-        val w = rng.nextInt(maxSideWidth - minSideWidth) + minSideWidth
-        val h = rng.nextInt(maxSideHeight - minSideHeight) + minSideHeight
-        val x = rng.nextInt(width - 2 - w*2) + 1
-        val y = rng.nextInt(height - 2 - h*2) + 1
-        val rect = Rectangle(x, y, w*2, h*2)
-        if(rects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect)) || hubRects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect)))
-          loop(rects, tries - 1)
-        else
-          loop(rect :: rects, tries - 1)
-      }
-    loop(List(), 200)
+      val rect = Rectangle(x,y,w*2,h*2)
+      m += ((c,rect))
+      rs += rect
+    }
+    (m.toMap, rs.toList)
   }
 
-  private var hubEdges : Set[(Coord,Coord)] = {
-    val edges = new ListBuffer[(Coord,Coord)]
-    def placeEdges(points : List[Coord], p1 : Coord, p2 : Coord) : Unit =
-      points match {
-        case p :: ps => {
-          edges ++= List((p1,p),(p2,p))
-          placeEdges(ps, p2, p)
-        }
-        case _ => ()
-      }
+  // Map the hub rectangles onto the dungeon.
+  for(r <- hubRects)
+    for(x <- r.x until r.x + r.width)
+      for(y <- r.y until r.y + r.height)
+        tileArray(x)(y) = new PlainFloor(lightGray,darkGray)
 
-    val (firstTwo, rest) = hubPoints.splitAt(2)
-    val p1 = firstTwo.head
-    val p2 = firstTwo.last
+  // Compute up to 200 random rectangles that don't intersect with each other or the hub rectangles.
+  private val sideRects = {
+    val rects = new ListBuffer[Rectangle]
+    var tries = 200
+    while(tries > 0) {
+      val w = rng.nextInt(maxSideWidth - minSideWidth) + minSideWidth
+      val h = rng.nextInt(maxSideHeight - minSideHeight) + minSideHeight
+      val x = rng.nextInt(width - 2 - w*2) + 1
+      val y = rng.nextInt(height - 2 - h*2) + 1
+      val rect = Rectangle(x, y, w*2, h*2)
+
+      if(!(rects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect)) || hubRects.exists(r => Shape.intersects(r,rect) || Shape.diagonalAdjacent(r,rect))))
+        rects += rect
+      tries -= 1
+    }
+    rects.toList
+  }
+
+  // Create a triangulation graph of the hub points.
+  private var hubEdges : Set[(Coord,Coord)] = {
+    val edges = new mutable.HashSet[(Coord,Coord)]()
+    var p1 = hubPoints.head
+    var p2 = hubPoints.tail.head
     edges += ((p1,p2))
-    placeEdges(rest, p1, p2)
+    for(c <- hubPoints.drop(2)) {
+      edges += ((p1,c), (p2,c))
+      p1 = p2
+      p2 = c
+    }
     edges.toSet
   }
 
   private val corridors : List[List[Coord]] = {
     val corrs = new ListBuffer[List[Coord]]
     val corr = new ListBuffer[Coord]
-
-
 
     def placeCorridors(edges : Iterable[(Coord,Coord)]) : Unit = {
       def handleIntersection(c1 : Coord, hubPoint : Coord, c2 : Coord, es : List[(Coord,Coord)]) : Unit = {
@@ -229,7 +230,11 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
     }
     addAdjacentRects(startingRects, otherRects).distinct
   }
-  for(c <- sideRectsToInclude.flatMap(_.fill)) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
+
+  for(r <- sideRectsToInclude)
+    for(x <- r.x until r.x + r.width)
+      for(y <- r.y until r.y + r.height)
+        tileArray(x)(y) = new PlainFloor(lightGray,darkGray)
 
   val trimmedCorridors = corridors.flatMap(corr => {
     val corrs = new ListBuffer[List[Coord]]
@@ -245,7 +250,10 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
     corrs += cs.toList
     corrs.toList
   })
-  for(c <- trimmedCorridors.flatten) tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
+
+  for(corr <- trimmedCorridors)
+    for(c <- corr)
+      tileArray(c.x)(c.y) = new PlainFloor(lightGray,darkGray)
 
   val doors = trimmedCorridors.flatMap(corr => {
     def isValidDoor(c : Coord) : Boolean = {
