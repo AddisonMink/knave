@@ -26,7 +26,7 @@ object Main extends App {
 
   var round = 1
 
-  val seed = -1162988073
+  val seed = Random.nextInt
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
   Display.displayFull(world,List(),false)
 

@@ -8,9 +8,6 @@ Objectives for v0.2
 	* When not alerted, each enemy should have a cone of vision in the direction they are facing.
 	  The cone should include the squares to the left and right, relative to their facing, but not
 	  the square behind them.
-
-* FEATURE: Implement sneak attacks.
-	* If a player does a melee attack while hidden, the attack should do double damage.
 	* If a player damages an enemy without killing them, the enemy should be alerted.
 
 * FEATURE: Implement bound cleric enemy.
@@ -32,6 +29,7 @@ Objectives for v0.2
 * FEATURE: Implement moving between floors and create 5-floor game.
 
 Objectives for v0.3
+* Implement lockable rooms.
 * Implement oracles.
 * Implement crystal ball.
 * Implement lesser angels.

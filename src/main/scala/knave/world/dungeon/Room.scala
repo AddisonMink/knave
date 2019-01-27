@@ -15,6 +15,8 @@ trait Room {
   }
 
   def area : Int
+
+  def contents : Iterable[Coord]
 }
 
 private case class ShapeRoom(shapes : List[Shape]) extends Room {
@@ -25,6 +27,8 @@ private case class ShapeRoom(shapes : List[Shape]) extends Room {
   }
 
   override def area: Int = shapes.map(_.area).sum
+
+  override def contents: Iterable[Coord] = shapes.flatMap(_.fill)
 }
 
 private case class SetRoom(coords : Set[Coord]) extends Room {
@@ -37,6 +41,8 @@ private case class SetRoom(coords : Set[Coord]) extends Room {
   }
 
   override def area: Int = coords.size
+
+  override def contents: Iterable[Coord] = coords
 }
 
 private sealed trait Shape {

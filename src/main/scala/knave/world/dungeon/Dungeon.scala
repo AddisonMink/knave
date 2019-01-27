@@ -62,6 +62,11 @@ abstract class Dungeon(seed : Int) {
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
+  final def colorTile(c : Coord, color : String, darkColor : String) : Unit = {
+    tileArray(c.x)(c.y).color = color
+    tileArray(c.x)(c.y).darkColor = darkColor
+  }
+
   private val visitedCoords = collection.mutable.Set[Coord]()
 
   final def visited : Set[Coord] =
