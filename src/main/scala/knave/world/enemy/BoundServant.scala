@@ -1,6 +1,6 @@
 package knave.world.enemy
 import knave.game._
-import knave.world.World
+import knave.world.{NoCollision, World}
 import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette.white
 
@@ -59,20 +59,19 @@ class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
     if(w.player.hidden) normalBehavior(w)
     else alertedBehavior(w)
 
-  private def normalBehavior(w : World): Vector[Action] = {
+  private def normalBehavior(w : World): Vector[Action] =
     if(pos == dest) {
       dest = room.randomCoord(rng)
       Vector()
     }
-    else {
-      val path = w.dungeon.findPath(pos,dest)
-      for(c <- path)
-        w.dungeon.colorTile(c,"red","red")
-      val x = path.headOption.map(c => EnemyMove(id,c,false)).toVector
-      println(x)
-      x
-    }
-  }
+    else
+      w.dungeon.findPath(pos,dest).headOption.filter(w.checkCollision(_) == NoCollision) match {
+        case Some(c) => Vector(EnemyMove(id,c,false))
+        case None => {
+          dest = room.randomCoord(rng)
+          Vector()
+        }
+      }
 
   private def alertedBehavior(w : World) : Vector[Action] = {
     if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {

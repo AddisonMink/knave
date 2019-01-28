@@ -1,10 +1,12 @@
 package knave.world
 
-import knave.world.dungeon.Dungeon
+import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.enemy.BoundServant
 import knave.world.item.WeaponItem
 import knave.world.player.Player
 import knave.world.player.weapon.Knife
+
+import scala.collection.mutable.ListBuffer
 
 private class StandardWorld(d : Dungeon) extends World(d) {
 
@@ -32,11 +34,14 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     (c, WeaponItem(new Knife, c))
   }
 
-  // Place a Bound Servant in each of the combat rooms.
+  // Place 1 bound servant in each room for each 35 tiles in that room, minimum 1.
   for(r <- combatRooms) {
-    val id = nextId
-    val c = r.randomCoord(rng)
-    val enemy = new BoundServant(id,c,rng,r)
-    addEnemy(enemy)
+    val cs = new ListBuffer[Coord]
+    val numMonsters = 1 + (r.area - 50) / 50
+    for(_ <- 0 until numMonsters) {
+      val id = nextId
+      for( c <- r.randomCoordExcept(cs,rng))
+        addEnemy(new BoundServant(id,c,rng,r))
+    }
   }
 }
