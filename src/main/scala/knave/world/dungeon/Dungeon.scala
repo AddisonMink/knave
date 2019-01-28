@@ -3,6 +3,8 @@ package knave.world.dungeon
 import knave.display.Palette._
 import knave.world.dungeon.Size.{height, width}
 
+import scala.collection.immutable.HashSet.HashSet1
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -95,6 +97,9 @@ abstract class Dungeon(seed : Int) {
   final def walkableLine(start : Coord, end : Coord) : Stream[Coord] =
     start.lineTo(end).takeWhile(isWalkable(_))
 
+  final def nextWalkableCoord(start : Coord, end : Coord) : Option[Coord] =
+    walkableLine(start,end).headOption
+
   final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     var i = radius
@@ -118,26 +123,22 @@ abstract class Dungeon(seed : Int) {
     visibleLine(start,end).take(limit).contains(end)
 
   final def findPath(start : Coord, end : Coord) : List[Coord] = {
+    val paths = new ListBuffer[List[Coord]] ; paths += List(start)
+    val visited = new mutable.HashSet[Coord] ; visited += start
+    var result = List[Coord]()
 
-    def loop(paths : List[List[Coord]], visited : Set[Coord]) : List[Coord] =
-      if(paths.isEmpty || paths.head.isEmpty) List()
+    while(paths.nonEmpty && result.isEmpty) {
+      val path = paths.remove(0)
+      if(path.head == end)
+        result = path
       else {
-        val path = paths.head
-        if(path.head == end) path
-        else {
-          val moves = path.head.adjacent.filter(c => !visited.contains(c) && isWalkable(c)).sortBy(c => c.distance(end) + c.manhattanDistance(path.head)).toList
-          val newVisited = visited.union(moves.toSet)
-          val newPaths = moves.map(_ :: path) ++ paths.tail
-          loop(newPaths, newVisited)
-        }
+        val moves = path.head.adjacent.filter(c => !visited.contains(c) & isWalkable(c)).sortBy(_.manhattanDistance(path.head))
+        visited ++= moves
+        val newPaths = moves.map(_ :: path)
+        paths ++= newPaths
       }
-
-    if(start == end) List()
-    else {
-      val path = loop(List(List(start)), Set(start))
-      if(path.isEmpty) List()
-      else path.reverse.tail
     }
+    result.reverse.tail
   }
 
   def rooms : List[Room]

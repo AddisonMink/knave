@@ -8,20 +8,7 @@ import scala.util.Random
 
 class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy {
 
-  private val patrolStart  = c
-
-  private val patrolEnd = {
-    var end = room.randomCoord(rng)
-    var tries = 10
-    while(end.distance(patrolStart) < 5 && tries > 0) {
-      end = room.randomCoord(rng)
-      tries -= 1
-    }
-
-    end
-  }
-
-  private var patrollingTowardsEnd = true
+  private var dest = c
 
   override val id: Int = i
 
@@ -73,27 +60,17 @@ class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
     else alertedBehavior(w)
 
   private def normalBehavior(w : World): Vector[Action] = {
-    val dest = if(patrollingTowardsEnd) patrolEnd else patrolStart
     if(pos == dest) {
-      patrollingTowardsEnd = !patrollingTowardsEnd
+      dest = room.randomCoord(rng)
       Vector()
     }
     else {
       val path = w.dungeon.findPath(pos,dest)
-
-      // 23, 11
-      if(patrolStart == Coord(23,11)) {
-        println("Player pos: " + w.player.pos)
-        println("Enemy pos: " + pos)
-        println("Path: " + path)
-      }
-
-      if(path.nonEmpty) move(path.head)
-      else
-        Random.shuffle(pos.adjacent).filter(w.dungeon.isWalkable(_)).headOption match {
-          case Some(c) => move(c)
-          case _ => Vector()
-        }
+      for(c <- path)
+        w.dungeon.colorTile(c,"red","red")
+      val x = path.headOption.map(c => EnemyMove(id,c,false)).toVector
+      println(x)
+      x
     }
   }
 

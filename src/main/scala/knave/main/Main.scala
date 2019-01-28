@@ -29,6 +29,16 @@ object Main extends App {
   val seed = Random.nextInt
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
   Display.displayFull(world,List(),false)
+  js.timers.setInterval(10)({
+    if(input.nonEmpty) {
+      input = ""
+      val actions = world.getEnemies.flatMap(_.act(world)).toVector
+      Action.applyActions(world,actions)
+      Display.displayFull(world,List(),round % 3 == 0)
+      round += 1
+    }
+  })
+
 
   /*
   Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
