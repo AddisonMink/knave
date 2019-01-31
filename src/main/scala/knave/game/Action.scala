@@ -65,7 +65,11 @@ case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
     if(w.dungeon.isWalkable(c)) {
       w.checkCollision(c) match {
         case NoCollision => {
-          w.enemy(id).map(_.pos = c)
+          w.enemy(id).map(e => {
+            e.facing = Coord(c.x - e.pos.x, c.y - e.pos.y)
+            e.pos = c
+            e.fieldOfVision = w.dungeon.cone(e.pos,e.facing,e.vision)
+          })
           Vector()
         }
         case _ => Vector()

@@ -19,7 +19,7 @@ case class Coord(x : Int, y : Int) {
         if(x == c.x) Stream(cur,c)
         else {
           val newAcc = acc + xdirection*slope
-          val y = Math.floor(this.y.toDouble + newAcc).toInt
+          val y = Math.round(this.y.toDouble + newAcc).toInt
           Stream.cons(cur, horizontalLoop(Coord(x,y), newAcc))
         }
       }
@@ -31,7 +31,7 @@ case class Coord(x : Int, y : Int) {
         if(y == c.y) Stream(cur,c)
         else {
           val newAcc = if(slope != 0) acc + ydirection*(1d/slope) else acc + 0d
-          val x = Math.floor(this.x.toDouble + newAcc).toInt
+          val x = Math.round(this.x.toDouble + newAcc).toInt
           Stream.cons(cur, verticalLoop(Coord(x,y), newAcc))
         }
       }
@@ -72,6 +72,9 @@ case class Coord(x : Int, y : Int) {
     val dy = Math.abs(c.y - y)
     dx + dy
   }
+
+  def normalize : Coord =
+    Coord(x / Math.abs(x), y / Math.abs(y))
 }
 
 

@@ -12,6 +12,8 @@ abstract class Enemy {
 
   var pos : Coord
 
+  var facing : Coord = Coord(0,0)
+
   val maxHp : Int
 
   var hp : Int
@@ -25,6 +27,8 @@ abstract class Enemy {
   val blood : Int
 
   val vision : Int
+
+  var fieldOfVision : Set[Coord] = Set()
 
   var speed : Speed
 

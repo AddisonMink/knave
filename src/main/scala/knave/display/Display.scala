@@ -103,15 +103,21 @@ object Display {
 
   private def setEnemyFov(e : Enemy, playerFov : Set[Coord], w : World) : Unit =
     if(w.player.hidden) {
-      val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision)
-      for(c <- enemyFov.intersect(playerFov))
+      for(c <- e.fieldOfVision.intersect(playerFov))
         setTile(w.dungeon, c, Some(orange))
     }
     else {
-      val enemyFov = w.dungeon.fieldOfVision(e.pos, e.vision*2)
+      val enemyFov = w.dungeon.circle(e.pos, e.vision*2)
       for(c <- enemyFov.intersect(playerFov))
         setTile(w.dungeon, c, Some(red))
     }
+
+  private def setEnemyFovFull(e : Enemy, w : World) : Unit =
+    if(w.player.hidden) {
+      for(c <- e.fieldOfVision)
+        setTile(w.dungeon, c, Some(orange))
+    }
+
 
   private def setEnemy(e : Enemy, playerFov : Set[Coord], w : World, speedRound : Boolean) : Unit = {
     val color =
@@ -178,10 +184,11 @@ object Display {
 
   def displayFull(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
-    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision)
+    val fov = w.dungeon.circle(w.player.pos, w.player.vision)
     setDungeon(w.dungeon)
     setItems(w.getItems)
     setPlayer(w.player)
+    for(e <- w.getEnemies) setEnemyFovFull(e,w)
     for(e <- w.getEnemies) setEnemy(e,fov,w,speedRound)
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
@@ -191,7 +198,7 @@ object Display {
   def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
 
-    val fov = w.dungeon.fieldOfVision(w.player.pos, w.player.vision)
+    val fov = w.dungeon.circle(w.player.pos, w.player.vision)
     w.dungeon.visitCoords(fov)
 
     setDungeonFov(w.dungeon, fov)

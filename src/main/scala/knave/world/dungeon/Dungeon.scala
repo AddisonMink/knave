@@ -100,7 +100,7 @@ abstract class Dungeon(seed : Int) {
   final def nextWalkableCoord(start : Coord, end : Coord) : Option[Coord] =
     walkableLine(start,end).headOption
 
-  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
+  final def circle(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     var i = radius
     do {
@@ -115,6 +115,45 @@ abstract class Dungeon(seed : Int) {
     } while(i > 3)
     cs.toSet
   }
+
+  final def cone(center : Coord, direction : Coord, vision : Int) : Set[Coord] = {
+    val dir = direction.normalize
+
+
+    lazy val straight : Set[Coord] = {
+      val fov = new ListBuffer[Coord]
+      val periphery = Seq(Coord(center.x + dir.y, center.y + dir.x), Coord(center.x - dir.y, center.y - dir.x))
+      for(v <- 1 to vision) {
+        val d = v / 2 + 1
+        val top = if(dir.x != 0) Coord(center.x + v*dir.x, center.y - d) else Coord(center.x - d, center.y + v*dir.y)
+        val bottom = if(dir.x != 0) Coord(center.x + v*dir.x, center.y + d) else Coord(center.x + d, center.y + v*dir.y)
+        val rim = top #:: top.lineTo(bottom)
+        fov ++= rim.flatMap(visibleLine(center,_))
+      }
+      fov ++= periphery
+      fov.toSet
+    }
+
+    lazy val diagonal : Set[Coord] = {
+      val fov = new ListBuffer[Coord]
+      val periphery = Seq(Coord(center.x, center.y + dir.y), Coord(center.x + dir.x, center.y))
+      fov ++= periphery
+      for(v <- 1 to vision) {
+        val right = Coord(center.x + v*dir.x, center.y)
+        val down = Coord(center.x, center.y + v*dir.y)
+        val diag = Coord(center.x + v*dir.x, center.y + v*dir.y)
+        val rim = right #:: right.lineTo(diag) ++ diag.lineTo(down)
+        fov ++= rim.flatMap(visibleLine(center,_))
+      }
+      fov.toSet
+    }
+
+    if(dir.x == 0 && dir.y == 0) Set()
+    else if(dir.x != 0 && dir.y != 0) diagonal
+    else straight
+  }
+
+
 
   final def castRay(start : Coord, end : Coord) : Boolean =
     visibleLine(start,end).contains(end)
