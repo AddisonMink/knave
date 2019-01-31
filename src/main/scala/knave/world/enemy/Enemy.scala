@@ -69,7 +69,7 @@ abstract class Enemy {
 
   final def canSeePlayer(w : World) : Boolean =
     if(w.player.hidden)
-      w.dungeon.castRay(pos, w.player.pos, vision)
+      fieldOfVision.contains(w.player.pos)
     else
       w.dungeon.castRay(pos, w.player.pos, vision*2)
 
