@@ -1,13 +1,6 @@
 Objectives for v0.2
-* FEATURE: Better Standard World Generation
-	* Identify small, single-rectangle rooms and put goodies inside.
-		* For now, but either a knife or a health pick-up in each treasure room.
-	* Decrease knife durability and make Bound Servants sometimes drop knives.
-
-* FEATURE: Give enemies facing and make their fov a cone.
-	* When not alerted, each enemy should have a cone of vision in the direction they are facing.
-	  The cone should include the squares to the left and right, relative to their facing, but not
-	  the square behind them.
+* FEATURE: Implement sneak attacks.
+	* If a player damages an enemy with a direct attack while hidden, the attack does double damage.
 	* If a player damages an enemy without killing them, the enemy should be alerted.
 
 * FEATURE: Implement bound cleric enemy.
@@ -27,6 +20,10 @@ Objectives for v0.2
 	* Maybe fix height of container?s
 
 * FEATURE: Implement moving between floors and create 5-floor game.
+
+* ENHANCEMENT: Refactor Display into a trait and have FullDisplay and FovDisplay implementations.
+
+* ENHANCEMENT: Fix the height of the container and put look-more text in the log div.
 
 Objectives for v0.3
 * Implement lockable rooms.
