@@ -174,7 +174,7 @@ trait Display {
   }
 
   final def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
-    if(mouse != oldMouse || stateChanged) {
+    if((mouse != oldMouse || stateChanged) && w.player.fieldOfVision.contains(mouse)) {
       val log = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
         case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("") + " Press 'm' for more."
