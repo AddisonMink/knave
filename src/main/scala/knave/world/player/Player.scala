@@ -1,16 +1,23 @@
 package knave.world.player
 
 import knave.game.{Normal, Speed}
-import knave.world.dungeon.Coord
-import knave.world.player.weapon.{Fist, Knife, Weapon}
+import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.player.weapon.{Fist, Weapon}
 
-sealed class Player(c : Coord) {
+import scala.collection.mutable
+
+sealed class Player(c : Coord, d: Dungeon) {
 
   var ascended : Boolean = false
 
+  var pos = c
+
   val vision = 8
 
-  var pos = c
+  var fieldOfVision : Set[Coord] = d.circle(pos,vision)
+
+  var visitedTiles = new mutable.HashSet[Coord]
+  visitedTiles ++= fieldOfVision
 
   val maxHp = 100
 

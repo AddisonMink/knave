@@ -19,7 +19,7 @@ private class StandardWorld(d : Dungeon) extends World(d) {
   // Place player in the smallest room.
   override val player: Player = {
     val c = startRoom.randomCoord(rng)
-    new Player(c)
+    new Player(c,d)
   }
 
   // Place a knife next to the player.

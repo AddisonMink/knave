@@ -25,6 +25,8 @@ case class PlayerMove(c : Coord) extends Action {
       w.checkCollision(c) match {
         case NoCollision => {
           w.player.pos = c
+          w.player.fieldOfVision = w.dungeon.circle(w.player.pos, w.player.vision)
+          w.player.visitedTiles ++= w.player.fieldOfVision
           if(w.itemAt(c).isDefined)
             addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
           if(w.dungeon.isStairs(c))

@@ -8,7 +8,7 @@ import knave.game._
 import knave.main.InputProcessor.{LogMore, Look, LookMore, Start}
 import knave.world.World
 import knave.world.dungeon.Dungeon
-import knave.display.DisplayFull._
+import knave.display.DisplayFov._
 
 import scala.scalajs.js
 import scala.util.Random
