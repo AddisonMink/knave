@@ -3,11 +3,12 @@ package knave.main
 import java.util.Calendar
 
 import org.scalajs.dom.document
-import knave.display.Display
+import knave.display.DisplayFull
 import knave.game._
 import knave.main.InputProcessor.{LogMore, Look, LookMore, Start}
 import knave.world.World
 import knave.world.dungeon.Dungeon
+import knave.display.DisplayFull._
 
 import scala.scalajs.js
 import scala.util.Random
@@ -28,13 +29,13 @@ object Main extends App {
 
   val seed = Random.nextInt
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
-  Display.displayFull(world,List(),false)
+  display(world,List(),false)
   js.timers.setInterval(10)({
     if(input.nonEmpty) {
       input = ""
       val actions = world.getEnemies.flatMap(_.act(world)).toVector
       Action.applyActions(world,actions)
-      Display.displayFull(world,List(),round % 3 == 0)
+      display(world,List(),round % 3 == 0)
       round += 1
     }
   })
