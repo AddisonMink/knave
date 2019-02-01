@@ -1,9 +1,6 @@
 package knave.main
 
-import java.util.Calendar
-
 import org.scalajs.dom.document
-import knave.display.DisplayFull
 import knave.game._
 import knave.main.InputProcessor.{LogMore, Look, LookMore, Start}
 import knave.world.World
@@ -30,6 +27,8 @@ object Main extends App {
   val seed = Random.nextInt
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
   display(world,List(),false)
+  
+  /*
   js.timers.setInterval(10)({
     if(input.nonEmpty) {
       input = ""
@@ -39,14 +38,14 @@ object Main extends App {
       round += 1
     }
   })
+  */
 
-
-  /*
-  Display.display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
+  
+  display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
   js.timers.setInterval(10)({
     if(state == Ongoing) {
       val oldState = InputProcessor.state
-      val playerActions = InputProcessor.process(world, input, Display.mousePos)
+      val playerActions = InputProcessor.process(world, input, mousePos)
       input = ""
       if(playerActions.nonEmpty) {
         if(round % 3 == 0) {
@@ -70,7 +69,7 @@ object Main extends App {
             else Vector()
           val stealthLogs = Action.applyActions(world, stealthActions)
 
-          Display.display(world, logs ++ fastLogs ++ stealthLogs, (round + 1) % 3 == 0)
+          display(world, logs ++ fastLogs ++ stealthLogs, (round + 1) % 3 == 0)
         }
         else {
           val enemyActions = world.getEnemies.flatMap(_.act(world)).toVector
@@ -90,7 +89,7 @@ object Main extends App {
             else Vector()
           val stealthLogs = Action.applyActions(world, stealthActions)
 
-          Display.display(world, logs ++ stealthLogs, (round + 1) % 3 == 0)
+          display(world, logs ++ stealthLogs, (round + 1) % 3 == 0)
         }
 
 
@@ -102,14 +101,13 @@ object Main extends App {
         round += 1
       }
       else InputProcessor.state match {
-        case Start => if (InputProcessor.state != oldState) Display.display(world, List(), round % 3 == 0)
-        case Look => Display.displayLook(world, InputProcessor.state == oldState, round % 3 == 0)
-        case InputProcessor.RayAttack(range, _, _) => Display.displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
-        case LogMore => if(InputProcessor.state != oldState) Display.displayLogMore
-        case LookMore => if(InputProcessor.state != oldState) Display.displayLookMore(world)
+        case Start => if (InputProcessor.state != oldState) display(world, List(), round % 3 == 0)
+        case Look => displayLook(world, InputProcessor.state == oldState, round % 3 == 0)
+        case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
+        case LogMore => if(InputProcessor.state != oldState) displayLogMore
+        case LookMore => if(InputProcessor.state != oldState) ()
         case _ => ()
       }
     }
   })
-  */
 }

@@ -51,27 +51,27 @@ trait Display {
       for(x <- 0 until width)
         show(Coord(x,y)," ", white)
 
-  protected final def show(c : Coord, symbol : String, color : String) : Unit = {
+  protected final def show(c : Coord, symbol : String, color : String, backgroundColor : Option[String] = None) : Unit = {
     val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
-    tile.style = s"color : ${color}"
+    tile.style = s"color : ${color}; background-color : ${backgroundColor.getOrElse("")}"
     tile.innerHTML = symbol
   }
 
   protected final def color(symbol : String, color : String) : String =
     "<span style=\"color : " + color + "\">" + symbol + "</span>"
 
-  protected final def setTile(d : Dungeon, c : Coord, light : Boolean = true, color : Option[String] = None) : Unit = {
+  protected final def setTile(d : Dungeon, c : Coord, light : Boolean = true, color : Option[String] = None, backgroundColor : Option[String] = None) : Unit = {
     lazy val floor = d.floorAt(c)
     lazy val wall = d.wallAt(c)
     lazy val door = d.doorAt(c)
     if(floor.isDefined)
-      if(light) show(c, floor.get.symbol, color.getOrElse(floor.get.color))
+      if(light) show(c, floor.get.symbol, color.getOrElse(floor.get.color),backgroundColor)
       else show(c, floor.get.symbol, floor.get.darkColor)
     else if(wall.isDefined)
-      if(light) show(c, wall.get.symbol, color.getOrElse(wall.get.color))
+      if(light) show(c, wall.get.symbol, color.getOrElse(wall.get.color),backgroundColor)
       else show(c, wall.get.symbol, wall.get.darkColor)
     else if(door.isDefined)
-      if(light) show(c, door.get.symbol, color.getOrElse(door.get.color))
+      if(light) show(c, door.get.symbol, color.getOrElse(door.get.color),backgroundColor)
       else show(c, door.get.symbol, door.get.darkColor)
   }
 
