@@ -14,7 +14,7 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   val vision = 8
 
-  var fieldOfVision : Set[Coord] = d.circle(pos,vision)
+  var fieldOfVision : Set[Coord] = d.fieldOfVision(pos,vision)
 
   var visitedTiles = new mutable.HashSet[Coord]
   visitedTiles ++= fieldOfVision

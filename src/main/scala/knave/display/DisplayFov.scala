@@ -13,7 +13,6 @@ object DisplayFov extends Display {
     p.fieldOfVision.foreach(setTile(d, _, true))
   }
 
-
   private def setEnemyFov(e : Enemy, w : World) : Unit =
     if(w.player.hidden)
       e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(orange)))
@@ -23,11 +22,11 @@ object DisplayFov extends Display {
   override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
     setDungeon(w.dungeon, w.player)
+    val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
+    enemies.foreach(setEnemyFov(_,w))
     w.getItems.filter(i => w.player.fieldOfVision.contains(i.pos)).foreach(setItem(_))
     setPlayer(w.player)
-    val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
     enemies.foreach(setEnemy(_,speedRound))
-    enemies.foreach(setEnemyFov(_,w))
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
   }

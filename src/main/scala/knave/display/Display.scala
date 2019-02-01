@@ -49,11 +49,19 @@ trait Display {
   protected final def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
-        show(Coord(x,y)," ", white)
+        show(Coord(x,y)," ", white, Some(black))
 
   protected final def show(c : Coord, symbol : String, color : String, backgroundColor : Option[String] = None) : Unit = {
     val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
-    tile.style = s"color : ${color}; background-color : ${backgroundColor.getOrElse("")}"
+    if(backgroundColor.isEmpty) {
+      val bgc = tile.style.backgroundColor
+      tile.style.color = color
+      tile.style.backgroundColor = bgc
+    }
+    else {
+      tile.style.color = color
+      tile.style.backgroundColor = backgroundColor.get
+    }
     tile.innerHTML = symbol
   }
 
@@ -68,8 +76,8 @@ trait Display {
       if(light) show(c, floor.get.symbol, color.getOrElse(floor.get.color),backgroundColor)
       else show(c, floor.get.symbol, floor.get.darkColor)
     else if(wall.isDefined)
-      if(light) show(c, wall.get.symbol, color.getOrElse(wall.get.color),backgroundColor)
-      else show(c, wall.get.symbol, wall.get.darkColor)
+      if(light) show(c, wall.get.symbol, color.getOrElse(wall.get.color),backgroundColor.orElse(wall.map(_.color)))
+      else show(c, wall.get.symbol, wall.get.darkColor, Some(wall.get.darkColor))
     else if(door.isDefined)
       if(light) show(c, door.get.symbol, color.getOrElse(door.get.color),backgroundColor)
       else show(c, door.get.symbol, door.get.darkColor)
@@ -85,11 +93,27 @@ trait Display {
     show(p.pos, "@", white)
 
   protected final def setEnemy(e : Enemy, speedRound : Boolean) : Unit = {
+    /*
     val color =
       if (speedRound && e.speed == Fast) red
       else if (speedRound && e.speed == Slow) cyan
       else e.color
-    show(e.pos, e.symbol.toString, color)
+    */
+    val style = document.getElementById(e.pos.x.toString + "-" + e.pos.y.toString).asInstanceOf[Span].style
+    if(speedRound && e.speed == Fast) {
+      style.fontWeight = "bold"
+      style.fontStyle = "normal"
+    }
+    else if(speedRound && e.speed == Slow) {
+      style.fontStyle = "italic"
+      style.fontWeight = "normal"
+    }
+    else {
+      style.fontStyle = "normal"
+      style.fontWeight = "normal"
+    }
+
+    show(e.pos, e.symbol.toString, e.color)
   }
 
   private var fullLog = List[String]()
@@ -166,7 +190,7 @@ trait Display {
       display(w, List("Select target with mouse. Press 'f' to confirm or 'esc' to cancel."), speedRound)
       val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
       for(c <- ray)
-        show(c, "*", red)
+        show(c, "*", white)
     }
 
   final def displayLogMore : Unit = {

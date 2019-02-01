@@ -102,6 +102,24 @@ abstract class Dungeon(seed : Int) {
 
   final def circle(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
+    cs += center
+    var i = radius
+    do {
+      val rim = ((center.x - i) to (center.x + i)).toStream
+        .flatMap(tempX => {
+          val dx = Math.abs(center.x - tempX)
+          val dy = i - dx
+          Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
+        })
+      cs ++= rim.flatMap(walkableLine(center,_)).toList
+      i -= 1
+    } while(i > 3)
+    cs.toSet
+  }
+
+  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
+    val cs = new ListBuffer[Coord]
+    cs += center
     var i = radius
     do {
       val rim = ((center.x - i) to (center.x + i)).toStream
@@ -122,13 +140,14 @@ abstract class Dungeon(seed : Int) {
 
     lazy val straight : Set[Coord] = {
       val fov = new ListBuffer[Coord]
+      fov += center
       val periphery = Seq(Coord(center.x + dir.y, center.y + dir.x), Coord(center.x - dir.y, center.y - dir.x))
       for(v <- 1 to vision) {
         val d = v / 2 + 1
         val top = if(dir.x != 0) Coord(center.x + v*dir.x, center.y - d) else Coord(center.x - d, center.y + v*dir.y)
         val bottom = if(dir.x != 0) Coord(center.x + v*dir.x, center.y + d) else Coord(center.x + d, center.y + v*dir.y)
         val rim = top #:: top.lineTo(bottom)
-        fov ++= rim.flatMap(visibleLine(center,_))
+        fov ++= rim.flatMap(walkableLine(center,_))
       }
       fov ++= periphery
       fov.toSet
@@ -136,6 +155,7 @@ abstract class Dungeon(seed : Int) {
 
     lazy val diagonal : Set[Coord] = {
       val fov = new ListBuffer[Coord]
+      fov += center
       val periphery = Seq(Coord(center.x, center.y + dir.y), Coord(center.x + dir.x, center.y))
       fov ++= periphery
       for(v <- 1 to vision) {
@@ -143,7 +163,7 @@ abstract class Dungeon(seed : Int) {
         val down = Coord(center.x, center.y + v*dir.y)
         val diag = Coord(center.x + v*dir.x, center.y + v*dir.y)
         val rim = right #:: right.lineTo(diag) ++ diag.lineTo(down)
-        fov ++= rim.flatMap(visibleLine(center,_))
+        fov ++= rim.flatMap(walkableLine(center,_))
       }
       fov.toSet
     }

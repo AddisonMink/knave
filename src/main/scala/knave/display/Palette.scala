@@ -4,6 +4,8 @@ object Palette {
 
   val white = "white"
 
+  val black = "black"
+
   val red = "red"
 
   val green = "#33cc33"
@@ -20,7 +22,11 @@ object Palette {
 
   val darkRed =  "#8B0000"
 
-  val lightGray = "#D3D3D3"
+  val veryLightGray = "#D3D3D3"
 
-  val darkGray = "#808080"
+  val lightGray = "#808080"
+
+  val darkGray = "#383838"
+
+  val veryDarkGray = "#383838"
 }
