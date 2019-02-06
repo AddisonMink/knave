@@ -105,7 +105,7 @@ object Main extends App {
         case Look => displayLook(world, InputProcessor.state == oldState, round % 3 == 0)
         case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore
-        case LookMore => if(InputProcessor.state != oldState) ()
+        case LookMore => displayLookMore(world, InputProcessor.state == oldState)
         case _ => ()
       }
     }

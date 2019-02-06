@@ -3,7 +3,7 @@ package knave.display
 import knave.display.DisplayFull.{display, mouse, show}
 import knave.display.Palette._
 import knave.game.{Fast, Slow}
-import knave.world.{EnemyCollision, PlayerCollision, World}
+import knave.world.{EnemyCollision, NoCollision, PlayerCollision, World}
 import knave.world.dungeon.{Coord, Dungeon}
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
@@ -197,16 +197,7 @@ trait Display {
     }
 
   final def displayLogMore : Unit = {
-    clearMap
     map.style.display = "none"
-    val rowsToDrop = fullLog.length - 3
-    for(x <- 0 until width) {
-      for (y <- 0 to rowsToDrop)
-        show(Coord(x, y), "", "")
-      val ys = if (rowsToDrop < 0) 0 else rowsToDrop
-      for (y <- ys until height)
-        show(Coord(x,y), " ", "")
-    }
 
     val str = new StringBuilder
     for(l <- fullLog)
@@ -216,4 +207,16 @@ trait Display {
       str += '\n'
     log.innerHTML = str.toString
   }
+
+  final def displayLookMore(w : World, stateChanged : Boolean) : Unit =
+    if(stateChanged && w.player.fieldOfVision.contains(mouse)) {
+      val text = w.checkCollision(mouse) match {
+        case PlayerCollision => "You are here."
+        case EnemyCollision(id) => w.enemy(id).get.fullDescription
+        case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.description
+        case _ => "There is nothing here."
+      }
+      map.style.display = "none"
+      log.innerHTML = text + "\nPress 'esc' to exit."
+    }
 }
