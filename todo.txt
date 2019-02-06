@@ -16,14 +16,7 @@ Objectives for v0.2
 	* Pressing "i" should bring up an inventory screen where players can look at detailed
 	  descriptions of their items and select an item to equip.
 
-* BUG: Log overflow in log mode will change the size of the screen.
-	* Maybe fix height of container?s
-
 * FEATURE: Implement moving between floors and create 5-floor game.
-
-* ENHANCEMENT: Fix the height of the container and put look-more text in the log div.
-
-* BUG : Log mode does not clear map background color.
 
 Objectives for v0.3
 * Implement lockable rooms.
