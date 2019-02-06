@@ -3,8 +3,10 @@
 <body>
     <div id="outer">
         <div id="container">
-            <div id="log" class="knave"></div>
-            <div id="map" class="knave"></div>
+            <div id="logAndMap">
+                <div id="log" class="knave"></div>
+                <div id="map" class="knave"></div>
+            </div>
             <div id="hud" class="knave"></div>
         </div>
     </div>
@@ -22,6 +24,7 @@
             #container {
                 display : inline-block;
                 background-color : black;
+                width : 970px;
 
                 -webkit-touch-callout: none; /* iOS Safari */
                 -webkit-user-select: none; /* Safari */
@@ -30,6 +33,10 @@
                 -ms-user-select: none; /* Internet Explorer/Edge */
                 user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+            }
+
+            #logAndMap {
+                height : 550px;
             }
 
             .knave {

@@ -134,7 +134,10 @@ trait Display {
     str.toString
   }
 
-  def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit
+  def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
+    clearMap
+    map.style.display = "inline-block"
+  }
 
   protected final def createHud(p : Player) : String = {
     val str = new StringBuilder
@@ -194,6 +197,8 @@ trait Display {
     }
 
   final def displayLogMore : Unit = {
+    clearMap
+    map.style.display = "none"
     val rowsToDrop = fullLog.length - 3
     for(x <- 0 until width) {
       for (y <- 0 to rowsToDrop)

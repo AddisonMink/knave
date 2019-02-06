@@ -21,7 +21,7 @@ object DisplayFull extends Display {
       w.dungeon.circle(e.pos, e.vision*2).foreach(setTile(w.dungeon,_,true,Some(red)))
 
   override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
-    clearMap
+    super.display(w,logs,speedRound)
     setDungeon(w.dungeon)
     w.getItems.foreach(setItem(_))
     setPlayer(w.player)

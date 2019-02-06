@@ -20,7 +20,7 @@ object DisplayFov extends Display {
       w.dungeon.circle(e.pos, e.vision*2).intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(red)))
 
   override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
-    clearMap
+    super.display(w,logs,speedRound)
     setDungeon(w.dungeon, w.player)
     val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
     enemies.foreach(setEnemyFov(_,w))

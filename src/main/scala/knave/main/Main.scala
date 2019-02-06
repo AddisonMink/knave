@@ -41,7 +41,7 @@ object Main extends App {
   */
 
   
-  display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around."), false)
+  display(world, List("Welcome to Knave...", "Use 'wasdqezc' and to move and 'space' to look around.","test1","test2","test3"), false)
   js.timers.setInterval(10)({
     if(state == Ongoing) {
       val oldState = InputProcessor.state

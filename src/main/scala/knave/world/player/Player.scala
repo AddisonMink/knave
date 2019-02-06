@@ -12,7 +12,7 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   var pos = c
 
-  val vision = 8
+  val vision = 16
 
   var fieldOfVision : Set[Coord] = d.fieldOfVision(pos,vision)
 
