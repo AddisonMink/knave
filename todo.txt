@@ -21,9 +21,9 @@ Objectives for v0.2
 
 * FEATURE: Implement moving between floors and create 5-floor game.
 
-* ENHANCEMENT: Refactor Display into a trait and have FullDisplay and FovDisplay implementations.
-
 * ENHANCEMENT: Fix the height of the container and put look-more text in the log div.
+
+* BUG : Log mode does not clear map background color.
 
 Objectives for v0.3
 * Implement lockable rooms.
