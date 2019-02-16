@@ -89,16 +89,14 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
   override def updateWorld(w: World): Vector[Action] =
     w.enemy(id) match {
       case None => Vector()
-      case Some(enemy) => {
-        if(enemy.hp <= damage)
+      case Some(enemy) =>
+        val trueDamage = if (w.player.hidden) damage * 2 else damage
+        enemy.hp -= trueDamage
+        addLog(s"You did ${trueDamage} damage to the ${enemy.description}")
+        if(enemy.hp <= 0)
           Vector(EnemyDeath(id))
-        else {
-          enemy.hp -= damage
-          addLog(s"You did ${damage} damage to the ${enemy.description}")
-          Vector()
-        }
-      }
-      case _ => Vector()
+        else
+          if(w.player.hidden) Vector(SpotSplayer) else Vector()
     }
 }
 
