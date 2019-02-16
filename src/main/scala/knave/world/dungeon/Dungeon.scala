@@ -60,7 +60,7 @@ abstract class Dungeon(seed : Int) {
   }
 
   final def createCorpse(c: Coord): Unit = {
-    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor])
+    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor] && !isStairs(c))
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
