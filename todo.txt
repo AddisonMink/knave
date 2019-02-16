@@ -1,4 +1,4 @@
-Objectives for v0.2
+Objectives for v0.3
 * FEATURE: Implement bound cleric enemy.
 	* Bound clerics have 4 health (and 2 armor?) and only spawn in big rooms that already contain bound servants.
 	* Each round, clerics heal all bound servants in their line of sight by 10, to maximum of their
@@ -14,7 +14,7 @@ Objectives for v0.2
 
 * FEATURE: Implement moving between floors and create 5-floor game.
 
-Objectives for v0.3
+Objectives for v0.4
 * Implement lockable rooms.
 * Implement oracles.
 * Implement crystal ball.
@@ -24,7 +24,7 @@ Objectives for v0.3
 * Implement sword.
 * Implement depth-dependent difficulty.
 
-Objectvies for v0.4
+Objectvies for v0.5
 * Implement boss arena and 1st boss.
 * Implement boss weapon/item.
 
