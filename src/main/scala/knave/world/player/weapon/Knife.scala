@@ -5,7 +5,7 @@ import knave.display.Palette.{veryLightGray}
 class Knife extends Weapon {
   override val name: String = "knife"
   override val color: String = veryLightGray
-  override val maxDurability: Int = 10
+  override val maxDurability: Int = 6
   override var durability: Int = maxDurability
   override val attackDamage: Int = 20
   override val attackCost: Int = 1

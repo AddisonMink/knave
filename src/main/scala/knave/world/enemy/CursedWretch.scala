@@ -6,7 +6,7 @@ import knave.display.Palette.white
 
 import scala.util.Random
 
-class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy {
+class CursedWretch(i : Int, c : Coord, rng : Random, room : Room) extends Enemy {
 
   private var dest = c
 
@@ -18,11 +18,11 @@ class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
 
   override var hp: Int = maxHp
 
-  override val symbol: Char = 's'
+  override val symbol: Char = 'w'
 
   override val color: String = white
 
-  override val name: String = "bound servant"
+  override val name: String = "cursed wretch"
 
   private val attackDamage = 10
 

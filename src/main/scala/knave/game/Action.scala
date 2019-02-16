@@ -106,7 +106,6 @@ case class EnemyDeath(id : Int) extends Action {
       case None => Vector()
       case Some(enemy) => {
         w.destroyEnemy(id)
-        addLog(color(s"You have slain the ${enemy.name}!", red))
         w.dungeon.createCorpse(enemy.pos)
         for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
           w.dungeon.bloodyTile(c)

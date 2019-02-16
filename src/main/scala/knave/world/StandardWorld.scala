@@ -1,7 +1,7 @@
 package knave.world
 
 import knave.world.dungeon.{Coord, Dungeon}
-import knave.world.enemy.BoundServant
+import knave.world.enemy.CursedWretch
 import knave.world.item.WeaponItem
 import knave.world.player.Player
 import knave.world.player.weapon.Knife
@@ -41,7 +41,7 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     for(_ <- 0 until numMonsters) {
       val id = nextId
       for( c <- r.randomCoordExcept(cs,rng))
-        addEnemy(new BoundServant(id,c,rng,r))
+        addEnemy(new CursedWretch(id,c,rng,r))
     }
   }
 

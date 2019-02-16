@@ -3,6 +3,7 @@ package knave.world.enemy
 import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
 import knave.world.dungeon.Coord
+import knave.display.Palette._
 
 import scala.util.Random
 
@@ -46,9 +47,10 @@ abstract class Enemy {
 
     val status = hp.toFloat / maxHp.toFloat match {
       case x if x == 1.0 => "unharmed"
-      case x if x > 0.74 => color("scratched", "light-gray")
-      case x if x > 0.25 => color("wounded", "yellow")
-      case _ => color("near death", "red")
+      case x if x > 0.74 => color("scratched", lightGray)
+      case x if x > 0.25 => color("wounded", yellow)
+      case x if x > 0 => color("near death", red)
+      case _ => color("dead", red)
     }
 
     s"${name} (${status})"
@@ -76,6 +78,4 @@ abstract class Enemy {
       w.dungeon.castRay(pos, w.player.pos, vision*2)
 
   def act(w : World) : Vector[Action]
-
-  protected val dest
 }
