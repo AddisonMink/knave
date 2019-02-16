@@ -1,6 +1,8 @@
 # Knave
 ASCII rogue-like stealth extravaganza!
 
+Version: 0.2
+
 ## Controls
 wasdqezc	-	Move. If you try to move into an enemy's tile, you will attack them instead.
 g		    -	Pick up an item.
