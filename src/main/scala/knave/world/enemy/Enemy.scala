@@ -32,6 +32,8 @@ abstract class Enemy {
 
   var speed : Speed
 
+  protected val canOpenDoors : Boolean
+
   def flavorText : String
 
   def onAlert : Unit = ()
@@ -74,4 +76,6 @@ abstract class Enemy {
       w.dungeon.castRay(pos, w.player.pos, vision*2)
 
   def act(w : World) : Vector[Action]
+
+  protected val dest
 }

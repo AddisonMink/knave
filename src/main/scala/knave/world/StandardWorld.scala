@@ -44,4 +44,8 @@ private class StandardWorld(d : Dungeon) extends World(d) {
         addEnemy(new BoundServant(id,c,rng,r))
     }
   }
+
+  // Place stairs in the lsat combat room.
+  val r = combatRooms.last
+  dungeon.createStairs(r.randomCoord(rng))
 }

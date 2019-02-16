@@ -32,6 +32,8 @@ class BoundServant(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
 
   override var speed: Speed = Slow
 
+  override protected val canOpenDoors: Boolean = false
+
   override def flavorText: String =
     """ A human who was slain while scaling the tower.
       | Its soul is now bound to the tower, guarding it until the end of time.
