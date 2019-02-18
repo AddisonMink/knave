@@ -4,7 +4,7 @@ import knave.game._
 import knave.world.{EnemyCollision, World}
 import knave.world.dungeon.Coord
 import knave.world.enemy.Enemy
-import knave.world.player.weapon.{NoSpecial, Ray}
+import knave.world.player.weapon.{NoSpecial, Ray, Use}
 
 object InputProcessor {
 
@@ -50,7 +50,7 @@ object InputProcessor {
             internalState = RayAttack(range, damage, cost)
             Vector()
           }
-          case _ => Vector()
+          case Use(effect, cost, description) => effect(w) ++ Vector(DamagePlayerWeapon(cost))
         }
       case "<" =>
         if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)

@@ -108,7 +108,7 @@ case class EnemyDeath(id : Int) extends Action {
       for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
         w.dungeon.bloodyTile(c)
       if(Random.nextDouble <= enemy.dropRate)
-        Some(SpawnWeapon(enemy.drop,enemy.pos))
+        Some(SpawnWeapon(enemy.drop, enemy.pos))
       else
         None
     }).toVector
@@ -161,13 +161,22 @@ case object HidePlayer extends Action {
   }
 }
 
+case class HealPlayer(heal : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    val trueHeal = if(w.player.hp + heal > w.player.maxHp) w.player.maxHp - w.player.hp else heal
+    w.player.hp += trueHeal
+    addLog(s"You have been healed for ${trueHeal} health.")
+    Vector()
+  }
+}
+
 case class HealEnemy(id : Int, heal : Int) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.enemy(id).foreach(enemy => {
       val trueHeal = if(enemy.hp + heal > enemy.fortifiedHp) enemy.fortifiedHp - enemy.hp else heal
       enemy.hp += trueHeal
       if(trueHeal > 0 &&  w.player.fieldOfVision.contains(enemy.pos))
-        addLog(s"${enemy.name} has been healed for ${trueHeal.toString} health.")
+        addLog(s"${enemy.name} has been healed for ${trueHeal} health.")
     })
     Vector()
   }

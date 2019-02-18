@@ -11,7 +11,7 @@ import knave.world.dungeon.Size._
 import knave.world.enemy.Enemy
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
-import knave.world.player.weapon.{Fist, Ray}
+import knave.world.player.weapon.{Fist, Ray, Use}
 
 trait Display {
 
@@ -166,6 +166,7 @@ trait Display {
         val line2 = color(s"\n\tAttack: ${w.attackDamage} damage, ${w.attackCost} durability", w.color)
         val line3 = w.special match {
           case Ray(range, damage, cost) => color(s"\n\tSpecial: ${damage} damage, ${cost} durability, ${range}-tile ray.", w.color)
+          case Use(_,_,description) => color(s"\n\tSpecial: ${description}", w.color)
           case _ => color("\n\tNo Special", w.color)
         }
         line1 + line2 + line3

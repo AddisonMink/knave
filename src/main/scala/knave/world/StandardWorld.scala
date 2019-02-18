@@ -4,7 +4,7 @@ import knave.world.dungeon.{Coord, Dungeon, Room}
 import knave.world.enemy.{CursedCleric, CursedWretch}
 import knave.world.item.WeaponItem
 import knave.world.player.Player
-import knave.world.player.weapon.Knife
+import knave.world.player.weapon.{Knife, Staff}
 
 import scala.collection.mutable.ListBuffer
 
