@@ -2,7 +2,7 @@ package knave.world.enemy
 
 import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
-import knave.world.dungeon.Coord
+import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette._
 
 import scala.util.Random
@@ -16,6 +16,8 @@ abstract class Enemy {
   var facing : Coord = Coord(0,0)
 
   val maxHp : Int
+
+  val fortifiedHp : Int
 
   var hp : Int
 
@@ -34,6 +36,10 @@ abstract class Enemy {
   var speed : Speed
 
   protected val canOpenDoors : Boolean
+
+  protected val room : Room
+
+  protected val rng : Random
 
   def flavorText : String
 
@@ -77,5 +83,10 @@ abstract class Enemy {
     else
       w.dungeon.castRay(pos, w.player.pos, vision*2)
 
-  def act(w : World) : Vector[Action]
+  def act(w : World) : Vector[Action] =
+    if(w.player.hidden) normalBehavior(w) else alertedBehavior(w)
+
+  protected def normalBehavior(w : World) : Vector[Action]
+
+  protected def alertedBehavior(w : World) : Vector[Action]
 }

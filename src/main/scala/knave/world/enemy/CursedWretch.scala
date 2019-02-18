@@ -6,15 +6,17 @@ import knave.display.Palette.white
 
 import scala.util.Random
 
-class CursedWretch(i : Int, c : Coord, rng : Random, room : Room) extends Enemy {
+class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends WanderingEnemy {
 
-  private var dest = c
+  override protected var dest: Coord = c
 
   override val id: Int = i
 
   override var pos: Coord = c
 
   override val maxHp: Int = 20
+
+  override val fortifiedHp: Int = 30
 
   override var hp: Int = maxHp
 
@@ -34,9 +36,14 @@ class CursedWretch(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
 
   override protected val canOpenDoors: Boolean = false
 
+  override protected val room: Room = r
+
+  override protected val rng: Random = rand
+
   override def flavorText: String =
     """ A human who was slain while scaling the tower.
       | Its soul is now bound to the tower, guarding it until the end of time.
+      | Normally sluggish, it will go berserk at the sight of an intruder.
     """.stripMargin
 
   override def onAlert: Unit = {
@@ -57,25 +64,9 @@ class CursedWretch(i : Int, c : Coord, rng : Random, room : Room) extends Enemy 
     Vector(a)
   }
 
-  override def act(w: World): Vector[Action] =
-    if(w.player.hidden) normalBehavior(w)
-    else alertedBehavior(w)
+  override protected def normalBehavior(w: World) : Vector[Action] = wander(w)
 
-  private def normalBehavior(w : World): Vector[Action] =
-    if(pos == dest) {
-      dest = room.randomCoord(rng)
-      Vector()
-    }
-    else
-      w.dungeon.findPath(pos,dest).headOption.filter(w.checkCollision(_) == NoCollision) match {
-        case Some(c) => Vector(EnemyMove(id,c,false))
-        case None => {
-          dest = room.randomCoord(rng)
-          Vector()
-        }
-      }
-
-  private def alertedBehavior(w : World) : Vector[Action] = {
+  override protected def alertedBehavior(w : World) : Vector[Action] = {
     if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {
       val c = pos.nextCoord(w.player.pos).get
       if(pos.distance(w.player.pos) == 1) attack(c)
