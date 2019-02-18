@@ -52,6 +52,7 @@ abstract class Enemy {
       "<span style=\"color : " + color + "\">" + str + "</span>"
 
     val status = hp.toFloat / maxHp.toFloat match {
+      case x if x > 1.0 => color("fortified",cyan)
       case x if x == 1.0 => "unharmed"
       case x if x > 0.74 => color("scratched", lightGray)
       case x if x > 0.25 => color("wounded", yellow)
