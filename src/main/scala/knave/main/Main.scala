@@ -24,7 +24,8 @@ object Main extends App {
 
   var round = 1
 
-  val seed = Random.nextInt
+  val seed = -1387298371
+  println(seed)
   val world = World.standardWorld(Dungeon.hubDungeon(seed))
   display(world,List(),false)
   

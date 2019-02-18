@@ -10,8 +10,8 @@ class CursedCleric(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
   override protected var dest: Coord = c
   override val id: Int = i
   override var pos: Coord = c
-  override val maxHp: Int = 4
-  override val fortifiedHp: Int = 6
+  override val maxHp: Int = 40
+  override val fortifiedHp: Int = maxHp + 20
   override var hp: Int = maxHp
   override val symbol: Char = 'c'
   override val color: String = white

@@ -16,7 +16,7 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
 
   override val maxHp: Int = 20
 
-  override val fortifiedHp: Int = 30
+  override val fortifiedHp: Int = maxHp + 10
 
   override var hp: Int = maxHp
 

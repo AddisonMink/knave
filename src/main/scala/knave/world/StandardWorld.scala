@@ -1,7 +1,7 @@
 package knave.world
 
-import knave.world.dungeon.{Coord, Dungeon}
-import knave.world.enemy.CursedWretch
+import knave.world.dungeon.{Coord, Dungeon, Room}
+import knave.world.enemy.{CursedCleric, CursedWretch}
 import knave.world.item.WeaponItem
 import knave.world.player.Player
 import knave.world.player.weapon.Knife
@@ -16,9 +16,12 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     case r1 :: r2 :: rs => (r1,r2,rs)
   }
 
+  private val occupiedCoords = new ListBuffer[Coord]
+
   // Place player in the smallest room.
   override val player: Player = {
     val c = startRoom.randomCoord(rng)
+    occupiedCoords += c
     new Player(c,d)
   }
 
@@ -34,18 +37,36 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     (c, WeaponItem(new Knife, c))
   }
 
-  // Place 1 bound servant in each room for each 35 tiles in that room, minimum 1.
-  for(r <- combatRooms) {
-    val cs = new ListBuffer[Coord]
-    val numMonsters = 1 + (r.area - 50) / 50
-    for(_ <- 0 until numMonsters) {
-      val id = nextId
-      for( c <- r.randomCoordExcept(cs,rng))
-        addEnemy(new CursedWretch(id,c,rng,r))
-    }
+  // Place 1 cursed wretch in each room for each 35 tiles in that room, minimum 1. If there are 4 or more wretches in 1 room, replace one of them with a cursed cleric.
+  private def placeCursedWretch(r : Room) : Unit = {
+    val id = nextId
+    r.randomCoordExcept(occupiedCoords,rng).foreach(c => {
+      occupiedCoords += c
+      addEnemy(new CursedWretch(id,c,rng,r))
+    })
   }
 
-  // Place stairs in the lsat combat room.
+  private def placeCursedCleric(r : Room) : Unit = {
+    val id = nextId
+    r.randomCoordExcept(occupiedCoords,rng).foreach(c => {
+      occupiedCoords += c
+      addEnemy(new CursedCleric(id,c,rng,r))
+    })
+  }
+
+
+  for(r <- combatRooms) {
+    val numMonsters = 1 + (r.area - 50) / 50
+
+    if(numMonsters >= 4) {
+      placeCursedCleric(r)
+      (0 until numMonsters - 1).foreach(_ => placeCursedWretch(r))
+    }
+    else
+      (0 until numMonsters).foreach(_ => placeCursedWretch(r))
+  }
+
+  // Place stairs in the last combat room.
   val r = combatRooms.last
   dungeon.createStairs(r.randomCoord(rng))
 }

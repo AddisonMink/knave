@@ -165,9 +165,9 @@ case class HealEnemy(id : Int, heal : Int) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.enemy(id).foreach(enemy => {
       val trueHeal = if(enemy.hp + heal > enemy.fortifiedHp) enemy.fortifiedHp - enemy.hp else heal
-      enemy.hp += heal
-      if(w.player.fieldOfVision.contains(enemy.pos))
-        addLog(s"${enemy.name} has been healed for ${trueHeal} health.")
+      enemy.hp += trueHeal
+      if(trueHeal > 0 &&  w.player.fieldOfVision.contains(enemy.pos))
+        addLog(s"${enemy.name} has been healed for ${trueHeal.toString} health.")
     })
     Vector()
   }
