@@ -4,6 +4,8 @@ import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
 import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette._
+import knave.world.item.Item
+import knave.world.player.weapon.Weapon
 
 import scala.util.Random
 
@@ -34,6 +36,10 @@ abstract class Enemy {
   var fieldOfVision : Set[Coord] = Set()
 
   var speed : Speed
+
+  val drop : Weapon
+
+  val dropRate : Double
 
   protected val canOpenDoors : Boolean
 

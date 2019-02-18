@@ -3,6 +3,7 @@ import knave.game._
 import knave.world.World
 import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette.white
+import knave.world.player.weapon.{Knife, Weapon}
 
 import scala.util.Random
 
@@ -19,6 +20,8 @@ class CursedCleric(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
   override val blood: Int = 2
   override val vision: Int = 5
   override var speed: Speed = Normal
+  override val drop: Weapon = new Knife
+  override val dropRate: Double = 0
   override protected val canOpenDoors: Boolean = false
   override protected val room: Room = r
   override protected val rng: Random = rand

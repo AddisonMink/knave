@@ -3,6 +3,8 @@ import knave.game._
 import knave.world.{NoCollision, World}
 import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette.white
+import knave.world.item.{Item, WeaponItem}
+import knave.world.player.weapon.{Knife, Weapon}
 
 import scala.util.Random
 
@@ -33,6 +35,10 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
   override val vision: Int = 3
 
   override var speed: Speed = Slow
+
+  override val drop: Weapon = new Knife
+
+  override val dropRate: Double = 0.2
 
   override protected val canOpenDoors: Boolean = false
 

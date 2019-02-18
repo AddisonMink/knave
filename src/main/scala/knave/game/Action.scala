@@ -6,8 +6,8 @@ import knave.world.item.WeaponItem
 
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
-
 import knave.display.Palette._
+import knave.world.player.weapon.Weapon
 
 sealed trait Action {
   def updateWorld(w : World) : Vector[Action]
@@ -101,18 +101,18 @@ case class AttackOnEnemy(id : Int, damage : Int) extends Action {
 }
 
 case class EnemyDeath(id : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] =
-    w.enemy(id) match {
-      case None => Vector()
-      case Some(enemy) => {
-        w.destroyEnemy(id)
-        w.dungeon.createCorpse(enemy.pos)
-        for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
-          w.dungeon.bloodyTile(c)
-
-        Vector()
-      }
-    }
+  override def updateWorld(w: World): Vector[Action] = {
+    w.enemy(id).flatMap(enemy => {
+      w.destroyEnemy(id)
+      w.dungeon.createCorpse(enemy.pos)
+      for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
+        w.dungeon.bloodyTile(c)
+      if(Random.nextDouble <= enemy.dropRate)
+        Some(SpawnWeapon(enemy.drop,enemy.pos))
+      else
+        None
+    }).toVector
+  }
 }
 
 case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
@@ -173,6 +173,12 @@ case class HealEnemy(id : Int, heal : Int) extends Action {
   }
 }
 
+case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    w.addItem(WeaponItem(weapon,c))
+    Vector()
+  }
+}
 
 object Action {
 
