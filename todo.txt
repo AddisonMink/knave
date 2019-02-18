@@ -1,11 +1,9 @@
 Objectives for v0.3
-* FEATURE: Implement bound cleric enemy.
-	* Bound clerics have 4 health (and 2 armor?) and only spawn in big rooms that already contain bound servants.
-	* Each round, clerics heal all bound servants in their line of sight by 10, to maximum of their
-	  max HP + 10.
-	* Bound clerics fight with a staff, which does 20 damage and can attack from 2 squares away.
-	* Bound clerics sometimes drop the Staff weapon.
-		* The staff weapon does 20 damage and can attack from 2 spaces away.
+
+* FEATURE: Implement the staff weapon and make cursed clerics drop it.
+	* The staff does 20 damage and can attack from 2 spaces away.
+
+* FEATURE: Make cursed wretches drop knives.
 
 * FEATURE: Implement inventory and equip screen.
 	* The player should be able to hold up to 5 items including 1 equipped item.
