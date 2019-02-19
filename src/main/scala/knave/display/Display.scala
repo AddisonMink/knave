@@ -42,6 +42,8 @@ trait Display {
 
   protected final val hud = document.getElementById("hud").asInstanceOf[Div]
 
+  protected final val inventory = document.getElementById("inventory").asInstanceOf[Div]
+
   protected final val tileWidth = 10
 
   protected final val tileHeight = 16
@@ -175,6 +177,14 @@ trait Display {
     str ++= weapon
 
     str.toString
+  }
+
+  protected final def createInventory(p : Player) : String = {
+      s"""Inventory
+        |1. ${p.inventory(0).map(_.name).getOrElse("no item")}
+        |2. ${p.inventory(1).map(_.name).getOrElse("no item")}
+        |3. ${p.inventory(2).map(_.name).getOrElse("no item")}
+      """.stripMargin
   }
 
   final def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =

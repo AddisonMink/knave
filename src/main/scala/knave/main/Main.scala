@@ -2,7 +2,7 @@ package knave.main
 
 import org.scalajs.dom.document
 import knave.game._
-import knave.main.InputProcessor.{LogMore, Look, LookMore, Start}
+import knave.main.InputProcessor._
 import knave.world.World
 import knave.world.dungeon.Dungeon
 import knave.display.DisplayFov._
@@ -107,6 +107,7 @@ object Main extends App {
         case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore
         case LookMore => displayLookMore(world, InputProcessor.state == oldState)
+        case Drop => if (InputProcessor.state != oldState) display(world, List("Which item do you want to drop? (1,2,3 for inventory or 0 for equipped item.)","Press 'esc' to cancel."), round % 3 == 0)
         case _ => ()
       }
     }

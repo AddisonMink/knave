@@ -7,7 +7,10 @@
                 <div id="log" class="knave"></div>
                 <div id="map" class="knave"></div>
             </div>
-            <div id="hud" class="knave"></div>
+            <div id="hudAndInventory">
+                <span id="hud" class="knave"></span>
+                <span id="inventory" class="knave">INVENTORY</span>
+            </div>
         </div>
     </div>
 
@@ -63,10 +66,21 @@
 
             }
 
+            #hudAndInventory {
+                display : block;
+            }
+
             #hud {
-                display : block
+                display : inline-block;
+                float : left;
+                width : 550px;
              }
 
+            #inventory {
+                display : inline-block;
+                float : left;
+                width : 200px;
+            }
 
         </style>
 

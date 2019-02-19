@@ -7,7 +7,7 @@ import knave.world.item.WeaponItem
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import knave.display.Palette._
-import knave.world.player.weapon.Weapon
+import knave.world.player.weapon.{Fist, Weapon}
 
 sealed trait Action {
   def updateWorld(w : World) : Vector[Action]
@@ -45,13 +45,62 @@ case class PickUpItem(c : Coord) extends  Action {
   override def updateWorld(w: World): Vector[Action] = {
     w.itemAt(c) match {
       case Some(WeaponItem(weapon,_)) => {
-        w.player.equipWeapon(weapon)
-        w.removeItemAt(c)
-        addLog(s"You pick up the ${weapon.name}. Press 'f' to use its special attack.")
+        if(w.player.weapon == Fist) {
+          w.player.equipWeapon(weapon)
+          w.removeItemAt(c)
+          addLog(s"You pick up the ${weapon.name}. Press 'f' to use its special attack.")
+        }
+        else {
+          val i = w.player.inventory.indexWhere(_ == None)
+          if(i > -1) {
+            w.player.inventory(i) = Some(weapon)
+            w.removeItemAt(c)
+            addLog(s"You pick up the ${weapon.name} and put it in your bag.")
+          }
+          else {
+            addLog(s"Your inventory is full! Use 't' to drop one of your items on an empty tile.")
+          }
+        }
         Vector()
       }
       case _ => Vector()
     }
+  }
+}
+
+case class EquipFromInventory(index : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    if(w.player.inventory(index).nonEmpty) {
+      val oldWeapon = w.player.weapon
+      w.player.equipWeapon(w.player.inventory(index).get)
+      if(oldWeapon != Fist)
+        w.player.inventory(index) = Some(oldWeapon)
+    }
+    Vector()
+  }
+}
+
+case class DropWeapon(index : Int) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    if(w.player.inventory(index).nonEmpty) {
+      val weapon = w.player.inventory(index).get
+      w.player.inventory(index) = None
+      addLog(s"You drop the ${weapon.name}.")
+      Vector(SpawnWeapon(weapon,w.player.pos))
+    }
+    else Vector()
+  }
+}
+
+case object DropEquippedWeapon extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    if(w.player.weapon != Fist) {
+      val weapon = w.player.weapon
+      w.player.equipWeapon(Fist)
+      addLog(s"You drop the ${weapon.name}.")
+      Vector(SpawnWeapon(weapon,w.player.pos))
+    }
+    else Vector()
   }
 }
 

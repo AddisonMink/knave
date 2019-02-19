@@ -31,6 +31,11 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     (c, WeaponItem(new Knife, c))
   }
 
+  items += {
+    val c = startRoom.randomCoordExcept(Seq(player.pos),rng).getOrElse(player.pos)
+    (c, WeaponItem(new Staff, c))
+  }
+
   // Place a knife in the treasure room.
   items += {
     val c = treasureRoom.randomCoord(rng)

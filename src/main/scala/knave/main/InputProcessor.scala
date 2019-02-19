@@ -14,6 +14,7 @@ object InputProcessor {
   case class RayAttack(range : Int, damage : Int, cost : Int) extends InputState
   case object LogMore extends InputState
   case object LookMore extends InputState
+  case object Drop extends InputState
 
   private var internalState : InputState = Start
   def state = internalState
@@ -25,6 +26,7 @@ object InputProcessor {
       case RayAttack(range, damage, cost) => processRayAttack(w, input, mouse, range, damage, cost)
       case LogMore => processLogMore(input)
       case LookMore => processLookMore(input)
+      case Drop => processDrop(input)
     }
 
   def processStart(w : World, input : String) : Vector[Action] = {
@@ -57,6 +59,25 @@ object InputProcessor {
         else Vector()
       case "m" => {
         internalState = LogMore
+        Vector()
+      }
+      case "1" => {
+        if(w.player.inventory(0).nonEmpty)
+          Vector(EquipFromInventory(0))
+        else Vector()
+      }
+      case "2" => {
+        if(w.player.inventory(1).nonEmpty)
+          Vector(EquipFromInventory(1))
+        else Vector()
+      }
+      case "3" => {
+        if(w.player.inventory(2).nonEmpty)
+          Vector(EquipFromInventory(2))
+        else Vector()
+      }
+      case "t" => {
+        internalState = Drop
         Vector()
       }
       case _ => Vector()
@@ -106,4 +127,29 @@ object InputProcessor {
       Vector()
     }
     else Vector()
+
+  def processDrop(input : String) : Vector[Action] =
+    input match {
+      case "escape" => {
+        internalState = Start
+        Vector()
+      }
+      case "0" => {
+        internalState = Start
+        Vector(DropEquippedWeapon)
+      }
+      case "1" => {
+        internalState = Start
+        Vector(DropWeapon(0))
+      }
+      case "2" => {
+        internalState = Start
+        Vector(DropWeapon(1))
+      }
+      case "3" => {
+        internalState = Start
+        Vector(DropWeapon(2))
+      }
+      case _ => Vector()
+    }
 }

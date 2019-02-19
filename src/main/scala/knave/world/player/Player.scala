@@ -37,5 +37,7 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   def equipWeapon(w : Weapon) : Unit =
     equippedWeapon = Some(w)
+
+  val inventory : Array[Option[Weapon]] = Array(None,None,None)
 }
 

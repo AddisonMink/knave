@@ -29,5 +29,6 @@ object DisplayFov extends Display {
     enemies.foreach(setEnemy(_,speedRound))
     log.innerHTML = createLog(logs)
     hud.innerHTML = createHud(w.player)
+    inventory.innerHTML = createInventory(w.player)
   }
 }
