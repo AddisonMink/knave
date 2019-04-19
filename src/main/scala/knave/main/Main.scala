@@ -77,17 +77,12 @@ object Main extends App {
           val logs = Action.applyActions(world, playerActions ++ enemyActions)
 
           val stealthActions =
-            if(world.player.hidden && world.getEnemies.exists(_.canSeePlayer(world))) {
-              for(e <- world.getEnemies)
-                e.onAlert
-              Vector(SpotSplayer)
-            }
-            else if(!world.player.hidden && !world.getEnemies.exists(_.canSeePlayer(world))) {
-              for(e <- world.getEnemies)
-                e.onHidden
-              Vector(HidePlayer)
-            }
-            else Vector()
+            if(world.player.hidden && world.getEnemies.exists(_.canSeePlayer(world)))
+              world.getEnemies.flatMap(_.onAlert).toVector :+ SpotSplayer
+            else if(!world.player.hidden && !world.getEnemies.exists(_.canSeePlayer(world)))
+              world.getEnemies.flatMap(_.onHidden).toVector :+ HidePlayer
+            else Vector[Action]()
+
           val stealthLogs = Action.applyActions(world, stealthActions)
 
           display(world, logs ++ stealthLogs, (round + 1) % 3 == 0)

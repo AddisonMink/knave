@@ -30,5 +30,6 @@ abstract class Weapon {
 
 sealed trait SpecialAttack
 case class Ray(range : Int, damage : Int, cost : Int) extends SpecialAttack
+case class Circle(damage : Int, cost : Int) extends SpecialAttack
 case class Use(effect : World => Vector[Action], cost : Int, description : String) extends SpecialAttack
 case object NoSpecial extends SpecialAttack

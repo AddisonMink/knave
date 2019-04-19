@@ -4,7 +4,7 @@ import knave.game._
 import knave.world.{EnemyCollision, World}
 import knave.world.dungeon.Coord
 import knave.world.enemy.Enemy
-import knave.world.player.weapon.{NoSpecial, Ray, Use}
+import knave.world.player.weapon.{Circle, NoSpecial, Ray, Use}
 
 object InputProcessor {
 
@@ -53,6 +53,7 @@ object InputProcessor {
             Vector()
           }
           case Use(effect, cost, description) => effect(w) ++ Vector(DamagePlayerWeapon(cost))
+          case Circle(damage, cost) => w.player.pos.adjacent.map(w.checkCollision(_)).collect{case EnemyCollision(id) => AttackOnEnemy(id,damage,true)}.toVector :+ DamagePlayerWeapon(cost)
         }
       case "<" =>
         if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)

@@ -52,12 +52,14 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
       | Normally sluggish, it will go berserk at the sight of an intruder.
     """.stripMargin
 
-  override def onAlert: Unit = {
+  override def onAlert: Vector[Action] = {
     speed = Fast
+    Vector()
   }
 
-  override def onHidden: Unit = {
+  override def onHidden: Vector[Action] = {
     speed = Slow
+    Vector()
   }
 
   private def move(c : Coord) : Vector[Action] = {
@@ -65,7 +67,7 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
     Vector(m)
   }
 
-  private def attack(c : Coord) : Vector[Action] = {
+  private val attack : Vector[Action] = {
     val a = AttackOnPlayer(name, attackDamage)
     Vector(a)
   }
@@ -75,7 +77,7 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
   override protected def alertedBehavior(w : World) : Vector[Action] = {
     if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {
       val c = pos.nextCoord(w.player.pos).get
-      if(pos.distance(w.player.pos) == 1) attack(c)
+      if(pos.distance(w.player.pos) == 1) attack
       else move(c)
     }
     else normalBehavior(w)

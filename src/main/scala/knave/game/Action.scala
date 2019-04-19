@@ -246,6 +246,13 @@ case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
   }
 }
 
+case class Log(message : String, color : String) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    addLog(color(message,color))
+    Vector()
+  }
+}
+
 object Action {
 
   private val logs = new ListBuffer[String]

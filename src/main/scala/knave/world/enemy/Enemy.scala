@@ -4,7 +4,6 @@ import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
 import knave.world.dungeon.{Coord, Room}
 import knave.display.Palette._
-import knave.world.item.Item
 import knave.world.player.weapon.Weapon
 
 import scala.util.Random
@@ -49,9 +48,9 @@ abstract class Enemy {
 
   def flavorText : String
 
-  def onAlert : Unit = ()
+  def onAlert : Vector[Action] = Vector()
 
-  def onHidden : Unit = ()
+  def onHidden : Vector[Action] = Vector()
 
   final def description : String = {
     def color(str : String, color : String) =

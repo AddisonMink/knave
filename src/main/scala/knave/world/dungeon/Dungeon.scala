@@ -181,7 +181,7 @@ abstract class Dungeon(seed : Int) {
   final def castRay(start : Coord, end : Coord, limit : Int) : Boolean =
     visibleLine(start,end).take(limit).contains(end)
 
-  final def findPath(start : Coord, end : Coord) : List[Coord] = {
+  final def findPath(start : Coord, end : Coord, openDoors : Boolean = false) : List[Coord] = {
     val paths = new ListBuffer[List[Coord]] ; paths += List(start)
     val visited = new mutable.HashSet[Coord] ; visited += start
     var result = List[Coord]()
@@ -191,7 +191,10 @@ abstract class Dungeon(seed : Int) {
       if(path.head == end)
         result = path
       else {
-        val moves = path.head.adjacent.filter(c => !visited.contains(c) & isWalkable(c)).sortBy(_.manhattanDistance(path.head))
+        val validMove: Coord => Boolean =
+          if(openDoors) (c : Coord) => !visited.contains(c) && (isWalkable(c) || isDoor(c))
+          else (c : Coord) => !visited.contains(c) && isWalkable(c)
+        val moves = path.head.adjacent.filter(validMove).sortBy(_.manhattanDistance(path.head))
         visited ++= moves
         val newPaths = moves.map(_ :: path)
         paths ++= newPaths
