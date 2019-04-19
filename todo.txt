@@ -1,5 +1,7 @@
 Objectives for v0.3
 
+* BUG: When an enemy dies while italized, the tile will stay italicized.
+
 * BUG: Sneak attacks should not work with special attacks.
 
 * FEATURE: Implement moving between floors and create 5-floor game.
