@@ -2,19 +2,7 @@ Objectives for v0.3
 
 * BUG: When an enemy dies while italized, the tile will stay italicized.
 
-* BUG: Equipping an item when empty-handed duplicates the item.
-
 * FEATURE: Implement moving between floors and create 5-floor game.
-
-* FEATURE: Implement lesser angels.
-	* Gargoyles that always know the location of the player when in alert mode. 
-	* Fast when alerted, immobile when not alerted.
-	* Can open doors.
-	* Weilds an axe.
-
-* FEATURE: Implement axe.
-	* high damage
-	* whirlwind attack.
 
 Objectives for v0.4
 * Implement lockable rooms.
