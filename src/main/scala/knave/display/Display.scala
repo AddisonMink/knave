@@ -169,6 +169,7 @@ trait Display {
         val line3 = w.special match {
           case Ray(range, damage, cost) => color(s"\n\tSpecial: ${damage} damage, ${cost} durability, ${range}-tile ray.", w.color)
           case Use(_,_,description) => color(s"\n\tSpecial: ${description}", w.color)
+          case knave.world.player.weapon.Circle(damage, cost) => color(s"\n\tSpecial: ${damage}, ${cost}, attack in a circle.", w.color)
           case _ => color("\n\tNo Special", w.color)
         }
         line1 + line2 + line3
