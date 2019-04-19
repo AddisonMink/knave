@@ -139,9 +139,15 @@ case class AttackOnEnemy(id : Int, damage : Int, melee: Boolean) extends Action 
     w.enemy(id) match {
       case None => Vector()
       case Some(enemy) =>
-        val trueDamage = if (w.player.hidden && melee) damage * 2 else damage
-        enemy.hp -= trueDamage
-        addLog(s"You did ${trueDamage} damage to the ${enemy.description}")
+        if(w.player.hidden && melee) {
+          enemy.hp -= damage * 2
+          addLog(color("[backstab]",yellow) + s" You did ${damage*2} damage to the ${enemy.description}.")
+        }
+        else {
+          enemy.hp -= damage
+          addLog(s"You did ${damage} damage to the ${enemy.description}.")
+        }
+
         if(enemy.hp <= 0)
           Vector(EnemyDeath(id))
         else
