@@ -134,12 +134,12 @@ case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
   }
 }
 
-case class AttackOnEnemy(id : Int, damage : Int) extends Action {
+case class AttackOnEnemy(id : Int, damage : Int, melee: Boolean) extends Action {
   override def updateWorld(w: World): Vector[Action] =
     w.enemy(id) match {
       case None => Vector()
       case Some(enemy) =>
-        val trueDamage = if (w.player.hidden) damage * 2 else damage
+        val trueDamage = if (w.player.hidden && melee) damage * 2 else damage
         enemy.hp -= trueDamage
         addLog(s"You did ${trueDamage} damage to the ${enemy.description}")
         if(enemy.hp <= 0)

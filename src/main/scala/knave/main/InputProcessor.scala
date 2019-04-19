@@ -108,7 +108,7 @@ object InputProcessor {
         val target = w.dungeon.visibleLine(w.player.pos, mouse).take(range).map(w.checkCollision).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
         target match {
           case None => Vector()
-          case Some(id) => Vector(AttackOnEnemy(id, damage), DamagePlayerWeapon(cost))
+          case Some(id) => Vector(AttackOnEnemy(id, damage, false), DamagePlayerWeapon(cost))
         }
       }
       case _ => Vector()
