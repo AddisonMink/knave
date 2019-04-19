@@ -50,13 +50,14 @@ abstract class World(d : Dungeon) {
   final def getItems : Iterable[Item] =
     items.values
 
-  final def checkCollision(c : Coord) : Collision =
+  final def checkCollision(c : Coord, openDoor : Boolean = false) : Collision =
     if(c == player.pos) PlayerCollision
     else {
       val enemyPair = enemies.find(_._2.pos == c)
       if(enemyPair.isDefined) EnemyCollision(enemyPair.get._1)
-      else if(!dungeon.isWalkable(c)) OutOfBounds
-      else NoCollision
+      else if(openDoor && dungeon.isDoor(c)) NoCollision
+      else if(dungeon.isWalkable(c)) NoCollision
+      else OutOfBounds
     }
 
   protected def randomCoordFromRoom(r : Room, rng : Random, tries : Int = 100) : Coord = {

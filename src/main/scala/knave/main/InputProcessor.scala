@@ -106,7 +106,7 @@ object InputProcessor {
       }
       case "f" => {
         internalState = Start
-        val target = w.dungeon.visibleLine(w.player.pos, mouse).take(range).map(w.checkCollision).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
+        val target = w.dungeon.visibleLine(w.player.pos, mouse).take(range).map(c => w.checkCollision(c)).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
         target match {
           case None => Vector()
           case Some(id) => Vector(AttackOnEnemy(id, damage, false), DamagePlayerWeapon(cost))

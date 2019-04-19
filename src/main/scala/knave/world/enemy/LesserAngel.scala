@@ -10,7 +10,7 @@ import scala.util.Random
 class LesserAngel(i : Int, c : Coord, rand : Random, r : Room) extends Enemy {
   override val id: Int = i
   override var pos: Coord = c
-  override val maxHp: Int = 30
+  override val maxHp: Int = 60
   override val fortifiedHp: Int = maxHp + 20
   override var hp: Int = maxHp
   override val symbol: Char = 'a'
@@ -26,8 +26,8 @@ class LesserAngel(i : Int, c : Coord, rand : Random, r : Room) extends Enemy {
   override protected val rng: Random = rand
 
   override def flavorText: String =
-    """ Axe-wielding argoyle that roosts in the buttresses of the tower.
-      | It will pursue you relentlessly as long as any of it's comrades can see you.
+    """ Axe-wielding gargoyle that roosts in the buttresses of the tower.
+      | It will pursue you relentlessly as long as any of its comrades can see you.
     """.stripMargin
 
   private val attackDamage = 30
@@ -41,7 +41,7 @@ class LesserAngel(i : Int, c : Coord, rand : Random, r : Room) extends Enemy {
 
   override protected def alertedBehavior(w: World): Vector[Action] =
     if(pos.distance(w.player.pos) == 1) attack
-    else w.dungeon.findPath(pos,w.player.pos,openDoors = true).headOption.filter(w.checkCollision(_) == NoCollision) match {
+    else w.dungeon.findPath(pos,w.player.pos,openDoors = true).headOption.filter(c => w.checkCollision(c,true) == NoCollision) match {
       case Some(c) => Vector(EnemyMove(id,c,canOpenDoors))
       case None => normalBehavior(w)
     }

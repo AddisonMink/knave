@@ -1,7 +1,7 @@
 package knave.world
 
 import knave.world.dungeon.{Coord, Dungeon, Room}
-import knave.world.enemy.{CursedCleric, CursedWretch}
+import knave.world.enemy.{CursedCleric, CursedWretch, LesserAngel}
 import knave.world.item.WeaponItem
 import knave.world.player.Player
 import knave.world.player.weapon.{Knife, Staff}
@@ -70,6 +70,10 @@ private class StandardWorld(d : Dungeon) extends World(d) {
     else
       (0 until numMonsters).foreach(_ => placeCursedWretch(r))
   }
+
+  // Place a lesser angel in the treasure room.
+  val id = nextId
+  addEnemy(new LesserAngel(id,treasureRoom.randomCoord(rng),rng,treasureRoom))
 
   // Place stairs in the last combat room.
   val r = combatRooms.last
