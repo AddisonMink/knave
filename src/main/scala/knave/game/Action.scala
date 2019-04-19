@@ -75,6 +75,8 @@ case class EquipFromInventory(index : Int) extends Action {
       w.player.equipWeapon(w.player.inventory(index).get)
       if(oldWeapon != Fist)
         w.player.inventory(index) = Some(oldWeapon)
+      else
+        w.player.inventory(index) = None
     }
     Vector()
   }
