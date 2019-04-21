@@ -8,7 +8,7 @@ import knave.world.player.weapon.{Knife, Staff}
 
 import scala.collection.mutable.ListBuffer
 
-private class StandardWorld(d : Dungeon) extends World(d) {
+private class StandardWorld(d : Dungeon, p : Option[Player] = None) extends World(d) {
 
   private val (startRoom, treasureRoom, combatRooms) = dungeon.rooms.sortBy(_.area) match {
     case r1 :: Nil => (r1,r1,Nil)
@@ -22,7 +22,10 @@ private class StandardWorld(d : Dungeon) extends World(d) {
   override val player: Player = {
     val c = startRoom.randomCoord(rng)
     occupiedCoords += c
-    new Player(c,d)
+    p match {
+      case Some(player) => player.copyToNewDungeon(c,d)
+      case None => new Player(c,d)
+    }
   }
 
   // Place a knife next to the player.

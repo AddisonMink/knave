@@ -1,8 +1,16 @@
 package knave.world
-import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.{Dungeon}
 import knave.world.player.Player
 
-private class EmptyWorld(d : Dungeon) extends World(d) {
+import scala.util.Random
 
-  override val player: Player = new Player(d.rooms.head.randomCoord(rng),d)
+private class EmptyWorld(d : Dungeon, p : Option[Player] = None) extends World(d) {
+
+  override val player: Player = {
+    val c = d.rooms.head.randomCoord(new Random)
+    p match {
+      case Some(player) => player.copyToNewDungeon(c,d)
+      case None => new Player(c,d)
+    }
+  }
 }

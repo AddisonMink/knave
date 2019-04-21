@@ -1,6 +1,5 @@
 package knave.display
 
-import knave.display.DisplayFull.{display, mouse, show}
 import knave.display.Palette._
 import knave.game.{Fast, Slow}
 import knave.world.{EnemyCollision, NoCollision, PlayerCollision, World}
@@ -50,8 +49,10 @@ trait Display {
 
   protected final def clearMap : Unit =
     for(y <- 0 until height)
-      for(x <- 0 until width)
-        show(Coord(x,y)," ", white, Some(black))
+      for(x <- 0 until width) {
+        show(Coord(x, y), " ", white, Some(black))
+        document.getElementById(x + "-" + y).asInstanceOf[Span].style.fontWeight = "normal"
+      }
 
   protected final def show(c : Coord, symbol : String, color : String, backgroundColor : Option[String] = None) : Unit = {
     val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
@@ -148,7 +149,6 @@ trait Display {
 
     str ++= s"Knave\t${hidden}\n"
 
-
     val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
       case x if x >= 0.75 => green
       case x if x >= 0.25 => yellow
@@ -185,6 +185,8 @@ trait Display {
         |1. ${p.inventory(0).map(_.name).getOrElse("no item")}
         |2. ${p.inventory(1).map(_.name).getOrElse("no item")}
         |3. ${p.inventory(2).map(_.name).getOrElse("no item")}
+        |
+        |Depth: ${p.depth}
       """.stripMargin
   }
 

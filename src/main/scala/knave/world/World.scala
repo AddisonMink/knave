@@ -73,9 +73,9 @@ abstract class World(d : Dungeon) {
 
 object World {
 
-  def openWorld(d : Dungeon) : World = new EmptyWorld(d)
+  def openWorld(d : Dungeon, p : Option[Player] = None) : World = new EmptyWorld(d,p)
 
-  def standardWorld(d : Dungeon) : World = new StandardWorld(d)
+  def standardWorld(d : Dungeon, p : Option[Player] = None) : World = new StandardWorld(d,p)
 }
 
 sealed trait Collision

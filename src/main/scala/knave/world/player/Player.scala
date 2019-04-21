@@ -39,5 +39,15 @@ sealed class Player(c : Coord, d: Dungeon) {
     equippedWeapon = Some(w)
 
   val inventory : Array[Option[Weapon]] = Array(None,None,None)
+
+  var depth = 1
+
+  def copyToNewDungeon(c : Coord, d : Dungeon): Player = {
+    pos = c
+    fieldOfVision = d.fieldOfVision(pos,vision)
+    visitedTiles = new mutable.HashSet[Coord]
+    visitedTiles ++= fieldOfVision
+    this
+  }
 }
 

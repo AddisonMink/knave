@@ -194,10 +194,8 @@ case class DamagePlayerWeapon(damage : Int) extends Action {
 
 case object AscendStairs extends Action {
   override def updateWorld(w: World): Vector[Action] = {
-    if(w.dungeon.isStairs(w.player.pos)) {
+    if(w.dungeon.isStairs(w.player.pos))
       w.player.ascended = true
-      addLog(color("You win!", green))
-    }
     Vector()
   }
 }
