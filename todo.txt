@@ -1,15 +1,7 @@
-Objectives for v0.3
-
-* BUG: When an enemy dies while italized, the tile will stay italicized.
-
-* FEATURE: Implement moving between floors and create 5-floor game.
-
 Objectives for v0.4
 * Implement lockable rooms.
 * Implement oracles.
 * Implement crystal ball.
-* Implement sleeping knight.
-* Implement sword.
 * Implement depth-dependent difficulty.
 
 Objectvies for v0.5
