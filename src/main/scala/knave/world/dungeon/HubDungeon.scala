@@ -25,11 +25,6 @@ private class HubDungeon(seed : Int) extends Dungeon(seed) {
     for(y <- 0 until height)
       tileArray(x)(y) = new InnerWall(lightGray,darkGray)
 
-  // TODO After other performance improvments, go back to drop random selection and see if it hurts performacne to badly.
-  /*
-    Find as many points as possible that are far enough away from each other so that a maximum hub width rectangle can be placed around each point
-    and every rectangle will be at least minHubDistance away from each other.
-   */
   private val hubPoints = {
     val points = new ListBuffer[Coord]
 

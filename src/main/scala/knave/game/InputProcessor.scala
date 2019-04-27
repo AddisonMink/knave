@@ -4,7 +4,7 @@ import knave.world.dungeon.Coord
 import knave.world.player.weapon.{Circle, NoSpecial, Ray, Use}
 import knave.world.{EnemyCollision, World}
 
-object nputProcessor {
+object InputProcessor {
 
   sealed trait InputState
   case object Start extends InputState
