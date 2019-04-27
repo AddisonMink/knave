@@ -1,7 +1,7 @@
 package knave.game
 
 import knave.display.DisplayFov._
-import knave.main.InputProcessor._
+import InputProcessor._
 import knave.main._
 import knave.world.World
 import knave.world.dungeon.{Coord, Dungeon}

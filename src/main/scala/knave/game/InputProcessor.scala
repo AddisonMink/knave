@@ -1,12 +1,10 @@
-package knave.main
+package knave.game
 
-import knave.game._
-import knave.world.{EnemyCollision, World}
 import knave.world.dungeon.Coord
-import knave.world.enemy.Enemy
 import knave.world.player.weapon.{Circle, NoSpecial, Ray, Use}
+import knave.world.{EnemyCollision, World}
 
-object InputProcessor {
+object nputProcessor {
 
   sealed trait InputState
   case object Start extends InputState

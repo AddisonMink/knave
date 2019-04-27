@@ -1,0 +1,79 @@
+<!DOCTYPE <!DOCTYPE html>
+<html>
+<head>
+  <title>Knave Manual</title>
+</head>
+<body>
+  <style>
+    body {
+      background-color: lightgray;
+      font-family: Georgia, 'Times New Roman', Times, serif
+    }   
+
+    #content {
+      padding-top: 50x;
+      padding-bottom: 50px;
+      margin: auto;
+      text-align: left;
+      width: 970px;
+    }
+    #content > p {
+      font-size: 18px;
+    }
+  </style>
+  <div id="content">
+      <h1>Knave Manual</h1>
+      <h2>How to Play</h2>
+      <p>
+        Knave is a text-based, rogue-like stealth game. The object of the game is to reach the top of the tower by ascending the stairs on each level, avoiding or fighting enemies along the way.     
+        As of v0.3, there are 5 floors, 3 enemy types, and 3 weapon types. Knave will be updated and expanded occasionally.
+      </p>
+      <p>
+          You begin the game hidden. Every enemy has a field of vision, highlighted in yellow. If an enemy sees you, all enemies will go on alert. While alerted, enemies have a larger field of vision and some will become faster or change their movement pattern.
+          You can hide yourself again by reaching a tile where no enemy has a line of sight to you. This is usually done by dodging around a tight corner or killing the enemy closest to you.
+      </p>
+      <p>
+        You can attack an enemy by moving into their tile. Attacks always hit and always to the same amount of damage. Although fighting is always an option, it's usually unadvisable to enter a straight fight. Even the weakest enemies will cause you significant harm.
+        There are several ways to give yourself an advantage in combat. If you attack an enemy while you're hidden, your attack will do double its normal damage. Beware of sneak attacking powerful enemies. If your attack doesn't kill them, they will become alerted.
+      </p>
+      <p>
+        You can also arm yourself with weapons. You begin the game with nothing but your bare fists, but you can obtain weapons by finding them on the ground or looting them from dead enemies. Weapons boost your attack power, and each one has a special ability
+        like a ranged attack or healing spell. Weapons are powerful, but they don't last forever. Attacking with a weapon or using a special ability will degrade the weapon's durability. When it breaks, you'll have to find a replacement or do without.
+      </p>
+      <p>
+        The game consists of a sequence of rounds where every entity acts simultaneously. When you take an action you will trigger the next round to resolve. There are several things to keep in mind:
+        <ul>
+          <li>If you and an enemy try to move to the same tile, your move will resolve and theirs will be cancelled.</li>
+          <li>If you try to move and an enemy tries to attack you, both events will resolve. You will move, but you'll also take damage from the enemy.</li>
+          <li>Entering look mode does not count as an action.</li>
+        </ul>
+    
+        Different enemy types have different speeds. Slow enemies will skip their action every third turn. When an enemy is about to skip its next action, it's character will be shown in italics. Fast enemies will take 2 actions every third turn. When an enemy is about to take
+        2 actions in a row, it's character will be shown in bold.
+      </p>
+    
+      <h2>Controls</h2>
+      <ul>
+        <li>wasd - move up, left, down, and right</li>
+        <li>qezc - move diagonally</li>
+        <li>space - enter "look" mode. Mouse over things to look at them. Press "esc" to exit "look" mode.</li>
+        <li>f - use your weapon's special attack.</li>
+        <li>g - pick up the item that you're standing on.</li>
+        <li>123 - equip the weapon in inventory slot 1, 2, or 3.</li>
+        <li>t - drop an item.</li>
+      </ul>
+    
+      <h2>Map Key</h2>
+      <ul>
+        <li>@ - you</li>
+        <li>lower-case letter - enemy</li>
+        <li><span style="color: darkgray">#</span> - wall</li>
+        <li><span style="color: darkorange">+</span> - closed door</li>
+        <li><span style="color: darkorange">/</span> - open door</li>
+        <li><span style-"color: darkgray">&lt;</span> - stairs</li>
+        <li><span style="color: red">%</span> - corpse</li>
+        <li>other - weapon</li>
+      </ul>
+  </div>
+</body>
+</html>

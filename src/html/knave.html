@@ -1,32 +1,51 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Knave</title>
+</head>
 <body>
+    <div id="header">
+        <p>v0.3</p>
+        <p><a src="knave-manual.html" target="_blank">manual</a>></p>
+    </div>
     <div id="outer">
         <div id="container">
-            <div id="logAndMap">
-                <div id="log" class="knave"></div>
-                <div id="map" class="knave"></div>
-            </div>
-            <div id="hudAndInventory">
-                <span id="hud" class="knave"></span>
-                <span id="inventory" class="knave">INVENTORY</span>
-            </div>
-        </div>
+            <div id="game">
+                    <div id="logAndMap">
+                            <div id="log" class="knave"></div>
+                            <div id="map" class="knave"></div>
+                        </div>
+                        <div id="hudAndInventory">
+                            <span id="hud" class="knave"></span>
+                            <span id="inventory" class="knave">INVENTORY</span>
+                        </div>
+            </div>           
+        </div>        
     </div>
+    
 
 
     <style>
             body {
-                background-color : gray;
+                background-color : black;
             }
 
             #outer {
                 text-align : center;
             }
 
-            #container {
-                display : inline-block;
-                background-color : black;
+            #header {
+                color: white;
+                font-family : "Courier New", Courier, monospace;
+                width : 970px;      
+                text-align: left                  
+            }
+            #header > p {
+                margin-top: 0
+            }
+
+            #game {      
+                display : inline-block;                
                 width : 970px;
 
                 -webkit-touch-callout: none; /* iOS Safari */
@@ -36,6 +55,8 @@
                 -ms-user-select: none; /* Internet Explorer/Edge */
                 user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+
+                border: 5px solid gray;                                  
             }
 
             #logAndMap {
