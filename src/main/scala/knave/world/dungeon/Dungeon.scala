@@ -8,6 +8,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
+// TODO This should be part of Dungeon.
 package object Size {
   val height = 20
   val width = 80
@@ -17,8 +18,10 @@ abstract class Dungeon(seed : Int) {
 
   final val rng = new Random(seed)
 
+  // TODO This should be in Palette.
   final protected val bloodColor = crimson
 
+  // TODO This should be in Palette.
   final protected  val darkBloodColor = darkRed
 
   protected val tileArray = Array.ofDim[Tile](width,height)
@@ -64,11 +67,7 @@ abstract class Dungeon(seed : Int) {
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
-  final def colorTile(c : Coord, color : String, darkColor : String) : Unit = {
-    tileArray(c.x)(c.y).color = color
-    tileArray(c.x)(c.y).darkColor = darkColor
-  }
-
+  // TODO There is no reason to expose only a frozen version of the set if you are exposing b
   private val visitedCoords = collection.mutable.Set[Coord]()
 
   final def visited : Set[Coord] =
@@ -206,6 +205,7 @@ abstract class Dungeon(seed : Int) {
   def rooms : List[Room]
 }
 
+// TODO IS this necessary?
 object Dungeon {
 
   def hubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)

@@ -4,10 +4,12 @@ import scala.util.Random
 
 trait Room {
 
+  // TODO rng arg should be implicit.
   def randomCoord(rng : Random) : Coord
 
+  // TODO rng arg should be implicit.
   final def randomCoordExcept(cs : Seq[Coord], rng : Random) : Option[Coord] = {
-    var tries = 100
+    var tries = 100 // TODO This should be a val.
     var c = randomCoord(rng)
     while(tries > 0 && cs.contains(c))
       c = randomCoord(rng)
@@ -31,6 +33,7 @@ private case class ShapeRoom(shapes : List[Shape]) extends Room {
   override def contents: Iterable[Coord] = shapes.flatMap(_.fill)
 }
 
+// TODO Get rid of this.
 private case class SetRoom(coords : Set[Coord]) extends Room {
 
   private val coordVector = coords.toVector
@@ -49,11 +52,13 @@ private sealed trait Shape {
 
   def fill : List[Coord]
 
+  // TODO rng arg should be implicit.
   def randomCoord(rng : Random) : Coord
 
   def area : Int
 }
 
+// TODO Move these methods into the Shape trait.
 private object Shape {
 
   def intersects(s1 : Shape, s2 : Shape) : Boolean =

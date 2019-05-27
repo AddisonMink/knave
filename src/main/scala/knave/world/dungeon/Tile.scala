@@ -1,5 +1,7 @@
 package knave.world.dungeon
 
+// TODO There is no point in having mutable and immutable versions of tiles. Dungeon exposes methods to mutate tiles anyway.
+
 protected sealed trait Tile {
   def symbol : String
   var color : String
