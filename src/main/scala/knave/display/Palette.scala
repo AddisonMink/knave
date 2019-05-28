@@ -29,4 +29,8 @@ object Palette {
   val darkGray = "#383838"
 
   val veryDarkGray = "#383838"
+
+  val bloodColor = crimson
+
+  val darkBloodColor = darkRed
 }

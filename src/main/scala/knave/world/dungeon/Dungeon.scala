@@ -3,7 +3,7 @@ package knave.world.dungeon
 import knave.display.Palette._
 import knave.world.dungeon.Size.{height, width}
 
-import scala.collection.immutable.HashSet.HashSet1
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
@@ -18,35 +18,28 @@ abstract class Dungeon(seed : Int) {
 
   final val rng = new Random(seed)
 
-  // TODO This should be in Palette.
-  final protected val bloodColor = crimson
-
-  // TODO This should be in Palette.
-  final protected  val darkBloodColor = darkRed
-
   protected val tileArray = Array.ofDim[InnerTile](width,height)
 
-  // TODO For all the is_ and _at, methods, make is_ = _at.nonEmpty
-  final def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
-
   final def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(Floor(f.color, f.darkColor, f.symbol))
+    case f : InnerFloor => Some(f.tile)
     case _ => None
   }
 
-  final def isWall(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerWall]
+  final def isFloor(c: Coord): Boolean = floorAt(c).nonEmpty
 
   final def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(Wall(w.color, w.darkColor, w.symbol))
+    case w : InnerWall => Some(w.tile)
     case _ => None
   }
 
-  final def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
+  final def isWall(c: Coord): Boolean = wallAt(c).nonEmpty
 
   final def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(Door(d.color, d.darkColor, d.open, d.symbol))
+    case d : InnerDoor => Some(d.tile)
     case _ => None
   }
+
+  final def isDoor(c: Coord): Boolean = doorAt(c).nonEmpty
 
   final def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
     case d : InnerDoor => d.open = true
@@ -68,7 +61,6 @@ abstract class Dungeon(seed : Int) {
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
-  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
   private val visitedCoords = collection.mutable.Set[Coord]()
 
   final def visited : Set[Coord] =
@@ -77,8 +69,8 @@ abstract class Dungeon(seed : Int) {
   final def visitCoords(cs : Iterable[Coord]) : Unit =
     visitedCoords ++= cs
 
-  final def isWalkable(c : Coord) : Boolean =
-    isFloor(c) || doorAt(c).map(_.open).getOrElse(false)
+  final def isWalkable(c : Coord, openDoors: Boolean = false) : Boolean =
+    isFloor(c) || doorAt(c).exists(_.open || openDoors)
 
   final def visibleLine(start : Coord, end : Coord) : Stream[Coord] = {
     var barrierEncountered = true
@@ -121,7 +113,6 @@ abstract class Dungeon(seed : Int) {
   }
 
   // TODO This can probably be made cleaner.
-  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
   final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     cs += center
@@ -214,9 +205,79 @@ abstract class Dungeon(seed : Int) {
   def rooms : List[Room]
 }
 
-// TODO Get rid of this. It doesn't really help with encapsulation.
 object Dungeon {
 
+  implicit class DungeonCoord(c: Coord) {
+
+    /**
+      * A tile is normally walkable if it's a floor or an open door. If the entity can open doors, then a closed door is also considered walkable.
+      */
+    def isWalkable(openDoors: Boolean = false)(implicit dungeon: Dungeon): Boolean =
+      dungeon.isFloor(c) || dungeon.doorAt(c).exists(_.open || openDoors)
+
+    def walkableLineTo(c2: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): Stream[Coord] =
+      c.lineTo(c2).takeWhile(_.isWalkable(openDoors))
+
+    def nextWalkable(c2: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): Option[Coord] =
+      c.nextCoord(c2).filter(_.isWalkable(openDoors))
+
+    /**
+      * A visible line from A to B is the walkable line from A to B plus the last non-walkable Coord before B.
+      * This method is for computing player field of vision. It allows walls to be in the field of vision.
+      */
+    def visibleLineTo(c2: Coord)(implicit dungeon: Dungeon): Stream[Coord] = {
+      var barrierFound = false
+      c.lineTo(c2).takeWhile(c => (c.isWalkable(), barrierFound) match {
+        case (true, false) => true
+        case (false, false) => barrierFound = true; true
+        case _ => false
+      })
+    }
+
+    def hasLineOfSightTo(c2: Coord)(implicit dungeon: Dungeon): Boolean =
+      c.visibleLineTo(c2).contains(c2)
+
+    def hasLineOfSightTo(c2: Coord, maxDistance: Int)(implicit dungeon: Dungeon): Boolean =
+      c.visibleLineTo(c2).take(maxDistance).contains(c2)
+
+    /**
+      * Compute the tiles that can be reached from c in {maxRadius} moves or less.
+      */
+    def walkableDisk(maxRadius: Int, openDoors: Boolean = false)(implicit dungeon: Dungeon): Stream[Coord] =
+      c.disk(maxRadius, (c1,c2) => c1.walkableLineTo(c2,openDoors))
+
+    /**
+      * Computes the tiles that c has a line of sight to for a given maximum distance.
+      */
+    def visibleDisk(maxRadius: Int)(implicit dungeon: Dungeon): Stream[Coord] =
+      c.disk(maxRadius, (c1,c2) => c1.visibleLineTo(c2))
+
+    /**
+      * Compute
+      */
+    def visibleCone(maxRadius: Int, towards: Coord)(implicit dungeon: Dungeon): Stream[Coord] =
+      c.cone(maxRadius, towards, (c1,c2) => c1.visibleLineTo(c2))
+
+    @tailrec
+    private def findPathIterative(dest: Coord, openDoors: Boolean, pathQueue: Vector[List[Coord]], visited: Set[Coord])(implicit dungeon: Dungeon): List[Coord] = pathQueue match {
+      case (path@(c :: _)) +: _ if c == dest => path.reverse.tail
+
+      case (c :: cs) +: paths =>
+        val moves = c.adjacent.filter(it => it.isWalkable(openDoors) && !visited.contains(it))
+        val newPaths = moves.sortBy(_.manhattanDistance(c)).map(_ :: c :: cs) // sortBy prioritizes cardinal moves over diagonal moves.
+        findPathIterative(dest, openDoors, paths ++ newPaths, visited ++ moves)
+
+      case _ => List()
+    }
+
+    def findPath(dest: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): List[Coord] =
+      findPathIterative(dest, openDoors, Vector(List(c)), Set(c))
+
+    def nextOnPathTo(dest: Coord, openDoor: Boolean = false)(implicit dungeon: Dungeon): Option[Coord] =
+      findPath(dest,openDoor).headOption
+  }
+
+  // TODO Get rid of this. It doesn't really help with encapsulation.
   def hubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
 
   def openDungeon(seed : Int) : Dungeon = new OpenDungeon(seed)

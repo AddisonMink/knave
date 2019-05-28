@@ -11,7 +11,7 @@ object DisplayFull extends Display {
   private def setDungeon(d : Dungeon) : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width)
-        if((Coord(x,y) #:: Coord(x,y).adjacent).filter(_.inBounds).exists(d.isFloor(_)))
+        if((Coord(x,y) +: Coord(x,y).adjacent).filter(_.inBounds).exists(d.isFloor(_)))
           setTile(d, Coord(x,y),true)
 
   private def setEnemyFov(e : Enemy, w : World) : Unit =

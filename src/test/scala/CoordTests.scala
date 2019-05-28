@@ -3,13 +3,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class CoordTests extends FlatSpec with Matchers {
 
-  /**
-    * I'm only unit testing the lineTo method. All the other Coord methods are trivial.
-    */
-
-
-
-  behavior of "Coord"
+  behavior of "Coord lineTo"
 
   it should "compute a line from left to right where rise is greater than run." in {
     val result = Coord(5,5).lineTo(Coord(7,10)).toList
@@ -49,5 +43,35 @@ class CoordTests extends FlatSpec with Matchers {
   it should "compute a vertical line from up to down." in {
     val result = Coord(5,10).lineTo(Coord(5,5))
     result should contain theSameElementsInOrderAs Seq(Coord(5,9),Coord(5,8),Coord(5,7),Coord(5,6),Coord(5,5))
+  }
+
+  behavior of "Coord disk"
+
+  it should "compute a complete disk" in {
+    val c = Coord(5,5)
+    val radius = 100
+    val disk = c.dsk(radius)
+    val area = (radius*2+1)*(radius*2+1) - 1
+    disk.forall(_.distance(c) <= radius) should be (true)
+    disk should have length area
+  }
+
+  behavior of "Coord cone"
+
+  it should "compute a horizontal cardinal cone."
+
+  it should "compute a vertical cardinal cone."
+
+  ignore should "compute an ordinal cone." in {
+    val c = Coord(0,0)
+    val towards = Coord(15,15)
+    val cone = c.cone(10,towards)
+
+    val expectedContents = (for {
+      x <- 0 to 11
+      y <- 0 to 11
+    } yield Coord(x,y)).toList.filter(_ != c)
+
+    cone should contain theSameElementsAs expectedContents
   }
 }
