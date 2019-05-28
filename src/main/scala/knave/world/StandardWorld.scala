@@ -30,12 +30,12 @@ private class StandardWorld(d : Dungeon, p : Option[Player] = None) extends Worl
 
   // Place a knife next to the player.
   items += {
-    val c = startRoom.randomCoordExcept(Seq(player.pos),rng).getOrElse(player.pos)
+    val c = startRoom.randomCoordExcept(Seq(player.pos)).getOrElse(player.pos)
     (c, WeaponItem(new Knife, c))
   }
 
   items += {
-    val c = startRoom.randomCoordExcept(Seq(player.pos),rng).getOrElse(player.pos)
+    val c = startRoom.randomCoordExcept(Seq(player.pos)).getOrElse(player.pos)
     (c, WeaponItem(new Staff, c))
   }
 
@@ -48,7 +48,7 @@ private class StandardWorld(d : Dungeon, p : Option[Player] = None) extends Worl
   // Place 1 cursed wretch in each room for each 35 tiles in that room, minimum 1. If there are 4 or more wretches in 1 room, replace one of them with a cursed cleric.
   private def placeCursedWretch(r : Room) : Unit = {
     val id = nextId
-    r.randomCoordExcept(occupiedCoords,rng).foreach(c => {
+    r.randomCoordExcept(occupiedCoords).foreach(c => {
       occupiedCoords += c
       addEnemy(new CursedWretch(id,c,rng,r))
     })
@@ -56,7 +56,7 @@ private class StandardWorld(d : Dungeon, p : Option[Player] = None) extends Worl
 
   private def placeCursedCleric(r : Room) : Unit = {
     val id = nextId
-    r.randomCoordExcept(occupiedCoords,rng).foreach(c => {
+    r.randomCoordExcept(occupiedCoords).foreach(c => {
       occupiedCoords += c
       addEnemy(new CursedCleric(id,c,rng,r))
     })

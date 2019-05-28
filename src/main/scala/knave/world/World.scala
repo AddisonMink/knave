@@ -1,6 +1,5 @@
 package knave.world
 
-import knave.game.Action
 import knave.world.dungeon.{Coord, Dungeon, Room}
 import knave.world.enemy.Enemy
 import knave.world.item.Item
@@ -12,7 +11,7 @@ abstract class World(d : Dungeon) {
 
   final val dungeon = d
 
-  final val rng = d.rng
+  final implicit val rng = d.rng
 
   val player : Player
 

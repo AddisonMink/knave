@@ -24,8 +24,9 @@ abstract class Dungeon(seed : Int) {
   // TODO This should be in Palette.
   final protected  val darkBloodColor = darkRed
 
-  protected val tileArray = Array.ofDim[Tile](width,height)
+  protected val tileArray = Array.ofDim[InnerTile](width,height)
 
+  // TODO For all the is_ and _at, methods, make is_ = _at.nonEmpty
   final def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
   final def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
@@ -67,7 +68,7 @@ abstract class Dungeon(seed : Int) {
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
-  // TODO There is no reason to expose only a frozen version of the set if you are exposing b
+  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
   private val visitedCoords = collection.mutable.Set[Coord]()
 
   final def visited : Set[Coord] =
@@ -93,12 +94,15 @@ abstract class Dungeon(seed : Int) {
     })
   }
 
+  // TODO Maybe create an implicit class so these methods can be called on a coord in the context of a dungeon.
   final def walkableLine(start : Coord, end : Coord) : Stream[Coord] =
     start.lineTo(end).takeWhile(isWalkable(_))
 
   final def nextWalkableCoord(start : Coord, end : Coord) : Option[Coord] =
     walkableLine(start,end).headOption
 
+  // TODO This can probably be made cleaner.
+  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
   final def circle(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     cs += center
@@ -116,6 +120,8 @@ abstract class Dungeon(seed : Int) {
     cs.toSet
   }
 
+  // TODO This can probably be made cleaner.
+  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
   final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
     val cs = new ListBuffer[Coord]
     cs += center
@@ -133,6 +139,8 @@ abstract class Dungeon(seed : Int) {
     cs.toSet
   }
 
+  // TODO This can probably be made cleaner.
+  // TODO Maybe move this to an implicit class so it can be called on Coord in the context of a dungeon.
   final def cone(center : Coord, direction : Coord, vision : Int) : Set[Coord] = {
     val dir = direction.normalize
 
@@ -174,6 +182,7 @@ abstract class Dungeon(seed : Int) {
 
 
 
+  // TODO Same goes for these methods.
   final def castRay(start : Coord, end : Coord) : Boolean =
     visibleLine(start,end).contains(end)
 
@@ -205,7 +214,7 @@ abstract class Dungeon(seed : Int) {
   def rooms : List[Room]
 }
 
-// TODO IS this necessary?
+// TODO Get rid of this. It doesn't really help with encapsulation.
 object Dungeon {
 
   def hubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
