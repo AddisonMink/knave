@@ -240,24 +240,6 @@ object Dungeon {
     def hasLineOfSightTo(c2: Coord, maxDistance: Int)(implicit dungeon: Dungeon): Boolean =
       c.visibleLineTo(c2).take(maxDistance).contains(c2)
 
-    /**
-      * Compute the tiles that can be reached from c in {maxRadius} moves or less.
-      */
-    def walkableDisk(maxRadius: Int, openDoors: Boolean = false)(implicit dungeon: Dungeon): Stream[Coord] =
-      c.disk(maxRadius, (c1,c2) => c1.walkableLineTo(c2,openDoors))
-
-    /**
-      * Computes the tiles that c has a line of sight to for a given maximum distance.
-      */
-    def visibleDisk(maxRadius: Int)(implicit dungeon: Dungeon): Stream[Coord] =
-      c.disk(maxRadius, (c1,c2) => c1.visibleLineTo(c2))
-
-    /**
-      * Compute
-      */
-    def visibleCone(maxRadius: Int, towards: Coord)(implicit dungeon: Dungeon): Stream[Coord] =
-      c.cone(maxRadius, towards, (c1,c2) => c1.visibleLineTo(c2))
-
     @tailrec
     private def findPathIterative(dest: Coord, openDoors: Boolean, pathQueue: Vector[List[Coord]], visited: Set[Coord])(implicit dungeon: Dungeon): List[Coord] = pathQueue match {
       case (path@(c :: _)) +: _ if c == dest => path.reverse.tail
