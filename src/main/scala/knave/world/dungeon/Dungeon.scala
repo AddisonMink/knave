@@ -69,9 +69,11 @@ abstract class Dungeon(seed : Int) {
   final def visitCoords(cs : Iterable[Coord]) : Unit =
     visitedCoords ++= cs
 
+  // TODO Deprecate
   final def isWalkable(c : Coord, openDoors: Boolean = false) : Boolean =
     isFloor(c) || doorAt(c).exists(_.open || openDoors)
 
+  // TODO Deprecate
   final def visibleLine(start : Coord, end : Coord) : Stream[Coord] = {
     var barrierEncountered = true
     start.lineTo(end).takeWhile(c => {
@@ -90,6 +92,7 @@ abstract class Dungeon(seed : Int) {
   final def walkableLine(start : Coord, end : Coord) : Stream[Coord] =
     start.lineTo(end).takeWhile(isWalkable(_))
 
+  // TODO Deprecate
   final def nextWalkableCoord(start : Coord, end : Coord) : Option[Coord] =
     walkableLine(start,end).headOption
 
@@ -177,9 +180,11 @@ abstract class Dungeon(seed : Int) {
   final def castRay(start : Coord, end : Coord) : Boolean =
     visibleLine(start,end).contains(end)
 
+  // TODO Deprecate
   final def castRay(start : Coord, end : Coord, limit : Int) : Boolean =
     visibleLine(start,end).take(limit).contains(end)
 
+  // TODO Deprecate
   final def findPath(start : Coord, end : Coord, openDoors : Boolean = false) : List[Coord] = {
     val paths = new ListBuffer[List[Coord]] ; paths += List(start)
     val visited = new mutable.HashSet[Coord] ; visited += start
@@ -221,24 +226,26 @@ object Dungeon {
     def nextWalkable(c2: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): Option[Coord] =
       c.nextCoord(c2).filter(_.isWalkable(openDoors))
 
-    /**
-      * A visible line from A to B is the walkable line from A to B plus the last non-walkable Coord before B.
-      * This method is for computing player field of vision. It allows walls to be in the field of vision.
-      */
-    def visibleLineTo(c2: Coord)(implicit dungeon: Dungeon): Stream[Coord] = {
+    def hasWalkableLineTo(c2: Coord, maxDistance: Int = Int.MaxValue)(implicit dungeon: Dungeon): Boolean =
+      c.walkableLineTo(c2).take(maxDistance).contains(c2)
+
+    def visibleCone(radius: Int, dir: Direction)(implicit dungeon: Dungeon): List[Coord] = {
       var barrierFound = false
-      c.lineTo(c2).takeWhile(c => (c.isWalkable(), barrierFound) match {
-        case (true, false) => true
-        case (false, false) => barrierFound = true; true
-        case _ => false
-      })
+      val f = (coord: Coord) =>
+        if(!coord.isWalkable() && barrierFound) false
+        else if(!coord.isWalkable() && !barrierFound) { barrierFound = true; false }
+        else true
+      c.cone(radius, dir, f)
     }
 
-    def hasLineOfSightTo(c2: Coord)(implicit dungeon: Dungeon): Boolean =
-      c.visibleLineTo(c2).contains(c2)
-
-    def hasLineOfSightTo(c2: Coord, maxDistance: Int)(implicit dungeon: Dungeon): Boolean =
-      c.visibleLineTo(c2).take(maxDistance).contains(c2)
+    def visibleDisk(radius: Int)(implicit dungeon: Dungeon): List[Coord] = {
+      var barrierFound = false
+      val f = (coord: Coord) =>
+        if(!coord.isWalkable() && barrierFound) false
+        else if(!coord.isWalkable() && !barrierFound) { barrierFound = true; false }
+        else true
+      c.disk(radius,f)
+    }
 
     @tailrec
     private def findPathIterative(dest: Coord, openDoors: Boolean, pathQueue: Vector[List[Coord]], visited: Set[Coord])(implicit dungeon: Dungeon): List[Coord] = pathQueue match {

@@ -55,7 +55,7 @@ case class Coord(x : Int, y : Int) {
   def nextCoord(c: Coord) : Option[Coord] =
     this.lineTo(c).find(_.inBounds)
 
-  def cone(radius: Int, dir: Direction): List[Coord] = {
+  def cone(radius: Int, dir: Direction, predicate: Coord => Boolean = _ => true): List[Coord] = {
     val start = this + (dir.dx, dir.dy)
     val diag = ceil(radius.toDouble / 2.0).toInt
     val r = radius-1
@@ -69,12 +69,12 @@ case class Coord(x : Int, y : Int) {
     }
 
     val rim = corner1.lineTo(vertex) ++ vertex.lineTo(corner2) ++ corner2.lineTo(vertex) ++ vertex.lineTo(corner1)
-    rim.flatMap(start.lineTo(_)).distinct.toList
+    rim.flatMap(start.lineTo(_).takeWhile(predicate)).distinct.toList
   }
 
-  def disk(radius: Int): List[Coord] = {
-    val diagonals = List(Direction(1,1), Direction(1,-1), Direction(-1,-1), Direction(-1,1)).flatMap(cone(radius,_))
-    val straights = List(Coord(x+radius,y), Coord(x-radius,y), Coord(x,y+radius), Coord(x,y-radius)).flatMap(lineTo)
+  def disk(radius: Int, predicate: Coord => Boolean = _ => true): List[Coord] = {
+    val diagonals = List(Direction(1,1), Direction(1,-1), Direction(-1,-1), Direction(-1,1)).flatMap(cone(radius,_,predicate))
+    val straights = List(Coord(x+radius,y), Coord(x-radius,y), Coord(x,y+radius), Coord(x,y-radius)).flatMap(lineTo(_).takeWhile(predicate))
     straights ++ diagonals
   }
 
@@ -86,7 +86,7 @@ class Direction(x: Int, y: Int) {
 }
 
 object Direction {
-  def apply(c1: Coord, c2: Coord) = new Direction((c2.x - c1.x), (c2.y - c1.y))
+  def apply(c1: Coord, c2: Coord) = new Direction(c2.x - c1.x, c2.y - c1.y)
   def apply(x: Int, y: Int) = new Direction(x,y)
 }
 
