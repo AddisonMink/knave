@@ -2,8 +2,9 @@ package knave.display
 
 import knave.display.Palette._
 import knave.game.{Fast, Slow}
-import knave.world.{EnemyCollision, NoCollision, PlayerCollision, World}
+import knave.world.{EnemyCollision, PlayerCollision, World}
 import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.Dungeon._
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
 import knave.world.dungeon.Size._
@@ -204,8 +205,9 @@ trait Display {
 
   final def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
+      import w.dungeon
       display(w, List("Select target with mouse. Press 'f' to confirm or 'esc' to cancel."), speedRound)
-      val ray = w.dungeon.visibleLine(w.player.pos, mouse).take(range)
+      val ray = w.player.pos.walkableLineTo(mouse).take(range)
       for(c <- ray)
         show(c, "*", white)
     }

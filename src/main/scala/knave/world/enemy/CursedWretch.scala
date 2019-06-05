@@ -1,14 +1,15 @@
 package knave.world.enemy
 import knave.game._
-import knave.world.{NoCollision, World}
+import knave.world.{World}
 import knave.world.dungeon.{Coord, Room}
+import knave.game.Action.ActionAlternative
 import knave.display.Palette.white
-import knave.world.item.{Item, WeaponItem}
 import knave.world.player.weapon.{Knife, Weapon}
+import Vector.empty
 
 import scala.util.Random
 
-class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends WanderingEnemy {
+class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends WanderingEnemy with PursuingEnemy {
 
   override protected var dest: Coord = c
 
@@ -28,8 +29,6 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
 
   override val name: String = "cursed wretch"
 
-  private val attackDamage = 10
-
   override val blood: Int = 1
 
   override val vision: Int = 3
@@ -46,6 +45,10 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
 
   override protected val rng: Random = rand
 
+  override protected val attackDamage = 10
+
+  override protected val attackRange = 1
+
   override def flavorText: String =
     """ A human who was slain while scaling the tower.
       | Its soul is now bound to the tower, guarding it until the end of time.
@@ -54,32 +57,18 @@ class CursedWretch(i : Int, c : Coord, rand : Random, r : Room) extends Wanderin
 
   override def onAlert: Vector[Action] = {
     speed = Fast
-    Vector()
+    empty
   }
 
   override def onHidden: Vector[Action] = {
     speed = Slow
-    Vector()
+    empty
   }
 
-  private def move(c : Coord) : Vector[Action] = {
-    val m = EnemyMove(id,c,false)
-    Vector(m)
-  }
+  override protected def normalBehavior(w: World): Vector[Action] =
+    wander(w)
 
-  private val attack : Vector[Action] = {
-    val a = AttackOnPlayer(name, attackDamage)
-    Vector(a)
-  }
+  override protected def alertedBehavior(w: World): Vector[Action] =
+    pursue(w) tryOrElse normalBehavior(w)
 
-  override protected def normalBehavior(w: World) : Vector[Action] = wander(w)
-
-  override protected def alertedBehavior(w : World) : Vector[Action] = {
-    if(w.dungeon.castRay(pos, w.player.pos, vision*2)) {
-      val c = pos.nextCoord(w.player.pos).get
-      if(pos.distance(w.player.pos) == 1) attack
-      else move(c)
-    }
-    else normalBehavior(w)
-  }
 }

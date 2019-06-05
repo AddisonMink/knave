@@ -2,6 +2,7 @@ package knave.world.player
 
 import knave.game.{Normal, Speed}
 import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.Dungeon._
 import knave.world.player.weapon.{Fist, Weapon}
 
 import scala.collection.mutable
@@ -14,7 +15,7 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   val vision = 16
 
-  var fieldOfVision : Set[Coord] = d.fieldOfVision(pos,vision)
+  var fieldOfVision : Set[Coord] = pos.visibleDisk(vision)(d).toSet
 
   var visitedTiles = new mutable.HashSet[Coord]
   visitedTiles ++= fieldOfVision
@@ -44,7 +45,7 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   def copyToNewDungeon(c : Coord, d : Dungeon): Player = {
     pos = c
-    fieldOfVision = d.fieldOfVision(pos,vision)
+    fieldOfVision = pos.visibleDisk(vision)(d).toSet
     visitedTiles = new mutable.HashSet[Coord]
     visitedTiles ++= fieldOfVision
     this

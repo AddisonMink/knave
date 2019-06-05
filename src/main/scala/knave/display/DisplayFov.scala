@@ -1,9 +1,9 @@
 package knave.display
 import knave.display.Palette.{orange, red}
 import knave.world.World
-import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.Dungeon
+import knave.world.dungeon.Dungeon._
 import knave.world.enemy.Enemy
-import knave.world.dungeon.Size._
 import knave.world.player.Player
 
 object DisplayFov extends Display {
@@ -16,8 +16,10 @@ object DisplayFov extends Display {
   private def setEnemyFov(e : Enemy, w : World) : Unit =
     if(w.player.hidden)
       e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(orange)))
-    else
-      w.dungeon.circle(e.pos, e.vision*2).intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(red)))
+    else {
+      import w.dungeon
+      e.pos.walkableDisk(e.vision*2).toSet.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(red)))
+    }
 
   override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
     super.display(w,logs,speedRound)

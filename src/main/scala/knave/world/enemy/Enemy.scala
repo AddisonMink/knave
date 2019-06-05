@@ -2,7 +2,8 @@ package knave.world.enemy
 
 import knave.game.{Action, EnemyMove, Speed}
 import knave.world.World
-import knave.world.dungeon.{Coord, Room}
+import knave.world.dungeon.{Coord, Direction, Room}
+import knave.world.dungeon.Dungeon._
 import knave.display.Palette._
 import knave.world.player.weapon.Weapon
 
@@ -14,7 +15,7 @@ abstract class Enemy {
 
   var pos : Coord
 
-  var facing : Coord = Coord(0,0)
+  var facing : Direction = Direction(0,0)
 
   val maxHp : Int
 
@@ -44,7 +45,7 @@ abstract class Enemy {
 
   protected val room : Room
 
-  protected val rng : Random
+  protected implicit val rng : Random
 
   def flavorText : String
 
@@ -83,11 +84,11 @@ abstract class Enemy {
     EnemyMove(id,c,false)
   }
 
-  final def canSeePlayer(w : World) : Boolean =
-    if(w.player.hidden)
-      fieldOfVision.contains(w.player.pos)
-    else
-      w.dungeon.castRay(pos, w.player.pos, vision*2)
+  final def canSeePlayer(w : World) : Boolean = {
+    import w.dungeon
+    if(w.player.hidden) fieldOfVision.contains(w.player.pos)
+    else pos.hasWalkableLineTo(w.player.pos, vision*2)
+  }
 
   def act(w : World) : Vector[Action] =
     if(w.player.hidden) normalBehavior(w) else alertedBehavior(w)

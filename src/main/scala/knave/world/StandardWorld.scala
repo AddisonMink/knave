@@ -8,6 +8,7 @@ import knave.world.player.weapon.{Knife, Staff}
 
 import scala.collection.mutable.ListBuffer
 
+// TODO Clean this up and balance it.
 private class StandardWorld(d : Dungeon, p : Option[Player] = None) extends World(d) {
 
   private val (startRoom, treasureRoom, combatRooms) = dungeon.rooms.sortBy(_.area) match {

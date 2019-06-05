@@ -1,6 +1,7 @@
 package knave.game
 
 import knave.world.dungeon.Coord
+import knave.world.dungeon.Dungeon._
 import knave.world.player.weapon.{Circle, NoSpecial, Ray, Use}
 import knave.world.{EnemyCollision, World}
 
@@ -103,8 +104,9 @@ object InputProcessor {
         Vector()
       }
       case "f" => {
+        import w.dungeon
         internalState = Start
-        val target = w.dungeon.visibleLine(w.player.pos, mouse).take(range).map(c => w.checkCollision(c)).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
+        val target = w.player.pos.walkableLineTo(mouse).take(range).map(c => w.checkCollision(c)).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
         target match {
           case None => Vector()
           case Some(id) => Vector(AttackOnEnemy(id, damage, false), DamagePlayerWeapon(cost))

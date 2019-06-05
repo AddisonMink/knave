@@ -4,11 +4,8 @@ import knave.display.Palette._
 import knave.world.dungeon.Size.{height, width}
 
 import scala.annotation.tailrec
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
-// TODO This should be part of Dungeon.
 package object Size {
   val height = 20
   val width = 80
@@ -61,152 +58,6 @@ abstract class Dungeon(seed : Int) {
       tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
   }
 
-  private val visitedCoords = collection.mutable.Set[Coord]()
-
-  final def visited : Set[Coord] =
-    visitedCoords.toSet
-
-  final def visitCoords(cs : Iterable[Coord]) : Unit =
-    visitedCoords ++= cs
-
-  // TODO Deprecate
-  final def isWalkable(c : Coord, openDoors: Boolean = false) : Boolean =
-    isFloor(c) || doorAt(c).exists(_.open || openDoors)
-
-  // TODO Deprecate
-  final def visibleLine(start : Coord, end : Coord) : Stream[Coord] = {
-    var barrierEncountered = true
-    start.lineTo(end).takeWhile(c => {
-      if(!isWalkable(c)) {
-        if(barrierEncountered) {
-          barrierEncountered = false
-          true
-        }
-        else false
-      }
-      else barrierEncountered
-    })
-  }
-
-  // TODO Maybe create an implicit class so these methods can be called on a coord in the context of a dungeon.
-  final def walkableLine(start : Coord, end : Coord) : Stream[Coord] =
-    start.lineTo(end).takeWhile(isWalkable(_))
-
-  // TODO Deprecate
-  final def nextWalkableCoord(start : Coord, end : Coord) : Option[Coord] =
-    walkableLine(start,end).headOption
-
-  // TODO This can probably be made cleaner.
-  // TODO There is no reason to expose only a frozen version of the set if you are exposing methods to to mutate the set.
-  final def circle(center : Coord, radius : Int) : Set[Coord] = {
-    val cs = new ListBuffer[Coord]
-    cs += center
-    var i = radius
-    do {
-      val rim = ((center.x - i) to (center.x + i)).toStream
-        .flatMap(tempX => {
-          val dx = Math.abs(center.x - tempX)
-          val dy = i - dx
-          Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
-        })
-      cs ++= rim.flatMap(walkableLine(center,_)).toList
-      i -= 1
-    } while(i > 3)
-    cs.toSet
-  }
-
-  // TODO This can probably be made cleaner.
-  final def fieldOfVision(center : Coord, radius : Int) : Set[Coord] = {
-    val cs = new ListBuffer[Coord]
-    cs += center
-    var i = radius
-    do {
-      val rim = ((center.x - i) to (center.x + i)).toStream
-        .flatMap(tempX => {
-          val dx = Math.abs(center.x - tempX)
-          val dy = i - dx
-          Stream(Coord(tempX, center.y + dy), Coord(tempX, center.y - dy))
-        })
-      cs ++= rim.flatMap(visibleLine(center,_)).toList
-      i -= 1
-    } while(i > 3)
-    cs.toSet
-  }
-
-  // TODO This can probably be made cleaner.
-  // TODO Maybe move this to an implicit class so it can be called on Coord in the context of a dungeon.
-  final def cone(center : Coord, direction : Coord, vision : Int) : Set[Coord] = {
-    val dir = direction.normalize
-
-
-    lazy val straight : Set[Coord] = {
-      val fov = new ListBuffer[Coord]
-      fov += center
-      val periphery = Seq(Coord(center.x + dir.y, center.y + dir.x), Coord(center.x - dir.y, center.y - dir.x))
-      for(v <- 1 to vision) {
-        val d = v / 2 + 1
-        val top = if(dir.x != 0) Coord(center.x + v*dir.x, center.y - d) else Coord(center.x - d, center.y + v*dir.y)
-        val bottom = if(dir.x != 0) Coord(center.x + v*dir.x, center.y + d) else Coord(center.x + d, center.y + v*dir.y)
-        val rim = top #:: top.lineTo(bottom)
-        fov ++= rim.flatMap(walkableLine(center,_))
-      }
-      fov ++= periphery
-      fov.toSet
-    }
-
-    lazy val diagonal : Set[Coord] = {
-      val fov = new ListBuffer[Coord]
-      fov += center
-      val periphery = Seq(Coord(center.x, center.y + dir.y), Coord(center.x + dir.x, center.y))
-      fov ++= periphery
-      for(v <- 1 to vision) {
-        val right = Coord(center.x + v*dir.x, center.y)
-        val down = Coord(center.x, center.y + v*dir.y)
-        val diag = Coord(center.x + v*dir.x, center.y + v*dir.y)
-        val rim = right #:: right.lineTo(diag) ++ diag.lineTo(down)
-        fov ++= rim.flatMap(walkableLine(center,_))
-      }
-      fov.toSet
-    }
-
-    if(dir.x == 0 && dir.y == 0) Set()
-    else if(dir.x != 0 && dir.y != 0) diagonal
-    else straight
-  }
-
-
-
-  // TODO Same goes for these methods.
-  final def castRay(start : Coord, end : Coord) : Boolean =
-    visibleLine(start,end).contains(end)
-
-  // TODO Deprecate
-  final def castRay(start : Coord, end : Coord, limit : Int) : Boolean =
-    visibleLine(start,end).take(limit).contains(end)
-
-  // TODO Deprecate
-  final def findPath(start : Coord, end : Coord, openDoors : Boolean = false) : List[Coord] = {
-    val paths = new ListBuffer[List[Coord]] ; paths += List(start)
-    val visited = new mutable.HashSet[Coord] ; visited += start
-    var result = List[Coord]()
-
-    while(paths.nonEmpty && result.isEmpty) {
-      val path = paths.remove(0)
-      if(path.head == end)
-        result = path
-      else {
-        val validMove: Coord => Boolean =
-          if(openDoors) (c : Coord) => !visited.contains(c) && (isWalkable(c) || isDoor(c))
-          else (c : Coord) => !visited.contains(c) && isWalkable(c)
-        val moves = path.head.adjacent.filter(validMove).sortBy(_.manhattanDistance(path.head))
-        visited ++= moves
-        val newPaths = moves.map(_ :: path)
-        paths ++= newPaths
-      }
-    }
-    result.reverse.tail
-  }
-
   def rooms : List[Room]
 }
 
@@ -214,36 +65,40 @@ object Dungeon {
 
   implicit class DungeonCoord(c: Coord) {
 
-    /**
-      * A tile is normally walkable if it's a floor or an open door. If the entity can open doors, then a closed door is also considered walkable.
-      */
-    def isWalkable(openDoors: Boolean = false)(implicit dungeon: Dungeon): Boolean =
-      dungeon.isFloor(c) || dungeon.doorAt(c).exists(_.open || openDoors)
+    def isWalkable(implicit dungeon: Dungeon): Boolean =
+      c.inBounds && (dungeon.isFloor(c) || dungeon.doorAt(c).exists(_.open))
 
-    def walkableLineTo(c2: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): Stream[Coord] =
-      c.lineTo(c2).takeWhile(_.isWalkable(openDoors))
+    def walkableLineTo(c2: Coord)(implicit dungeon: Dungeon): Seq[Coord] =
+      c.lineTo(c2).takeWhile(_.isWalkable)
 
-    def nextWalkable(c2: Coord, openDoors: Boolean = false)(implicit dungeon: Dungeon): Option[Coord] =
-      c.nextCoord(c2).filter(_.isWalkable(openDoors))
+    def nextWalkable(c2: Coord)(implicit dungeon: Dungeon): Option[Coord] =
+      c.toward(c2).filter(_.isWalkable)
 
     def hasWalkableLineTo(c2: Coord, maxDistance: Int = Int.MaxValue)(implicit dungeon: Dungeon): Boolean =
       c.walkableLineTo(c2).take(maxDistance).contains(c2)
 
-    def visibleCone(radius: Int, dir: Direction)(implicit dungeon: Dungeon): List[Coord] = {
-      var barrierFound = false
-      val f = (coord: Coord) =>
-        if(!coord.isWalkable() && barrierFound) false
-        else if(!coord.isWalkable() && !barrierFound) { barrierFound = true; false }
-        else true
-      c.cone(radius, dir, f)
+    def walkableCone(radius: Int, dir: Direction)(implicit dungeon: Dungeon): Seq[Coord] =
+      c.cone(radius, dir, _.isWalkable)
+
+    def enemyConeOfVision(radius: Int, dir: Direction)(implicit dungeon: Dungeon): Seq[Coord] = {
+      val peripheral = dir match {
+        case Horizontal(dx) => Seq(c + (0,1), c + (0,-1), c + (dx,1), c + (dx,-1)).filter(_.isWalkable)
+        case Vertical(dy) => Seq(c + (1,0), c + (-1,0), c + (1,dy), c + (-1,dy)).filter(_.isWalkable)
+        case Diagonal(dx,dy) => Seq(c + (0,dy), c + (dx,0), c + (0,2*dy), c + (2*dx,0)).filter(_.isWalkable)
+      }
+      peripheral ++ c.walkableCone(radius, dir)
     }
 
-    def visibleDisk(radius: Int)(implicit dungeon: Dungeon): List[Coord] = {
-      var barrierFound = false
-      val f = (coord: Coord) =>
-        if(!coord.isWalkable() && barrierFound) false
-        else if(!coord.isWalkable() && !barrierFound) { barrierFound = true; false }
-        else true
+    def walkableDisk(radius: Int)(implicit dungeon: Dungeon): Seq[Coord] =
+      if(radius == 0) Nil else c.disk(radius, _.isWalkable)
+
+    def visibleDisk(radius: Int)(implicit dungeon: Dungeon): Seq[Coord] = {
+      var barrierEncountered = false
+      val f = (c: Coord) => (c.isWalkable, barrierEncountered) match {
+        case (true,false) => true
+        case (false,false) => { barrierEncountered = true; true }
+        case _ => { barrierEncountered = false; false }
+      }
       c.disk(radius,f)
     }
 
@@ -252,7 +107,8 @@ object Dungeon {
       case (path@(c :: _)) +: _ if c == dest => path.reverse.tail
 
       case (c :: cs) +: paths =>
-        val moves = c.adjacent.filter(it => it.isWalkable(openDoors) && !visited.contains(it))
+        def walkable(c: Coord): Boolean = c.isWalkable || (openDoors && dungeon.isDoor(c))
+        val moves = c.adjacent.filter(it => walkable(it) && !visited.contains(it))
         val newPaths = moves.sortBy(_.manhattanDistance(c)).map(_ :: c :: cs) // sortBy prioritizes cardinal moves over diagonal moves.
         findPathIterative(dest, openDoors, paths ++ newPaths, visited ++ moves)
 
@@ -264,6 +120,9 @@ object Dungeon {
 
     def nextOnPathTo(dest: Coord, openDoor: Boolean = false)(implicit dungeon: Dungeon): Option[Coord] =
       findPath(dest,openDoor).headOption
+
+    def inBounds : Boolean =
+      c.x >= 0 && c.x < Size.width && c.y >= 0 && c.y < Size.height
   }
 
   // TODO Get rid of this. It doesn't really help with encapsulation.
