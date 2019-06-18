@@ -1,7 +1,6 @@
 package knave.world.dungeon
 
-import knave.display.Palette._
-import knave.world.dungeon.Size.{height, width}
+import knave.world.dungeon.Room.RoomGraph
 
 import scala.annotation.tailrec
 import scala.util.Random
@@ -11,57 +10,40 @@ package object Size {
   val width = 80
 }
 
-abstract class Dungeon(seed : Int) {
+trait Dungeon {
 
-  final val rng = new Random(seed)
+  val rng: Random
 
-  protected val tileArray = Array.ofDim[InnerTile](width,height)
+  val graph: RoomGraph
 
-  final def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(f.tile)
-    case _ => None
-  }
+  def rooms : Seq[Room]
+
+  def floorAt(c: Coord): Option[Floor]
 
   final def isFloor(c: Coord): Boolean = floorAt(c).nonEmpty
 
-  final def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(w.tile)
-    case _ => None
-  }
+  def wallAt(c: Coord): Option[Wall]
 
   final def isWall(c: Coord): Boolean = wallAt(c).nonEmpty
 
-  final def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(d.tile)
-    case _ => None
-  }
+  def doorAt(c: Coord): Option[Door]
 
   final def isDoor(c: Coord): Boolean = doorAt(c).nonEmpty
 
-  final def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => d.open = true
-    case _ => ()
-  }
+  def openDoor(c: Coord): Unit
 
-  final def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
+  def isStairs(c: Coord): Boolean
 
-  final def createStairs(c : Coord) : Unit = tileArray(c.x)(c.y) = new Stairs(lightGray,darkGray)
+  def createStairs(c : Coord) : Unit
 
-  final def bloodyTile(c: Coord): Unit = {
-    val tile = tileArray(c.x)(c.y)
-    tile.color = bloodColor
-    tile.darkColor = darkBloodColor
-  }
+  def bloodyTile(c: Coord): Unit
 
-  final def createCorpse(c: Coord): Unit = {
-    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor] && !isStairs(c))
-      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
-  }
-
-  def rooms : List[Room]
+  def createCorpse(c: Coord): Unit
 }
 
 object Dungeon {
+
+  def apply(seed: Int): Dungeon = HubDungeon(seed)
 
   implicit class DungeonCoord(c: Coord) {
 
@@ -124,9 +106,4 @@ object Dungeon {
     def inBounds : Boolean =
       c.x >= 0 && c.x < Size.width && c.y >= 0 && c.y < Size.height
   }
-
-  // TODO Get rid of this. It doesn't really help with encapsulation.
-  def hubDungeon(seed : Int) : Dungeon = new HubDungeon(seed)
-
-  def openDungeon(seed : Int) : Dungeon = new OpenDungeon(seed)
 }

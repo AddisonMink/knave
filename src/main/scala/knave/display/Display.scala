@@ -186,8 +186,6 @@ trait Display {
         |1. ${p.inventory(0).map(_.name).getOrElse("no item")}
         |2. ${p.inventory(1).map(_.name).getOrElse("no item")}
         |3. ${p.inventory(2).map(_.name).getOrElse("no item")}
-        |
-        |Depth: ${p.depth}
       """.stripMargin
   }
 

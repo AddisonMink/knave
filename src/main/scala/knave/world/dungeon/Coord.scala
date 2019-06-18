@@ -14,6 +14,21 @@ case class Coord(x : Int, y : Int) {
 
   def manhattanDistance(c : Coord): Int = abs(c.x - x) + abs(c.y - y)
 
+  def ellTo(c: Coord): Seq[Coord] = {
+    (c.x - x, c.y - y) match {
+      case (0,0) => Nil
+      case (dx,0) => Seq.range(x,c.x+dx.signum,dx.signum).map(Coord(_,y))
+      case (0,dy) => Seq.range(y,c.y+dy.signum,dy.signum).map(Coord(x,_))
+      case (dx,dy) =>
+        val horizontal = Seq.range(x,c.x+dx.signum,dx.signum)
+        val vertical = Seq.range(y,c.y+dy.signum,dy.signum)
+        if(dx <= dy)
+          horizontal.map(Coord(_,y)) ++ vertical.map(Coord(c.x,_))
+        else
+          vertical.map(Coord(x,_)) ++ horizontal.map(Coord(_,c.y))
+    }
+  }
+
   def lineTo(c: Coord): Seq[Coord] = {
     val slope = if(c.x == this.x) None else Some((c.y - this.y).toDouble / (c.x - this.x).toDouble)
     slope match {

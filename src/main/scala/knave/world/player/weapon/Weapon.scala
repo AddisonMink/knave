@@ -23,7 +23,7 @@ abstract class Weapon {
   val attackCost : Int
 
   final def attack(id : Int) : AttackOnEnemy =
-    AttackOnEnemy(id, attackDamage, true)
+    AttackOnEnemy(id, attackDamage, attackCost, true)
 
   val special : SpecialAttack
 }

@@ -1,5 +1,7 @@
 package knave.world.dungeon
 
+import knave.display.Palette._
+
 protected sealed trait InnerTile {
   def symbol : String
   var color : String
@@ -12,7 +14,7 @@ abstract private class InnerFloor(var color : String, var darkColor : String) ex
   def tile = Floor(color,darkColor,symbol)
 }
 
-private class PlainFloor(color : String, darkColor : String) extends InnerFloor(color ,darkColor) {
+private class PlainFloor(color : String = lightGray, darkColor : String = darkGray) extends InnerFloor(color ,darkColor) {
   val symbol = "."
 }
 
@@ -24,12 +26,12 @@ private class Stairs(color : String, darkColor : String) extends InnerFloor(colo
   override val symbol: String = "<"
 }
 
-private class InnerWall(var color : String, var darkColor : String) extends InnerTile {
+private class InnerWall(var color : String = lightGray, var darkColor : String = darkGray) extends InnerTile {
   val symbol = "#"
   def tile = Wall(color,darkColor,symbol)
 }
 
-private class InnerDoor(var color : String, var darkColor : String, var open : Boolean) extends InnerTile {
+private class InnerDoor(var color : String = orange, var darkColor : String = darkOrange, var open : Boolean = false) extends InnerTile {
   def symbol: String = if(open) "/" else "+"
   def tile = Door(color,darkColor,open,symbol)
 }

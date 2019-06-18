@@ -52,7 +52,7 @@ object InputProcessor {
             Vector()
           }
           case Use(effect, cost, description) => effect(w) ++ Vector(DamagePlayerWeapon(cost))
-          case Circle(damage, cost) => w.player.pos.adjacent.map(w.checkCollision(_)).collect{case EnemyCollision(id) => AttackOnEnemy(id,damage,true)}.toVector :+ DamagePlayerWeapon(cost)
+          case Circle(damage, cost) => w.player.pos.adjacent.map(w.checkCollision(_)).collect{case EnemyCollision(id) => AttackOnEnemy(id,damage,cost,true)}.toVector
         }
       case "<" =>
         if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)
@@ -106,11 +106,9 @@ object InputProcessor {
       case "f" => {
         import w.dungeon
         internalState = Start
-        val target = w.player.pos.walkableLineTo(mouse).take(range).map(c => w.checkCollision(c)).find(_.isInstanceOf[EnemyCollision]).map(_.asInstanceOf[EnemyCollision].id)
-        target match {
-          case None => Vector()
-          case Some(id) => Vector(AttackOnEnemy(id, damage, false), DamagePlayerWeapon(cost))
-        }
+        w.player.pos.walkableLineTo(mouse).take(range).map(w.checkCollision).collectFirst {
+          case EnemyCollision(id) => AttackOnEnemy(id, damage, cost, false)
+        }.toVector
       }
       case _ => Vector()
     }

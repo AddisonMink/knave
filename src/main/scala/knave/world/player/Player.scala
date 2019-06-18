@@ -5,20 +5,15 @@ import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import knave.world.player.weapon.{Fist, Weapon}
 
-import scala.collection.mutable
-
-sealed class Player(c : Coord, d: Dungeon) {
+sealed class Player(var pos : Coord) {
 
   var ascended : Boolean = false
 
-  var pos = c
-
   val vision = 16
 
-  var fieldOfVision : Set[Coord] = pos.visibleDisk(vision)(d).toSet
+  var fieldOfVision : Set[Coord] = Set()
 
-  var visitedTiles = new mutable.HashSet[Coord]
-  visitedTiles ++= fieldOfVision
+  var visitedTiles = fieldOfVision
 
   val maxHp = 100
 
@@ -41,14 +36,9 @@ sealed class Player(c : Coord, d: Dungeon) {
 
   val inventory : Array[Option[Weapon]] = Array(None,None,None)
 
-  var depth = 1
-
-  def copyToNewDungeon(c : Coord, d : Dungeon): Player = {
-    pos = c
-    fieldOfVision = pos.visibleDisk(vision)(d).toSet
-    visitedTiles = new mutable.HashSet[Coord]
+  def refreshFieldOfVision(implicit dungeon: Dungeon): Unit = {
+    fieldOfVision = pos.visibleDisk(vision).toSet
     visitedTiles ++= fieldOfVision
-    this
   }
 }
 

@@ -1,6 +1,6 @@
 package knave.game
 
-import knave.world.{EnemyCollision, NoCollision, World}
+import knave.world.{BarrierCollision, EnemyCollision, NoCollision, World}
 import knave.world.dungeon.{Coord, Direction}
 import knave.world.dungeon.Dungeon._
 import knave.world.item.WeaponItem
@@ -26,25 +26,22 @@ sealed trait Action {
 case class PlayerMove(c : Coord) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     import w.dungeon
-
-    (c.isWalkable, w.dungeon.isDoor(c), w.checkCollision(c)) match {
-      case (true,_,NoCollision) =>
+    w.checkCollision(c) match {
+      case NoCollision =>
         w.player.pos = c
-        w.player.fieldOfVision = c.visibleDisk(w.player.vision).toSet
-        w.player.visitedTiles ++= w.player.fieldOfVision
+        w.player.refreshFieldOfVision
         if(w.itemAt(c).isDefined)
           addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
         if(w.dungeon.isStairs(c))
           addLog(s"You have reached the stairs. Press '<' to ascend.")
         empty
 
-      case (false,true,_) =>
-        w.dungeon.openDoor(c)
-        w.player.fieldOfVision = c.visibleDisk(w.player.vision).toSet
-        w.player.visitedTiles ++= w.player.fieldOfVision
-        empty
+      case EnemyCollision(id) => Vector(w.player.weapon.attack(id))
 
-      case (_,_,EnemyCollision(id)) => Vector(w.player.weapon.attack(id), DamagePlayerWeapon(w.player.weapon.attackCost))
+      case BarrierCollision if w.dungeon.isDoor(c) =>
+        w.dungeon.openDoor(c)
+        w.player.refreshFieldOfVision
+        empty
 
       case _ => empty
     }
@@ -119,55 +116,55 @@ case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
   override def updateWorld(w: World): Vector[Action] = {
     import w.dungeon
 
-    (c.isWalkable, w.dungeon.isDoor(c), w.checkCollision(c)) match {
-      case (true, _, NoCollision) =>
-        for (e <- w.enemy(id)) {
+    w.checkCollision(c) match {
+      case NoCollision =>
+        w.enemy(id).foreach(e => {
           e.facing = Direction(e.pos, c)
           e.pos = c
           e.fieldOfVision = e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-        }
-        empty
+        }); empty
 
-      case (false, true, _) if openDoor =>
+      case BarrierCollision if w.dungeon.isDoor(c) && openDoor =>
         w.dungeon.openDoor(c)
-        for(e <- w.enemy(id)) {
+        w.enemy(id).foreach(e => {
           e.fieldOfVision = e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-        }
-        empty
+        }); empty
 
       case _ => empty
     }
   }
 }
 
-case class AttackOnEnemy(id : Int, damage : Int, melee: Boolean) extends Action {
-  override def updateWorld(w: World): Vector[Action] = w.enemy(id).flatMap(enemy => {
-    if(w.player.hidden && melee) {
-      enemy.hp -= damage * 2
-      addLog(color("[backstab]",yellow) + s" You did ${damage*2} damage to the ${enemy.description}.")
-    }
-    else {
-      enemy.hp -= damage
-      addLog(s"You did ${damage} damage to the ${enemy.description}.")
-    }
+case class AttackOnEnemy(id : Int, damage : Int, cost: Int, melee: Boolean) extends Action {
+  override def updateWorld(w: World): Vector[Action] = {
+    val isBackstab = w.player.hidden && melee
+    val weaponDamage = if(isBackstab) damage*2 else damage
 
-    if(enemy.hp <= 0) Some(EnemyDeath(id))
-    else if(w.player.hidden) Some(SpotSplayer)
-    else None
-  }).toVector
+    w.enemy(id).toVector.flatMap(e => {
+      e.hp -= weaponDamage
+      if(isBackstab)
+        addLog(color("[backstab]",yellow) + s" You did ${damage*2} damage to the ${e.description}.")
+      else
+        addLog(s"You did ${damage} damage to the ${e.description}.")
+
+      if(e.hp <= 0) Vector(DamagePlayerWeapon(cost), EnemyDeath(id))
+      else if(w.player.hidden) Vector(DamagePlayerWeapon(cost), SpotSplayer)
+      else Vector(DamagePlayerWeapon(cost))
+    })
+  }
 }
 
 case class EnemyDeath(id : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = w.enemy(id).flatMap(enemy => {
+  override def updateWorld(w: World): Vector[Action] = w.enemy(id).toVector.flatMap(enemy => {
       w.destroyEnemy(id)
       w.dungeon.createCorpse(enemy.pos)
       for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
         w.dungeon.bloodyTile(c)
       if(Random.nextDouble <= enemy.dropRate)
-        Some(SpawnWeapon(enemy.drop, enemy.pos))
+        Vector(SpawnWeapon(enemy.drop, enemy.pos))
       else
-        None
-    }).toVector
+        empty
+    })
 }
 
 case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {

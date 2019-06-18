@@ -4,27 +4,20 @@ import knave.display.DisplayFov._
 import InputProcessor._
 import knave.main._
 import knave.world.World
-import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon.{Coord, HubDungeon}
 
 import scala.util.Random
 
 class Game(seed : Int = Random.nextInt) {
 
   println(seed)
-  var world = World.standardWorld(Dungeon.hubDungeon(seed))
+  var world = World(seed)
 
   private var state : GameState = Ongoing
 
   private var round = 1
 
-  private def createNextLevel: Unit = {
-    val seed = Random.nextInt
-    println(seed)
-    world = World.standardWorld(Dungeon.hubDungeon(seed), Some(world.player))
-    round = 1
-  }
-
-  def run(input : String, mousePos : Coord){
+  def run(input : String, mousePos : Coord): Unit = {
     if(state == Ongoing) {
       val oldState = InputProcessor.state
       val playerActions = InputProcessor.process(world, input, mousePos)
@@ -71,13 +64,11 @@ class Game(seed : Int = Random.nextInt) {
 
         if(world.player.hp <= 0)
           state = Dead
-        else if(world.player.ascended && world.player.depth < 5) {
-          createNextLevel
-          world.player.ascended = false
-          world.player.depth += 1
+        else if(world.player.ascended && world.depth < 5) {
+          world = world.nextLevel
           display(world, List(), (round + 1) % 3 == 0)
         }
-        else if(world.player.ascended && world.player.depth == 5) {
+        else if(world.player.ascended && world.depth == 5) {
           display(world, List("You win!"), false)
           state = Ascended
         }

@@ -6,68 +6,86 @@ import knave.world.enemy.Enemy
 import knave.world.item.Item
 import knave.world.player.Player
 
-abstract class World(d : Dungeon) {
+sealed trait World {
 
-  final implicit val dungeon = d
+  val depth: Int
 
-  final implicit val rng = d.rng
+  implicit val dungeon: Dungeon
 
-  val player : Player
+  val player: Player
 
-  private val enemies = collection.mutable.Map[Int,Enemy]()
+  implicit val rng = dungeon.rng
 
-  private var id = 0
+  def enemy(id : Int) : Option[Enemy]
 
-  protected def nextId = id
+  def addEnemy(enemy : Enemy) : Unit
 
-  final def enemy(id : Int) : Option[Enemy] =
-    enemies.get(id)
+  def getEnemies : Iterable[Enemy]
 
-  final def addEnemy(enemy : Enemy) : Unit = {
-    enemies. += ((id, enemy))
-    id += 1
-  }
+  def destroyEnemy(id : Int) : Unit
 
-  final def getEnemies : Iterable[Enemy] =
-    enemies.values
+  def addItem(i : Item) : Unit
 
-  final def destroyEnemy(id : Int) : Unit =
-    enemies.remove(id)
+  def itemAt(c : Coord) : Option[Item]
 
-  protected val items = collection.mutable.Map[Coord,Item]()
+  def removeItemAt(c : Coord) : Unit
 
-  final def addItem(i : Item) : Unit =
-    items += ((i.pos, i))
-
-  final def itemAt(c : Coord) : Option[Item] =
-    items.get(c)
-
-  final def removeItemAt(c : Coord) : Unit =
-    items.remove(c)
-
-  final def getItems : Iterable[Item] =
-    items.values
+  def getItems : Iterable[Item]
 
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision
     else {
-      val enemyPair = enemies.find(_._2.pos == c)
-      if(enemyPair.isDefined) EnemyCollision(enemyPair.get._1)
+      val maybeEnemy = getEnemies.find(_.pos == c)
+      if(maybeEnemy.isDefined) EnemyCollision(maybeEnemy.get.id)
       else if(c.isWalkable || dungeon.doorAt(c).exists(_.open)) NoCollision
-      else OutOfBounds
+      else BarrierCollision
     }
+
+  final lazy val nextLevel = depth match {
+    case 1 => Levels2And3(rng.nextInt,this)
+    case 2 => Levels2And3(rng.nextInt,this)
+    case 3 => Levels4And5(rng.nextInt,this)
+    case _ => Levels4And5(rng.nextInt,this)
+  }
 }
 
-// TODO Deprecate this.
+protected sealed class InnerWorld(val depth: Int, implicit val dungeon : Dungeon, val player: Player, es: Map[Int,Enemy], is: Map[Coord,Item]) extends World {
+
+  private var enemies = es
+
+  private var items = is
+
+  override def enemy(id: Int): Option[Enemy] =
+    enemies.get(id)
+
+  override def addEnemy(enemy: Enemy): Unit =
+    enemies = enemies + ((enemy.id, enemy))
+
+  override def destroyEnemy(id: Int): Unit =
+    enemies = enemies - id
+
+  override def getEnemies: Iterable[Enemy] =
+    enemies.values
+
+  override def addItem(i: Item): Unit =
+    items = items + ((i.pos, i))
+
+  override def itemAt(c: Coord): Option[Item] =
+    items.get(c)
+
+  override def getItems: Iterable[Item] =
+    items.values
+
+  override def removeItemAt(c: Coord): Unit =
+    items = items - c
+}
+
 object World {
-
-  def openWorld(d : Dungeon, p : Option[Player] = None) : World = new EmptyWorld(d,p)
-
-  def standardWorld(d : Dungeon, p : Option[Player] = None) : World = new StandardWorld(d,p)
+  def apply(seed: Int) = Level_1(seed)
 }
 
 sealed trait Collision
 case object PlayerCollision extends Collision
 case class EnemyCollision(id : Int) extends Collision
 case object NoCollision extends Collision
-case object OutOfBounds extends Collision
+case object BarrierCollision extends Collision

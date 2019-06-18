@@ -1,46 +1,22 @@
 package knave.world.dungeon
 import scala.util.Random
 
-trait Room {
+class Room(i: Int, coords: Iterable[Coord]) {
 
-  def randomCoord(implicit rng : Random) : Coord
+  val id = i
 
-  final def randomCoordExcept(cs : Seq[Coord])(implicit rng : Random) : Option[Coord] = {
-    var tries = 100
-    var c = randomCoord
-    while(tries > 0 && cs.contains(c))
-      c = randomCoord
-      tries += 1
-    if(cs.contains(c)) None else Some(c)
-  }
+  val contents = coords.toSet
 
-  def area : Int
-
-  def contents : Iterable[Coord]
-}
-
-private case class ShapeRoom(shapes : List[Shape]) extends Room {
+  val area = coords.size
 
   def randomCoord(implicit rng: Random): Coord = {
-    val i = rng.nextInt(shapes.length)
-    shapes(i).randomCoord
+    val n = rng.nextInt(contents.size)
+    contents.slice(n,n+1).last
   }
-
-  override def area: Int = shapes.map(_.area).sum
-
-  override def contents: Iterable[Coord] = shapes.flatMap(_.fill)
 }
 
-private case class SetRoom(coords : Set[Coord]) extends Room {
+object Room {
+  type RoomId = Int
 
-  private val coordVector = coords.toVector
-
-  override def randomCoord(implicit rng: Random): Coord = {
-    val i = rng.nextInt(coordVector.length)
-    coordVector(i)
-  }
-
-  override def area: Int = coords.size
-
-  override def contents: Iterable[Coord] = coords
+  type RoomGraph = Map[RoomId,Seq[RoomId]]
 }
