@@ -18,7 +18,7 @@ object Main extends App {
 
   val testSeed = Random.nextInt
   println(testSeed)
-  //-1118977037
+  //-597290073 This looks like a bug in the hub generation.
   val dungeon = HubDungeon(testSeed)
   DisplayDungeon.display(dungeon)
 

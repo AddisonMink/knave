@@ -1,18 +1,20 @@
 package knave.world.dungeon
 import scala.util.Random
 
-class Room(i: Int, coords: Iterable[Coord]) {
+trait Room {
 
-  val id = i
+  val id: Int
 
-  val contents = coords.toSet
+  val contents: Set[Coord]
 
-  val area = coords.size
+  final val area = contents.size
 
-  def randomCoord(implicit rng: Random): Coord = {
+  final def randomCoord(implicit rng: Random): Coord = {
     val n = rng.nextInt(contents.size)
     contents.slice(n,n+1).last
   }
+
+  final def contains(c: Coord): Boolean = contents.contains(c)
 }
 
 object Room {

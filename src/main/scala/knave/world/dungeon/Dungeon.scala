@@ -1,47 +1,67 @@
 package knave.world.dungeon
 
+import knave.display.Palette.{bloodColor, darkBloodColor, darkGray, lightGray}
 import knave.world.dungeon.Room.RoomGraph
 
 import scala.annotation.tailrec
 import scala.util.Random
 
-package object Size {
-  val height = 20
-  val width = 80
-}
+sealed trait Dungeon {
+  require(tileArray.length == Dungeon.width && tileArray(0).length == Dungeon.height)
 
-trait Dungeon {
+  implicit val rng: Random
 
-  val rng: Random
+  val rooms: Seq[Room]
 
   val graph: RoomGraph
 
-  def rooms : Seq[Room]
+  protected val tileArray: Array[Array[InnerTile]]
 
-  def floorAt(c: Coord): Option[Floor]
-
+  final def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
+    case f : InnerFloor => Some(f.tile)
+    case _ => None
+  }
   final def isFloor(c: Coord): Boolean = floorAt(c).nonEmpty
 
-  def wallAt(c: Coord): Option[Wall]
-
+  final def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
+    case w : InnerWall => Some(w.tile)
+    case _ => None
+  }
   final def isWall(c: Coord): Boolean = wallAt(c).nonEmpty
 
-  def doorAt(c: Coord): Option[Door]
-
+  final def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
+    case d : InnerDoor => Some(d.tile)
+    case _ => None
+  }
   final def isDoor(c: Coord): Boolean = doorAt(c).nonEmpty
 
-  def openDoor(c: Coord): Unit
+  final def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
+    case d : InnerDoor => d.open = true
+    case _ => ()
+  }
 
-  def isStairs(c: Coord): Boolean
+  final def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
 
-  def createStairs(c : Coord) : Unit
+  final def createStairs(c : Coord) : Unit = tileArray(c.x)(c.y) = new Stairs(lightGray,darkGray)
 
-  def bloodyTile(c: Coord): Unit
+  final def bloodyTile(c: Coord): Unit = {
+    val tile = tileArray(c.x)(c.y)
+    tile.color = bloodColor
+    tile.darkColor = darkBloodColor
+  }
 
-  def createCorpse(c: Coord): Unit
+  final def createCorpse(c: Coord): Unit = {
+    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor] && !isStairs(c))
+      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
+  }
 }
 
+protected class InnerDungeon(val tileArray: Array[Array[InnerTile]], val rooms: Seq[Room], val graph: RoomGraph, implicit val rng: Random) extends Dungeon
+
 object Dungeon {
+  val height = 20
+
+  val width = 80
 
   def apply(seed: Int): Dungeon = HubDungeon(seed)
 
@@ -104,6 +124,6 @@ object Dungeon {
       findPath(dest,openDoor).headOption
 
     def inBounds : Boolean =
-      c.x >= 0 && c.x < Size.width && c.y >= 0 && c.y < Size.height
+      c.x >= 0 && c.x < width && c.y >= 0 && c.y < height
   }
 }

@@ -21,47 +21,34 @@ trait Rectangle {
   def contains(c : Coord) : Boolean =
     c.x >= x && c.x < x + width && c.y >= y && c.y < y + height
 
+  def xOverlap(r: Rectangle): Int = {
+    if(x >= r.x && x < r.x + r.width) Math.min((r.x + r.width) - x, width)
+    else if(r.x >= x && r.x < x + width) Math.max((x + width) - r.x, r.width)
+    else 0
+  }
+
+  def yOverlap(r: Rectangle): Int = {
+    if(y >= r.y && y < r.x + r.height) Math.min((r.y + r.height) - y, height)
+    else if(r.y >= y && r.y < y + height) Math.min((y + height) - r.y, r.height)
+    else 0
+  }
+
   def intersects(r: Rectangle): Boolean = {
-    val intersectsHorizontally =
-      (x >= r.x && x < r.x + r.width) || (r.x >= x && r.x < x + width)
-    val intersectsVertically =
-      (y >= r.y && y < r.y + r.height) || (r.y >= y && r.y < y + height)
-    intersectsHorizontally && intersectsVertically
+    xOverlap(r) > 0 && yOverlap(r) > 0
   }
 
   def cardinalAdjacent(r: Rectangle): Boolean = {
-    lazy val left = x + width == r.x
-    lazy val right = r.x + r.width == x
-    lazy val verticalIntersect = (y >= r.y && y < r.y + r.height) || (r.y >= y && r.y < y + height)
-
-    lazy val up = y + height == r.y
-    lazy val down = r.y + r.height == y
-    lazy val horizontalIntersect = (x >= r.x && x < r.x + r.width) || (r.x >= x && r.x < x + width)
-
-    lazy val horizontalAdjacent = (left || right) && verticalIntersect
-    lazy val verticalAdjacent = (up || down) && horizontalIntersect
-
-    (horizontalAdjacent || verticalAdjacent) && !diagonalAdjacent(r)
-  }
-
-  def cardinalAdjacent(c: Coord): Boolean = {
-    val rect = Rect(c.x,c.y,1,1)
-    cardinalAdjacent(rect)
+    val aboveOrBelow = xOverlap(r) > 0 && (y + height == r.y || r.y + r.height == y)
+    val leftOrRight = yOverlap(r) > 0 && (x + width == r.x || r.x + r.width == x)
+    aboveOrBelow || leftOrRight
   }
 
   def diagonalAdjacent(r: Rectangle): Boolean = {
-    lazy val left = x + width == r.x
-    lazy val right = r.x + r.width == x
-    lazy val up = y + height == r.y
-    lazy val down = r.y + r.height == y
+    val left = x + width == r.x
+    val right = r.x + r.width == x
+    val up = y + height == r.y
+    val down = r.y + r.height == y
     left && up || left && down || right && up || right && down
-  }
-
-  def adjacent(r: Rectangle): Boolean = cardinalAdjacent(r) || diagonalAdjacent(r)
-
-  def adjacent(c: Coord): Boolean = {
-    val rect = Rect(c.x,c.y,1,1)
-    adjacent(rect)
   }
 
   val area = width*height

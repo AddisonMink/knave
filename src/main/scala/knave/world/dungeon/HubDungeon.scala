@@ -1,67 +1,12 @@
 package knave.world.dungeon
 
-import scala.util.Random
-import Size._
-import knave.display.Palette.{bloodColor, darkBloodColor, darkGray, lightGray}
 import knave.world.dungeon.Room.RoomGraph
 
+import scala.util.Random
 import scala.annotation.tailrec
 
-protected class HubDungeon(val rng: Random, val rooms: Seq[Room], val graph: RoomGraph, corridors: Seq[Coord], doors: Seq[Coord]) extends Dungeon {
-
-  private val tileArray = Array.ofDim[InnerTile](width,height)
-
-  for(x <- 0 until width)
-    for(y <- 0 until height)
-      tileArray(x)(y) = new InnerWall
-
-  for(r <- rooms)
-    for(c <- r.contents)
-      tileArray(c.x)(c.y) = new PlainFloor
-
-  for(c <- corridors)
-    tileArray(c.x)(c.y) = new PlainFloor
-
-  for(d <- doors)
-    tileArray(d.x)(d.y) = new InnerDoor
-
-  override def floorAt(c: Coord): Option[Floor] = tileArray(c.x)(c.y) match {
-    case f : InnerFloor => Some(f.tile)
-    case _ => None
-  }
-
-  override def wallAt(c: Coord): Option[Wall] = tileArray(c.x)(c.y) match {
-    case w : InnerWall => Some(w.tile)
-    case _ => None
-  }
-
-  override def doorAt(c: Coord): Option[Door] = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => Some(d.tile)
-    case _ => None
-  }
-
-  override def openDoor(c: Coord): Unit = tileArray(c.x)(c.y) match {
-    case d : InnerDoor => d.open = true
-    case _ => ()
-  }
-
-  override def isStairs(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[Stairs]
-
-  override def createStairs(c : Coord) : Unit = tileArray(c.x)(c.y) = new Stairs(lightGray,darkGray)
-
-  override def bloodyTile(c: Coord): Unit = {
-    val tile = tileArray(c.x)(c.y)
-    tile.color = bloodColor
-    tile.darkColor = darkBloodColor
-  }
-
-  override def createCorpse(c: Coord): Unit = {
-    if(tileArray(c.x)(c.y).isInstanceOf[InnerFloor] && !isStairs(c))
-      tileArray(c.x)(c.y) = new Corpse(bloodColor, darkBloodColor)
-  }
-}
-
 object HubDungeon {
+  import Dungeon.{width,height}
 
   /**
     * A Hub Dungeon should have the following properties:
@@ -82,228 +27,219 @@ object HubDungeon {
     * 4. Randomly choose up to 200 smaller rectangles that are not intersecting or diagonally adjacent with each other
     *    or with the hubs.
     *
-    * 5. Combine the hubs and smaller rectangles and aggregate them into complexes of adjacent rectangles.
+    * 5. Map the hub rectangles and the side rectangles onto a grid.
     *
-    * 6. Map the hub graph onto a grid like so:
-    *    - For each edge 1 <-> 2 choose a sequence of coords connecting 1 and 2.
-    *    - If the sequence of coords intersects or is adjacent to a complex 'c', replace the edge 1 <-> 2 with edges 1 <-> c and c <-> 2.
-    *    The sequences of coords are called corridors. Each corridor is associated with an edge in the new graph.
+    * 6. Use the hub graph as a guide construct corridors connecting the hub rectangles.
+    *    - If there is an edge x -> y create a main corridor x -> y
+    *    - If a corridor x -> y intersects or is adjacent to a rect z, discard the corridor and replace edge x -> y with x -> z and z -> y. If z is a side rect, it is promoted to a hub.
+    *    - If a corridor w -> x intersects or is adjacent to a corridor y -> z, discard the corridor and replace it with corridors w -> (y -> z) and (y -> z) -> x
+    *    - There can only be 1 corridor corresponding to an edge x -> y.
+    *    The corridors imply a new set of hub points. For each edge x -> y associated with a corridor, x and y are hubs.
     *
-    * 7. Trim the corridors so that they don't overlap with any complexes.
-    *    - For corridor i -> j
-    *       - Remove all coords that intersect with i or j.
-    *       - Remove all but the last coord that is adjacent to i.
-    *       - Remove all but the first coord that is adjacent to j.
-    *       - If the trimmed corridor is empty, discard it.
+    * 7. Map the corridors onto the grid.
     *
-    * 8. Choose doors coords by taking the first and last coord of each trimmed corridor.
+    * 10. Compute the coords of the doors. A tile is a valid door if it has exactly 2 floors cardinally adjacent to it.
     *
-    * 9. Create a room from each complex connected by the complex graph.
+    * 11. Compute rooms. A rooms is the continuous set of coords centered at a hub point and bounded by walls and doors.
     *
-    * 10. Create a room graph from the complex graph.
-    *
-    * 11. Instantiate dungeon.
+    * 12. Compute a graph of the rooms and the corridiors.
     */
+  def apply(seed: Int): Dungeon = {
+    implicit val rng: Random = new Random(seed)
 
-  /**
-    * Data Structures
-    */
-  case class HubRect(x: Int, y: Int, width: Int, height: Int, hub: Coord) extends Rectangle
+    val tileArray = Array.ofDim[InnerTile](width,height)
 
-  object HubRect {
-    val (minWidth, maxWidth) = (3, 5)
-    val (minHeight, maxHeight) = (2, 3)
-    val minDistance = 5
+    for {
+      x <- 0 until width
+      y <- 0 until height
+    } yield tileArray(x)(y) = new InnerWall
 
-    def random(hub: Coord)(implicit rng: Random): HubRect = {
-      val w = rng.nextInt(maxWidth - minWidth) + minWidth
-      val h = rng.nextInt(maxHeight - minHeight) + minHeight
-      val x = hub.x - (w - 1)
-      val y = hub.y - (h - 1)
-      HubRect(x,y,w,h,hub)
+    val hubRects = computeHubs.map(_.rect)
+
+    for {
+      rect <- hubRects
+      c <- rect.fill
+    } yield tileArray(c.x)(c.y) = new PlainFloor
+
+    val sideRects = computeSideRects(hubRects)
+
+    for {
+      rect <- sideRects
+      c <- rect.fill
+    } yield tileArray(c.x)(c.y) = new PlainFloor
+
+    val graph = computeHubGraph(hubRects)
+
+    val corridors = computeCorridors(graph, hubRects ++ sideRects)
+
+    for {
+      corridor <- corridors
+      c <- corridor.coords
+    } yield tileArray(c.x)(c.y) = new PlainFloor
+
+    val newHubs = corridors.flatMap(c => Seq(c.edge.from, c.edge.to))
+
+    for{
+      r <- newHubs
+      c <- r.fill
+    } yield tileArray(c.x)(c.y) = new PlainFloor
+
+    val doors = computeDoors(tileArray, corridors)
+
+    for{
+      c <- doors
+    } yield tileArray(c.x)(c.y) = new InnerDoor
+
+    val newHubPoints = corridors.flatMap(c => Seq(c.edge.to.midpoint, c.edge.from.midpoint)).distinct
+
+    val rooms = computeRooms(tileArray, newHubPoints)
+
+    for {
+      r <- rooms
+      c <- r.contents
+    } tileArray(c.x)(c.y) = new Corpse
+
+    val roomGraph = Map[Int,Seq[Int]]()
+
+    new InnerDungeon(tileArray, rooms, roomGraph, rng)
+  }
+
+  private case class Hub(x: Int, y: Int) {
+    import Hub._
+
+    lazy val neighborhood = for {
+      nx <- (x - halfWidth*2 - minXDistance)  to (x + halfWidth*2 + minXDistance)
+      ny <- (y - halfHeight*2 - minYDistance) to (y + halfHeight*2 + minYDistance)
+    } yield Coord(nx,ny)
+
+    lazy val rect = Rect(x-halfWidth, y-halfHeight, halfWidth*2+1, halfHeight*2+1)
+  }
+
+  private object Hub {
+    val halfWidth = 2
+    val halfHeight = 1
+    val minXDistance = 7
+    val minYDistance = 5
+
+    def apply(c: Coord): Hub = Hub(c.x,c.y)
+  }
+
+  private object SideRect{
+    def apply(rng: Random): Rectangle = {
+      val x = rng.nextInt(width - 5) + 1
+      val y = rng.nextInt(height - 4) + 1
+      val w = rng.nextInt(3) + 2
+      val h = rng.nextInt(2) + 2
+      Rect(x,y,w,h)
     }
   }
 
-  object SideRect {
-    val (minWidth, maxWidth) = (2, 4)
-    val (minHeight, maxHeight) = (2, 3)
-
-    def random(implicit rng: Random): Rect = {
-      val w = rng.nextInt(maxWidth - minWidth) + minWidth
-      val h = rng.nextInt(maxHeight - minHeight) + minHeight
-      val x = rng.nextInt(width - 2 - w*2) + 1
-      val y = rng.nextInt(height - 2 - h*2) + 1
-      Rect(x, y, w*2, h*2)
-    }
+  private case class Edge(from: Rectangle, to: Rectangle) {
+    lazy val reverse = Edge(to,from)
   }
 
-  case class HubEdge(from: HubRect, fromComplex: Complex, to: HubRect, toComplex: Complex)
+  private type Graph = Seq[Edge]
 
-  type HubGraph = Seq[HubEdge]
+  private case class Corridor(edge: Edge, coords: Seq[Coord])
 
-  case class Complex(id: Int, rects: Seq[Rectangle]) {
+  private class HubRoom(val id: Int, val contents: Set[Coord], val doors: Seq[Coord]) extends Room
 
-    def contains(c: Coord): Boolean =
-      rects.exists(_.contains(c))
-
-    def rectContaining(c: Coord): Option[Rectangle] =
-      rects.find(_.contains(c))
-
-    def adjacent(c: Coord): Boolean =
-      rects.exists(_.adjacent(c))
-
-    def cardinalAdjacent(c: Coord): Boolean =
-      rects.exists(_.cardinalAdjacent(c))
-  }
-
-  case class ComplexEdge(from: Complex, to: Complex)
-
-  type ComplexGraph = Seq[ComplexEdge]
-
-  case class Corridor(edge: ComplexEdge, coords: Seq[Coord])
-
-  /**
-    * Algorithm
-    */
-  def computeHubs(implicit rng: Random): Seq[Coord] = {
+  private def computeHubs(implicit rng: Random): Seq[Hub] = {
+    import Hub._
     val points = rng.shuffle(for {
-      x <- HubRect.maxWidth until (width - HubRect.maxWidth)
-      y <- HubRect.maxHeight until (height - HubRect.maxHeight)
+      x <- (halfWidth + 1) until (width - halfWidth - 1)
+      y <- (halfHeight + 1) until (height - halfHeight - 1)
     } yield Coord(x,y))
 
     @tailrec
-    def loop(points: Seq[Coord], hubPoints: Seq[Coord] = Nil): Seq[Coord] = points match {
-      case newHubPoint +: ps =>
-        val hubPointBounds = for {
-          x <- (newHubPoint.x - (HubRect.maxWidth - 1) - HubRect.minDistance) to (newHubPoint.x + HubRect.maxWidth + HubRect.minDistance)
-          y <- (newHubPoint.y - (HubRect.maxHeight - 1) - HubRect.minDistance) to (newHubPoint.y + HubRect.maxHeight + HubRect.minDistance)
-        } yield Coord(x,y)
-        loop(ps.diff(hubPointBounds), newHubPoint +: hubPoints)
+    def loop(points: Seq[Coord], hubs: Seq[Hub] = Nil): Seq[Hub] = points match {
+      case p +: ps =>
+        val hub = Hub(p)
+        loop(ps.diff(hub.neighborhood), hub +: hubs)
 
-      case Seq() => hubPoints
+      case _ => hubs
     }
     loop(points)
   }
 
-  def computeSideRects(hubRects: Seq[HubRect])(implicit rng: Random): Seq[Rect] = {
-    @tailrec
-    def loop(tries: Int, rects: Seq[Rect] = Nil): Seq[Rect] = tries match {
-      case 0 => rects
-      case _ =>
-        val rect = SideRect.random
-
-        val intersectsAnotherSideRect = rects.exists(r => r.intersects(rect) || r.diagonalAdjacent(rect))
-        val intersectsHubRect = hubRects.exists(r => r.intersects(rect) || r.diagonalAdjacent(rect))
-
-        if(intersectsAnotherSideRect || intersectsHubRect)
-          loop(tries-1, rects)
-        else
-          loop(tries-1, rect +: rects)
-    }
-    loop(200)
-  }
-
-  def computeComplexes(rects: Seq[Rectangle]): Seq[Complex] = {
-    @tailrec
-    def loop(unusedRects: Seq[Rectangle], complexes: Seq[Complex] = Nil, currentId: Int = 0): Seq[Complex] = unusedRects match {
-      case Seq() => complexes
-      case r +: rs =>
-        @tailrec
-        def aggregateAdjacent(agg: Seq[Rectangle], unusedRects: Seq[Rectangle]): (Seq[Rectangle], Seq[Rectangle]) = {
-          val (adjacentRects, nonAdjacentRects) = unusedRects.partition(rect => agg.exists(_.cardinalAdjacent(rect)))
-          if(adjacentRects.isEmpty)
-            (agg, nonAdjacentRects)
-          else
-            aggregateAdjacent(adjacentRects ++ agg, nonAdjacentRects)
-        }
-
-        val (adjacentRects, otherRects) = aggregateAdjacent(Seq(r),rs)
-        loop(otherRects, Complex(currentId, adjacentRects) +: complexes, currentId+1)
-    }
-    loop(rects)
-  }
-
-  def computeHubGraph(complexes: Seq[Complex]): HubGraph = {
-
-    val hubComplexes = complexes.flatMap{complex =>
-      val hubRects = complex.rects.collect{case r: HubRect => r}
-      if(hubRects.nonEmpty)
-        hubRects.map((_,complex))
-      else Nil
-    }
+  private def computeHubGraph(hubs: Seq[Rectangle]): Graph = {
 
     @tailrec
-    def loop(hubs: Seq[(HubRect,Complex)], graph: HubGraph = Nil): HubGraph = hubs match {
-      case (r1, c1) +: (r2, c2) +: hub3 +: rest =>
-        val newGraph = HubEdge(r1,c1,r2,c2) +: graph
-        loop((r2,c2) +: hub3 +: rest, newGraph)
+    def loop(rects: Seq[Rectangle], graph: Graph = Nil): Graph = rects match {
+      case r1 +: r2 +: r3 +: rest =>
+        val newEdges = Edge(r1,r3) +: Edge(r2,r3) +: Nil
+        loop(r2 +: r3 +: rest, newEdges ++ graph)
 
-      case (r1, c1) +: (r2, c2) +: Seq() => HubEdge(r1,c1,r2,c2) +: graph
-
-      case _ => graph
+      case r1 +: r2 +: Nil => Edge(r1,r2) +: graph
     }
-    loop(hubComplexes)
+    loop(hubs.sortBy(_.x))
   }
 
-  def computeCorridors(graph: HubGraph, complexes: Seq[Complex]): Seq[Corridor] = {
+  private def computeSideRects(hubRects: Seq[Rectangle])(implicit rng: Random): Seq[Rectangle] = {
+    (0 until 200).foldLeft(Seq[Rectangle]())((rects, _) => {
+      val rect = SideRect(rng)
 
-    def computeCoords(from: HubRect, to: HubRect): Seq[Coord] = {
-      val xIntersection = (from.x until from.x + from.width).intersect(to.x until to.x + to.width)
-      val yIntersection = (from.y until from.y + from.height).intersect(to.y until to.y + to.height)
+      val invalid = (hubRects ++ rects).exists(r => {
+        val adjacentBy1 = r.cardinalAdjacent(rect) && (r.xOverlap(rect) == 1 || r.yOverlap(rect) == 1)
+        r.intersects(rect) || r.diagonalAdjacent(rect) || adjacentBy1
+      })
 
+      if(invalid) rects
+      else rect +: rects
+    })
+  }
+
+  private def computeCorridor(from: Rectangle, to: Rectangle): Corridor = {
+    val xIntersection = (from.x until from.x + from.width).intersect(to.x until to.x + to.width)
+    val yIntersection = (from.y until from.y + from.height).intersect(to.y until to.y + to.height)
+
+    val coords =
       if(xIntersection.nonEmpty) {
         val x = xIntersection(xIntersection.length/2)
-        Coord(x,from.hub.y).lineTo(Coord(x,to.hub.y))
+        Coord(x,from.midpoint.y).lineTo(Coord(x,to.midpoint.y))
       }
       else if(yIntersection.nonEmpty) {
         val y = yIntersection(yIntersection.length/2)
-        Coord(from.hub.x,y).lineTo(Coord(to.hub.x,y))
+        Coord(from.midpoint.x,y).lineTo(Coord(to.midpoint.x,y))
       }
-      else from.hub.ellTo(to.hub)
-    }
+      else from.midpoint.ellTo(to.midpoint)
 
-    def trimCoords(coords: Seq[Coord], fromComplex: Complex, toComplex: Complex): Seq[Coord] = {
-      if(fromComplex.id == toComplex.id) Nil
-      else {
-        val nonIntersecting = coords.dropWhile(fromComplex.contains).takeWhile(!toComplex.contains(_))
-        val (leftAdjacent, right) = nonIntersecting.span(fromComplex.cardinalAdjacent)
-        val (middle, rightAdjacent) = right.span(!toComplex.cardinalAdjacent(_))
-        leftAdjacent.lastOption.toSeq ++ middle ++ rightAdjacent.headOption.toSeq
-      }
+    Corridor(Edge(from,to), coords.dropWhile(from.contains).takeWhile(!to.contains(_)))
+  }
+
+  private def findRectIntersection(coords: Seq[Coord], rects: Seq[Rectangle]): Option[Rectangle] = {
+    def intersectsCorridor(rect: Rectangle, c: Coord): Boolean = {
+      rect.contains(c) || rect.cardinalAdjacent(Rect(c.x,c.y,1,1))
     }
 
     @tailrec
-    def findIntermediateComplex(coords: Seq[Coord]): Option[(Rectangle,Complex)] = coords match {
-      case c +: cs => complexes.find(_.contains(c)) match {
-        case None => findIntermediateComplex(cs)
-        case Some(complex) =>
-          val rect = complex.rectContaining(c).get
-          Some((rect,complex))
+    def loop(coords: Seq[Coord]): Option[Rectangle] = coords match {
+      case c +: cs => rects.find(intersectsCorridor(_,c)) match {
+        case None => loop(cs)
+        case someRect => someRect
       }
       case _ => None
     }
 
-    def loop(edges: Seq[HubEdge], corridors: Seq[Corridor] = Nil): Seq[Corridor] = edges match {
-      case HubEdge(from,fromComplex,to,toComplex) +: rest =>
-        val coords = computeCoords(from,to)
-        val trimmed = trimCoords(coords,fromComplex,toComplex)
+    if(coords.length >= 2) {
+      val middle = coords.drop(1).dropRight(1)
+      loop(middle)
+    }
+    else None
+  }
 
-        findIntermediateComplex(trimmed) match {
-          case None if trimmed.isEmpty =>
-            loop(rest, corridors)
+  private def computeCorridors(graph: Graph, rects: Seq[Rectangle]): Seq[Corridor] = {
+    @tailrec
+    def loop(edges: Seq[Edge], processed: Set[Edge] = Set(), corridors: Seq[Corridor] = Nil): Seq[Corridor] = edges match {
+      case e +: es if e.to == e.from || processed.contains(e) || processed.contains(e.reverse) =>
+        loop(es, processed, corridors)
 
-          case None =>
-            val corridor = Corridor(ComplexEdge(fromComplex,toComplex),trimmed)
-            loop(rest, corridor +: corridors)
+      case e +: es =>
+        val corridor = computeCorridor(e.from, e.to)
 
-          case Some((hubRect: HubRect,intermediateComplex)) =>
-            val newEdges = HubEdge(from,fromComplex,hubRect,intermediateComplex) +: HubEdge(hubRect,intermediateComplex,to,toComplex) +: Nil
-            loop(newEdges ++ rest, corridors)
-
-          case Some((rect, intermediateComplex)) =>
-            val hubRect = HubRect(rect.x, rect.y, rect.width, rect.height, rect.midpoint)
-            val newEdges = HubEdge(from,fromComplex,hubRect,intermediateComplex) +: HubEdge(hubRect,intermediateComplex,to,toComplex) +: Nil
-            loop(newEdges ++ rest, corridors)
+        findRectIntersection(corridor.coords, rects) match {
+          case None => loop(es, processed + e, corridor +: corridors)
+          case Some(rect) => loop(Edge(e.from, rect) +: Edge(rect, e.to) +: es, processed + e, corridors)
         }
 
       case _ => corridors
@@ -311,38 +247,71 @@ object HubDungeon {
     loop(graph)
   }
 
-  def computeRoomGraph(corridors: Seq[Corridor]): RoomGraph = {
-    val edges = corridors.flatMap{e =>
-      val (id1, id2) = (e.edge.from.id, e.edge.to.id)
-      Seq((id1,id2), (id2,id1))
+  private def computeDoors(tileArray: Array[Array[InnerTile]], corridors: Seq[Corridor]): Seq[Coord] = {
+    def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
+
+    def isValidDoor(c: Coord): Boolean = c.cardinalAdjacent.filter(isFloor) match {
+      case Seq(left,right) if left.x == right.x || left.y == right.y => true
+      case _ => false
     }
-    edges.groupBy(_._1).mapValues(_.map(_._2))
+
+    corridors.foldLeft(Seq[Coord]())((doors, corridor) => {
+      (for {
+        c1 <- corridor.coords.find(isValidDoor).toSeq
+        c2 <- corridor.coords.reverse.find(isValidDoor).toSeq
+        door <- if (c1 == c2 || c1.manhattanDistance(c2) == 1) Seq(c1) else Seq(c1, c2)
+      } yield door) ++ doors
+    })
   }
 
-  def computeRooms(corridors: Seq[Corridor]): Seq[Room] = {
-    val complexes = corridors.flatMap(c => Seq(c.edge.from, c.edge.to)).distinct
-    complexes.map(c => new Room(c.id, c.rects.flatMap(_.fill)))
+  private def fill(tileArray: Array[Array[InnerTile]], start: Coord): (Set[Coord], Seq[Coord]) = {
+    def isDoor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerDoor]
+    def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
+
+    @tailrec
+    def loop(contents: Set[Coord], frontier: Seq[Coord], doors: Seq[Coord] = Nil): (Set[Coord], Seq[Coord]) = {
+      val newFrontier = frontier.flatMap(_.cardinalAdjacent).filter(c => !contents.contains(c) && isFloor(c))
+      val (newDoors, newFloors) = newFrontier.partition(isDoor)
+      if(newFloors.nonEmpty)
+        loop(contents ++ newFloors, newFloors, newDoors ++ doors)
+      else (contents, newDoors ++ doors)
+    }
+    loop(Set(start), Seq(start))
   }
 
-  def apply(seed: Int): HubDungeon = {
-    implicit val rng: Random = new Random(seed)
+  private def computeRooms(tileArray: Array[Array[InnerTile]], hubPoints: Seq[Coord]): Seq[HubRoom] = {
+    @tailrec
+    def loop(hubPoints: Seq[Coord], id: Int = 0, rooms: Seq[HubRoom] = Nil): Seq[HubRoom] = hubPoints match {
+      case h +: hs =>
+        val (contents, doors) = fill(tileArray,h)
+        val room = new HubRoom(id,contents,doors)
+        loop(hs.filterNot(room.contains), id+1, room +: rooms)
+      case _ => rooms
+    }
+    loop(hubPoints)
+  }
 
-    val hubRects = computeHubs.map(HubRect.random)
+  private def computeRoomGraph(tileArray: Array[Array[InnerTile]], rooms: Seq[HubRoom], doors: Seq[Coord]): RoomGraph = {
+    def isFloor(c: Coord): Boolean = tileArray(c.x)(c.y).isInstanceOf[InnerFloor]
 
-    val sideRects = computeSideRects(hubRects)
+    val connectedRooms = doors.map(c => {
+      val Seq(left,right) = c.cardinalAdjacent.filter(isFloor)
+      println(left,c,right)
+      (rooms.find(_.contains(left)), rooms.find(_.contains(right))) match {
+        case (Some(_), None) =>
+          val ds = fill(tileArray, right)._2
+          ds.flatMap(d => rooms.find(_.doors.contains(d)).map(_.id))
 
-    val complexes = computeComplexes(hubRects ++ sideRects)
+        case (None, Some(_)) =>
+          val ds = fill(tileArray, left)._2
+          ds.flatMap(d => rooms.find(_.doors.contains(d)).map(_.id))
 
-    val hubGraph = computeHubGraph(complexes)
+        case (Some(room1), Some(room2)) => Seq(room1.id,room2.id)
 
-    val corridors = computeCorridors(hubGraph,complexes)
+        case (None,None) => throw new Exception("Hub Dungeon Generation Error: Neither side of a door was contained in a room.")
+      }
+    })
 
-    val doors = Nil
-
-    val roomGraph = computeRoomGraph(corridors)
-
-    val rooms = computeRooms(corridors)
-
-    new HubDungeon(rng, rooms, roomGraph, Nil, Nil)
+    connectedRooms.groupBy(_.head).mapValues(_.tail).mapValues(_.flatten)
   }
 }

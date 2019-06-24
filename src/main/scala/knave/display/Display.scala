@@ -7,13 +7,13 @@ import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
-import knave.world.dungeon.Size._
 import knave.world.enemy.Enemy
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.{Fist, Ray, Use}
 
 trait Display {
+  import Dungeon.{width,height}
 
   protected val log = document.getElementById("log").asInstanceOf[Div]
 

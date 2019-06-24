@@ -18,7 +18,7 @@ private class PlainFloor(color : String = lightGray, darkColor : String = darkGr
   val symbol = "."
 }
 
-private class Corpse(color : String, darkColor : String) extends InnerFloor(color, darkColor) {
+private class Corpse(color : String = bloodColor, darkColor : String = darkBloodColor) extends InnerFloor(color, darkColor) {
   override val symbol = "%"
 }
 
