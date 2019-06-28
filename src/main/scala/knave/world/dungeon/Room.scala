@@ -1,11 +1,7 @@
 package knave.world.dungeon
 import scala.util.Random
 
-trait Room {
-
-  val id: Int
-
-  val contents: Set[Coord]
+class Room(val id: Int, val contents: Set[Coord]) {
 
   final val area = contents.size
 

@@ -16,13 +16,6 @@ case object Ascended extends GameState
 
 object Main extends App {
 
-  val testSeed = Random.nextInt
-  println(testSeed)
-  //-597290073 This looks like a bug in the hub generation.
-  val dungeon = HubDungeon(testSeed)
-  DisplayDungeon.display(dungeon)
-
-  /*
   var input = ""
   document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
@@ -36,5 +29,4 @@ object Main extends App {
     game.run(input, mousePos)
     input = ""
   })
-  */
 }

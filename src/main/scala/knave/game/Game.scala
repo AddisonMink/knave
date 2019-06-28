@@ -4,7 +4,7 @@ import knave.display.DisplayFov._
 import InputProcessor._
 import knave.main._
 import knave.world.World
-import knave.world.dungeon.{Coord, HubDungeon}
+import knave.world.dungeon.Coord
 
 import scala.util.Random
 

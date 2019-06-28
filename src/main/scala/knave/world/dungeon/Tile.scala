@@ -22,7 +22,7 @@ private class Corpse(color : String = bloodColor, darkColor : String = darkBlood
   override val symbol = "%"
 }
 
-private class Stairs(color : String, darkColor : String) extends InnerFloor(color, darkColor) {
+private class Stairs(color : String = lightGray, darkColor : String = darkGray) extends InnerFloor(color, darkColor) {
   override val symbol: String = "<"
 }
 
