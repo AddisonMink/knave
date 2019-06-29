@@ -15,31 +15,15 @@ class Game(seed : Int = Random.nextInt) {
 
   private var state : GameState = Ongoing
 
-  private var round = 1
-
-  def run(input : String, mousePos : Coord): Unit = {
-    if(state == Ongoing) {
+  def run(input : String, mousePos : Coord): Unit = state match {
+    case Ongoing =>
       val oldState = InputProcessor.state
       val playerActions = InputProcessor.process(world, input, mousePos)
+
       if(playerActions.nonEmpty) {
-        if(round % 3 == 0) {
-          val nonSlowEnemies = world.getEnemies.filterNot(_.speed == Slow)
-          val fastEnemies = world.getEnemies.filter(_.speed == Fast)
 
-          Action.applyActions(world, playerActions ++ nonSlowEnemies.flatMap(_.act(world)))
-          Action.applyActions(world,world.getEnemies.flatMap(_.spotPlayer(world)))
-          Action.applyActions(world, fastEnemies.flatMap(_.act(world)))
-          Action.applyActions(world,world.getEnemies.flatMap(_.spotPlayer(world)))
-
-          display(world, (round + 1) % 3 == 0)
-        }
-        else {
-          val actions = playerActions ++ world.getEnemies.flatMap(_.act(world))
-          val logs = Action.applyActions(world,actions)
-          Action.applyActions(world,world.getEnemies.flatMap(_.spotPlayer(world)))
-
-          display(world, (round + 1) % 3 == 0)
-        }
+        world.run(playerActions)
+        display(world, world.speedRound)
 
         if(world.player.hp <= 0)
           state = Dead
@@ -47,18 +31,16 @@ class Game(seed : Int = Random.nextInt) {
           display(world, false)
           state = Ascended
         }
-
-        round += 1
-      }
-      else InputProcessor.state match {
-        case Start => if (InputProcessor.state != oldState) display(world, round % 3 == 0)
-        case Look => displayLook(world, InputProcessor.state == oldState, round % 3 == 0)
-        case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, round % 3 == 0)
+      } else InputProcessor.state match {
+        case Start => if (InputProcessor.state != oldState) display(world, world.speedRound)
+        case Look => displayLook(world, InputProcessor.state == oldState, world.speedRound)
+        case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, world.speedRound)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore(world)
         case LookMore => displayLookMore(world, InputProcessor.state == oldState)
-        case Drop => if (InputProcessor.state != oldState) display(world, round % 3 == 0, "Which item do you want to drop? (1,2,3 for inventory or 0 for equipped item.). Press 'esc' to cancel.")
+        case Drop => if (InputProcessor.state != oldState) display(world, world.speedRound, "Which item do you want to drop? (1,2,3 for inventory or 0 for equipped item.). Press 'esc' to cancel.")
         case _ => ()
       }
-    }
+
+    case _ =>
   }
 }

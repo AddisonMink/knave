@@ -4,15 +4,10 @@ import knave.world._
 import knave.world.dungeon.{Coord, Direction}
 import knave.world.dungeon.Dungeon._
 import knave.world.item.WeaponItem
-
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import knave.display.Palette._
-import knave.world
 import knave.world.enemy.Alerted
 import knave.world.player.weapon.{Fist, Weapon}
-
-import scala.annotation.tailrec
 
 sealed trait Action {
   def updateWorld(w : World) : Seq[Action]
@@ -212,13 +207,6 @@ case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
 }
 
 object Action {
-
-  @tailrec
-  def applyActions(w : World, actions : Seq[Action]): Unit = actions match {
-    case a +: as => applyActions(w, a.updateWorld(w) ++ as)
-    case Seq() =>
-  }
-
   implicit class ActionAlternative(as: Seq[Action]) {
     def tryOrElse(bs: Seq[Action]): Seq[Action] = {
       if(as.nonEmpty) as else bs

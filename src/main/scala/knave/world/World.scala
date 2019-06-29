@@ -1,11 +1,14 @@
 package knave.world
 
 import knave.display.Palette
+import knave.game.{Action, Fast, Slow}
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import knave.world.enemy.Enemy
 import knave.world.item.Item
 import knave.world.player.Player
+
+import scala.annotation.tailrec
 
 sealed trait World {
 
@@ -33,6 +36,14 @@ sealed trait World {
 
   def getItems : Iterable[Item]
 
+  var logs: Seq[Log] = Seq()
+
+  var round = 0
+
+  final def speedRound(r: Int): Boolean = r % 3 == 0
+
+  final def speedRound: Boolean = speedRound(round)
+
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision
     else {
@@ -42,7 +53,28 @@ sealed trait World {
       else BarrierCollision
     }
 
-  var logs: Seq[Log] = Seq()
+  @tailrec
+  protected final def applyActions(actions: Seq[Action]): Unit = actions match {
+    case a +: as => applyActions(a.updateWorld(this) ++ as)
+    case Seq() =>
+  }
+
+  final def run(playerActions: Seq[Action]): Unit = {
+    if(speedRound) {
+      val nonSlowEnemies = getEnemies.filterNot(_.speed == Slow)
+      val fastEnemies = getEnemies.filter(_.speed == Fast)
+
+      applyActions(playerActions ++ nonSlowEnemies.flatMap(_.act(this)))
+      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
+      applyActions(fastEnemies.flatMap(_.spotPlayer(this)))
+      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
+
+    } else {
+      applyActions(playerActions ++ getEnemies.flatMap(_.act(this)))
+      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
+    }
+    round += 1
+  }
 }
 
 protected sealed class InnerWorld(val depth: Int, implicit val dungeon : Dungeon, val player: Player, es: Map[Int,Enemy], is: Map[Coord,Item]) extends World {
