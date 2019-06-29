@@ -18,26 +18,21 @@ class Game(seed : Int = Random.nextInt) {
   def run(input : String, mousePos : Coord): Unit = state match {
     case Ongoing =>
       val oldState = InputProcessor.state
+
       val playerActions = InputProcessor.process(world, input, mousePos)
-
       if(playerActions.nonEmpty) {
-
         world.run(playerActions)
-        display(world, world.speedRound)
+        if(world.player.hp <= 0) state = Dead
+        else if(world.player.ascended) state = Ascended
+      }
 
-        if(world.player.hp <= 0)
-          state = Dead
-        else if(world.player.ascended) {
-          display(world, false)
-          state = Ascended
-        }
-      } else InputProcessor.state match {
-        case Start => if (InputProcessor.state != oldState) display(world, world.speedRound)
+      InputProcessor.state match {
+        case Start => display(world, world.speedRound)
         case Look => displayLook(world, InputProcessor.state == oldState, world.speedRound)
         case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, world.speedRound)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore(world)
         case LookMore => displayLookMore(world, InputProcessor.state == oldState)
-        case Drop => if (InputProcessor.state != oldState) display(world, world.speedRound, "Which item do you want to drop? (1,2,3 for inventory or 0 for equipped item.). Press 'esc' to cancel.")
+        case Drop => if (InputProcessor.state != oldState) display(world, world.speedRound, "Drop which item? (1,2,3 for inventory or 0 for equipped item.). Press 'esc' to cancel.")
         case _ => ()
       }
 

@@ -35,8 +35,7 @@ trait Display {
       col.onmousemove = { e => {
         oldMouse = mouse
         mouse = Coord(x,y)
-      }
-      }
+      }}
       row.appendChild(col)
     }
     map.appendChild(row)
@@ -99,12 +98,6 @@ trait Display {
     show(p.pos, "@", white)
 
   protected final def setEnemy(e : Enemy, speedRound : Boolean) : Unit = {
-    /*
-    val color =
-      if (speedRound && e.speed == Fast) red
-      else if (speedRound && e.speed == Slow) cyan
-      else e.color
-    */
     val style = document.getElementById(e.pos.x.toString + "-" + e.pos.y.toString).asInstanceOf[Span].style
     if(speedRound && e.speed == Fast) {
       style.fontWeight = "bold"
@@ -132,7 +125,7 @@ trait Display {
     case _ => ""
   }
 
-  def display(w : World, speedRound : Boolean, promptStr: String = "") : Unit = {
+  def display(w : World, speedRound : Boolean, promptStr: String = " ") : Unit = {
     clearMap
     prompt.innerHTML = promptStr
     map.style.display = "inline-block"
@@ -148,6 +141,8 @@ trait Display {
       else color("Hidden",green)
 
     str ++= s"Knave\t${hidden}\n"
+
+    str ++= s"Round:\t${w.round}\n"
 
     val healthColor = p.hp.toFloat / p.maxHp.toFloat match {
       case x if x >= 0.75 => green
@@ -190,14 +185,17 @@ trait Display {
 
   final def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if((mouse != oldMouse || stateChanged) && w.player.fieldOfVision.contains(mouse)) {
-      val log = w.checkCollision(mouse) match {
-        case PlayerCollision => "You are here."
-        case EnemyCollision(id) => w.enemy(id).map(_.description).getOrElse("") + " Press 'm' for more."
-        case _ if w.itemAt(mouse).nonEmpty => s"A ${w.itemAt(mouse).get.name} lies on the ground." + " Press 'm' for more."
-        case _ => ""
+      val maybeLog = w.checkCollision(mouse) match {
+        case PlayerCollision => Some(PlainLog("You are here."))
+        case EnemyCollision(id) => Some(PlainLog(w.enemy(id).map(_.description).getOrElse("") + " Press 'm' for more."))
+        case _ if w.itemAt(mouse).nonEmpty => Some(PlainLog(s"A ${w.itemAt(mouse).get.name} lies on the ground." + " Press 'm' for more."))
+        case _ => None
       }
-      display(w, speedRound)
-      prompt.innerHTML = "You are in look mode. Press 'esc' to exit."
+
+      // This is the ONLY place where any public state changes are made out side of an Action (Actually not quite true. Enemy.spotPlayer makes public state changes. That shouldn't be!)
+      w.logs = maybeLog.toSeq ++ w.logs
+
+      display(w, speedRound, "You are in look mode. Press 'esc' to exit.")
     }
 
   final def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =

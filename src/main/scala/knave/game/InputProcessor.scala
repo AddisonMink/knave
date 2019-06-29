@@ -18,7 +18,7 @@ object InputProcessor {
   private var internalState : InputState = Start
   def state = internalState
 
-  def process(w : World, input : String, mouse : Coord) : Vector[Action] =
+  def process(w : World, input : String, mouse : Coord) : Seq[Action] =
     internalState match {
       case Start => processStart(w, input)
       case Look => processLook(input)
@@ -28,9 +28,9 @@ object InputProcessor {
       case Drop => processDrop(input)
     }
 
-  def processStart(w : World, input : String) : Vector[Action] = {
+  def processStart(w : World, input : String) : Seq[Action] = {
     val pos = w.player.pos
-    def move(c : Coord) = Vector(PlayerMove(c))
+    def move(c : Coord) = Seq(PlayerMove(c))
     input match {
       case "w" => move(pos.copy(y = pos.y - 1))
       case "s" => move(pos.copy(y = pos.y + 1))
@@ -40,115 +40,118 @@ object InputProcessor {
       case "e" => move(Coord(pos.x + 1, pos.y - 1))
       case "z" => move(Coord(pos.x - 1, pos.y + 1))
       case "c" => move(Coord(pos.x + 1, pos.y + 1))
-      case "g" => if(w.itemAt(w.player.pos).nonEmpty) Vector(PickUpItem(w.player.pos)) else Vector()
+      case "g" => if(w.itemAt(w.player.pos).nonEmpty) Seq(PickUpItem(w.player.pos)) else Seq()
+      /*
       case "space" => {
         internalState = Look
-        Vector()
+        Seq()
       }
+      */
+      case "space" => Seq()
       case "f" => w.player.weapon.special match {
-          case NoSpecial => Vector()
+          case NoSpecial => Seq()
           case Ray(range, damage, cost) => {
             internalState = RayAttack(range, damage, cost)
-            Vector()
+            Seq()
           }
-          case Use(effect, cost, description) => effect(w) ++ Vector(DamagePlayerWeapon(cost))
-          case Circle(damage, cost) => w.player.pos.adjacent.map(w.checkCollision(_)).collect{case EnemyCollision(id) => AttackOnEnemy(id,damage,cost,true)}.toVector
+          case Use(effect, cost, _) => effect(w) :+ DamagePlayerWeapon(cost)
+          case Circle(damage, cost) => w.player.pos.adjacent.map(w.checkCollision).collect{case EnemyCollision(id) => AttackOnEnemy(id,damage,cost,true)}
         }
       case "<" =>
-        if(w.dungeon.isStairs(w.player.pos)) Vector(AscendStairs)
-        else Vector()
+        if(w.dungeon.isStairs(w.player.pos)) Seq(AscendStairs)
+        else Seq()
       case "m" => {
         internalState = LogMore
-        Vector()
+        Seq()
       }
       case "1" => {
         if(w.player.inventory(0).nonEmpty)
-          Vector(EquipFromInventory(0))
-        else Vector()
+          Seq(EquipFromInventory(0))
+        else Seq()
       }
       case "2" => {
         if(w.player.inventory(1).nonEmpty)
-          Vector(EquipFromInventory(1))
-        else Vector()
+          Seq(EquipFromInventory(1))
+        else Seq()
       }
       case "3" => {
         if(w.player.inventory(2).nonEmpty)
-          Vector(EquipFromInventory(2))
-        else Vector()
+          Seq(EquipFromInventory(2))
+        else Seq()
       }
       case "t" => {
         internalState = Drop
-        Vector()
+        Seq()
       }
-      case _ => Vector()
+      case _ => Seq()
     }
   }
 
-  def processLook(input : String) : Vector[Action] =
+  def processLook(input : String) : Seq[Action] =
     input match {
       case "escape" => {
         internalState = Start
-        Vector()
+        Seq()
       }
       case "m" => {
         internalState = LookMore
-        Vector()
+        Seq()
       }
-      case _ => Vector()
+      case _ => Seq()
     }
 
-  def processRayAttack(w : World, input : String, mouse : Coord, range : Int, damage : Int, cost : Int) : Vector[Action] =
+  def processRayAttack(w : World, input : String, mouse : Coord, range : Int, damage : Int, cost : Int) : Seq[Action] =
     input match {
       case "escape" => {
         internalState = Start
-        Vector()
+        Seq()
       }
       case "f" => {
         import w.dungeon
         internalState = Start
         w.player.pos.walkableLineTo(mouse).take(range).map(w.checkCollision).collectFirst {
           case EnemyCollision(id) => AttackOnEnemy(id, damage, cost, false)
-        }.toVector
+        }.toSeq
       }
-      case _ => Vector()
+      case _ => Seq()
     }
 
-  def processLogMore(input : String) : Vector[Action] =
+  def processLogMore(input : String) : Seq[Action] =
     if(input == "escape") {
       internalState = Start
-      Vector()
+      Seq()
     }
-    else Vector()
+    else Seq()
 
-  def processLookMore(input : String) : Vector[Action] =
+  def processLookMore(input : String) : Seq[Action] =
     if(input == "escape") {
       internalState = Start
-      Vector()
+      Seq()
     }
-    else Vector()
+    else Seq()
 
-  def processDrop(input : String) : Vector[Action] =
+  def processDrop(input : String) : Seq[Action] =
     input match {
       case "escape" => {
         internalState = Start
-        Vector()
+        Seq()
       }
       case "0" => {
         internalState = Start
-        Vector(DropEquippedWeapon)
+        Seq(DropEquippedWeapon)
       }
       case "1" => {
         internalState = Start
-        Vector(DropWeapon(0))
+        Seq(DropWeapon(0))
       }
       case "2" => {
         internalState = Start
-        Vector(DropWeapon(1))
+        Seq(DropWeapon(1))
       }
       case "3" => {
         internalState = Start
-        Vector(DropWeapon(2))
+        Seq(DropWeapon(2))
       }
-      case _ => Vector()
+      case _ => Seq()
     }
 }

@@ -40,9 +40,7 @@ sealed trait World {
 
   var round = 0
 
-  final def speedRound(r: Int): Boolean = r % 3 == 0
-
-  final def speedRound: Boolean = speedRound(round)
+  final def speedRound: Boolean = round % 3 == 0
 
   final def checkCollision(c : Coord) : Collision =
     if(c == player.pos) PlayerCollision

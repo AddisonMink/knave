@@ -24,7 +24,7 @@ object Main extends App {
   val game = new Game(seed)
 
   
-  display(game.world, false, "Welcome to Knave. Use 'wasdqezc' and to move and 'space' to look around.")
+  display(game.world, false)
   js.timers.setInterval(10)({
     game.run(input, mousePos)
     input = ""
