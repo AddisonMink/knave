@@ -32,6 +32,7 @@ object InputProcessor {
     val pos = w.player.pos
     def move(c : Coord) = Seq(PlayerMove(c))
     input match {
+      case "r" => Noop +: Seq()
       case "w" => move(pos.copy(y = pos.y - 1))
       case "s" => move(pos.copy(y = pos.y + 1))
       case "a" => move(pos.copy(x = pos.x - 1))

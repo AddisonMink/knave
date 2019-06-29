@@ -17,6 +17,10 @@ sealed trait Action {
   * Player Actions
   */
 
+case object Noop extends Action {
+  override def updateWorld(w: World): Seq[Action] = Seq()
+}
+
 case class PlayerMove(c : Coord) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
     import w.dungeon

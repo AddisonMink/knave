@@ -2,9 +2,6 @@ FEATURE - Improve Hub Dungeon
 * Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
 * After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
 
-FEATURE* - Noop Button.
-- should be 'r'.
-
 FEATURE* - Improved Investigation
 Instead of giving up when they reach the coord where they last saw the player, the cautious enemy should
 take a few steps foward and look around in a circle.
