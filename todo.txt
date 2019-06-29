@@ -1,0 +1,26 @@
+FEATURE - Improve Hub Dungeon
+* Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
+* After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
+
+FEATURE* - Noop Button.
+- should be 'r'.
+
+FEATURE* - Improved Investigation
+Instead of giving up when they reach the coord where they last saw the player, the cautious enemy should
+take a few steps foward and look around in a circle.
+
+Enemies should turn while wandering as well. Before going to their next destination, they should turn1 direction at a time.
+
+FEATURE - Cleric
+
+FEATURE - Hunter
+
+FEATURE - Locked Room and Key
+
+FEATURE - Gargoyle
+
+FEATURE - Level Generation
+
+FEATURE* - Re-implement look mode.
+- use cursor instead of mouse. use space to enter look more mode.
+

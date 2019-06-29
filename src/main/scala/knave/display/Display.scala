@@ -121,7 +121,19 @@ trait Display {
   }
 
   protected final def showLog(log: Log): String = log match {
-    case PlainLog(msg, clr) => color(msg,clr)
+    case PlainLog(msg, clr) => color(msg, clr)
+    case AttackOnEnemyLog(name, damage, percentHealth) =>
+      val condition = percentHealth match {
+        case x if x > 1.0 => color("fortified", cyan)
+        case x if x == 1.0 => "unharmed"
+        case x if x > 0.74 => color("scratched", lightGray)
+        case x if x > 0.25 => color("wounded", yellow)
+        case x if x > 0 => color("near death", red)
+        case _ => color("dead", red)
+      }
+      s"You did ${damage} damage to the ${name} [${condition}]"
+
+
     case _ => ""
   }
 

@@ -1,7 +1,7 @@
 package knave.world
 
 import knave.display.Palette
-import knave.game.{Action, Fast, Slow}
+import knave.game.{Action, Fast, Slow, SpotPlayer}
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import knave.world.enemy.Enemy
@@ -59,17 +59,14 @@ sealed trait World {
 
   final def run(playerActions: Seq[Action]): Unit = {
     if(speedRound) {
-      val nonSlowEnemies = getEnemies.filterNot(_.speed == Slow)
-      val fastEnemies = getEnemies.filter(_.speed == Fast)
+      val (slowEnemies, nonSlowEnemies) = getEnemies.partition(_.speed == Slow)
+      val fastEnemies = nonSlowEnemies.filter(_.speed == Fast)
 
       applyActions(playerActions ++ nonSlowEnemies.flatMap(_.act(this)))
-      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
-      applyActions(fastEnemies.flatMap(_.spotPlayer(this)))
-      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
-
+      applyActions(fastEnemies.flatMap(_.act(this)))
+      applyActions(slowEnemies.map(e => SpotPlayer(e.id)))
     } else {
       applyActions(playerActions ++ getEnemies.flatMap(_.act(this)))
-      applyActions(getEnemies.flatMap(_.spotPlayer(this)))
     }
     round += 1
   }

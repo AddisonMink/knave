@@ -10,6 +10,7 @@ class LostAcolyte(override val id: Int, c: Coord, override protected val room: R
   extends Enemy(id,c,room) with WanderingEnemy with AttackingEnemy with PursuingEnemy {
 
   override val maxHp: Int = 20
+  override var hp: Int = maxHp
   override val fortifiedHp: Int = 30
   override val symbol: Char = 'a'
   override val color: String = Palette.white
@@ -34,10 +35,10 @@ class LostAcolyte(override val id: Int, c: Coord, override protected val room: R
   override protected val attackDamage: Int = 10
 
   def act(w: World): Seq[Action] = awareness match {
-    case Unaware => wander(w)
-    case Cautious => investigate(w)
+    case Unaware => wander(w) :+ SpotPlayer(id)
+    case Cautious => investigate(w) :+ SpotPlayer(id)
 
     // TODO Broadcast to enemies in the same room.
-    case Alerted => pursue(w)
+    case Alerted => pursue(w) :+ SpotPlayer(id)
   }
 }

@@ -19,7 +19,7 @@ object Main extends App {
   var input = ""
   document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
-  val seed = Random.nextInt
+  val seed = -451063954
   println(seed)
   val game = new Game(seed)
 

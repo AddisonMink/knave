@@ -2,7 +2,7 @@ package knave.world.enemy
 
 import knave.game.{Action, EnemyMove, Speed}
 import knave.world.{NoCollision, World}
-import knave.world.dungeon.{Coord, Direction, Room}
+import knave.world.dungeon.{Coord, Direction, Dungeon, Room}
 import knave.world.dungeon.Dungeon._
 import knave.display.Palette._
 import knave.world.player.weapon.Weapon
@@ -37,7 +37,7 @@ abstract class Enemy(val id: Int, c: Coord, protected val room: Room) {
 
   var facing : Direction = Direction(0,0)
 
-  var hp : Int = maxHp
+  var hp : Int
 
   var fieldOfVision : Set[Coord] = Set()
 
@@ -51,14 +51,11 @@ abstract class Enemy(val id: Int, c: Coord, protected val room: Room) {
   def act(w: World): Seq[Action]
 
   // Final methods.
-  final def spotPlayer(w: World): Seq[Action] = {
-    if(fieldOfVision.contains(w.player.pos)) {
-      println("ALERT!")
-      awareness = Alerted
-      lastKnownPlayerPos = Some(w.player.pos)
-      Seq()
+  final def refreshFieldOfVision(implicit dungeon: Dungeon): Unit = {
+    fieldOfVision = awareness match {
+      case Alerted => pos.walkableDisk(vision).toSet
+      case _ => pos.enemyConeOfVision(vision,facing).toSet
     }
-    else Seq()
   }
 
   protected final def goToDestination(w: World, dest: Coord): Seq[Action] = {

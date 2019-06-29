@@ -2,16 +2,20 @@ package knave.game
 
 import knave.world._
 import knave.world.dungeon.{Coord, Direction}
-import knave.world.dungeon.Dungeon._
 import knave.world.item.WeaponItem
+
 import scala.util.Random
 import knave.display.Palette._
-import knave.world.enemy.Alerted
+import knave.world.enemy.{Alerted, Enemy}
 import knave.world.player.weapon.{Fist, Weapon}
 
 sealed trait Action {
   def updateWorld(w : World) : Seq[Action]
 }
+
+/**
+  * Player Actions
+  */
 
 case class PlayerMove(c : Coord) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
@@ -53,7 +57,7 @@ case class PickUpItem(c : Coord) extends  Action {
           w.removeItemAt(c)
           w.logs = PlainLog(s"You pick up the ${weapon.name} and put it in your bag.") +: w.logs
         }
-        else w.logs = PlainLog(s"Your inventory is full! Use 't' to drop one of your items on an Seq() tile.") +: w.logs
+        else w.logs = PlainLog(s"Your inventory is full! Use 't' to drop one of your items.") +: w.logs
 
       case _ =>
     }
@@ -102,59 +106,41 @@ case object DropEquippedWeapon extends Action {
     else Seq()
 }
 
-case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
+case class AttackOnEnemy(id : Int, damage : Int, cost: Int, melee: Boolean) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
-    import w.dungeon
-
-    w.checkCollision(c) match {
-      case NoCollision =>
-        w.enemy(id).foreach(e => {
-          e.facing = Direction(e.pos, c)
-          e.pos = c
-          e.fieldOfVision = e.awareness match {
-            case Alerted => e.pos.walkableDisk(e.vision).toSet
-            case _ => e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-          }
-        }); Seq()
-
-      case BarrierCollision if w.dungeon.isDoor(c) && openDoor =>
-        w.dungeon.openDoor(c)
-        w.enemy(id).foreach(e => {
-          e.fieldOfVision = e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-        }); Seq()
-
-      case _ => Seq()
+    w.enemy(id) match {
+      case Some(enemy) => DamageEnemy(enemy,damage) +: DamagePlayerWeapon(cost) +: Seq()
+      case None => Seq()
     }
   }
 }
 
-case class AttackOnEnemy(id : Int, damage : Int, cost: Int, melee: Boolean) extends Action {
+// Assumes enemy exists.
+private case class DamageEnemy(enemy: Enemy, damage: Int) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
-    w.enemy(id).toVector.flatMap(e => {
-      e.hp -= damage
-      w.logs = PlainLog(s"You did ${damage} damage to the ${e.description}.") +: w.logs
-
-      if(e.hp <= 0) Vector(DamagePlayerWeapon(cost), EnemyDeath(id))
-      else Vector(DamagePlayerWeapon(cost))
-    })
+    println(enemy.hp)
+    enemy.hp -= damage
+    println(enemy.hp)
+    w.logs = AttackOnEnemyLog(enemy.name, damage, enemy.hp.toDouble / enemy.maxHp.toDouble) +: w.logs
+    if(enemy.hp <= 0) EnemyDeath(enemy) +: Seq()
+    else Seq()
   }
 }
 
-case class EnemyDeath(id : Int) extends Action {
-  override def updateWorld(w: World): Seq[Action] = w.enemy(id).toVector.flatMap(enemy => {
-      w.destroyEnemy(id)
-      w.dungeon.createCorpse(enemy.pos)
-      Random.shuffle(enemy.pos.adjacent).take(enemy.blood).foreach(w.dungeon.bloodyTile)
-      enemy.maybeDrop.filter(_._1 >= w.rng.nextDouble).map(it => SpawnWeapon(it._2,enemy.pos))
-    })
-}
-
-case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
-  override def updateWorld(w: World): Seq[Action] = {
-    w.player.hp -= damage
-    w.logs = PlainLog(s"${enemyName} did ${damage} damage to you.") +: w.logs
-    if(w.player.hp <= 0) w.logs = PlainLog("You have been slain!", red) +: w.logs
-    Seq()
+// Assumes enemy exists.
+private case class EnemyDeath(enemy: Enemy) extends Action {
+  override def updateWorld(w: World): Seq[Action] =  {
+    w.destroyEnemy(enemy.id)
+    w.dungeon.createCorpse(enemy.pos)
+    Random.shuffle(enemy.pos.adjacent).take(enemy.blood).foreach(w.dungeon.bloodyTile)
+    w.logs = PlainLog(s"You have slain the ${enemy.name}.") +: w.logs
+    enemy.maybeDrop match {
+      case None => Seq()
+      case Some((chance,weapon)) =>
+        val drop = w.rng.nextDouble <= chance
+        if(drop) SpawnWeapon(weapon,enemy.pos) +: Seq()
+        else Seq()
+    }
   }
 }
 
@@ -186,19 +172,83 @@ case class HealPlayer(heal : Int) extends Action {
   }
 }
 
-case class HealEnemy(id : Int, heal : Int) extends Action {
-  override def updateWorld(w: World): Seq[Action] = w.enemy(id).flatMap(enemy => {
-    val trueHeal =
-      if(enemy.hp + heal > enemy.fortifiedHp) enemy.fortifiedHp - enemy.hp
-      else heal
-    enemy.hp += trueHeal
-    if(trueHeal > 0 &&  w.player.fieldOfVision.contains(enemy.pos))
-      w.logs = PlainLog(s"${enemy.name} has been healed for ${trueHeal} health.") +: w.logs
-    None
-  }).toVector
+/**
+  * Enemy Actions
+  */
+case class SpotPlayer(id: Int) extends Action {
 
+  override def updateWorld(w: World): Seq[Action] = {
+    import w.dungeon
+    w.enemy(id) match {
+      case Some(enemy) if enemy.fieldOfVision.contains(w.player.pos) =>
+        if(enemy.awareness != Alerted) {
+          w.logs = PlainLog("You have been spotted!", red) +: w.logs
+          enemy.refreshFieldOfVision
+        }
+        enemy.awareness = Alerted
+        enemy.lastKnownPlayerPos = Some(w.player.pos)
+        Seq()
+
+      case _ => Seq()
+    }
+  }
 }
 
+case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
+
+  private def updateWorld(w: World, enemy: Enemy): Seq[Action] = {
+    import w.dungeon
+    w.checkCollision(c) match {
+      case NoCollision =>
+        enemy.facing = Direction(enemy.pos,c)
+        enemy.pos = c
+        enemy.refreshFieldOfVision
+
+      case BarrierCollision if w.dungeon.isDoor(c) && openDoor =>
+        w.dungeon.openDoor(c)
+        enemy.refreshFieldOfVision
+
+      case _ =>
+    }
+    Seq()
+  }
+
+  override def updateWorld(w: World): Seq[Action] = {
+    w.enemy(id) match {
+      case Some(enemy) => updateWorld(w,enemy)
+      case None => Seq()
+    }
+  }
+}
+
+case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
+  override def updateWorld(w: World): Seq[Action] = {
+    w.player.hp -= damage
+    w.logs = PlainLog(s"${enemyName} did ${damage} damage to you.") +: w.logs
+    if(w.player.hp <= 0) w.logs = PlainLog("You have been slain!", red) +: w.logs
+    Seq()
+  }
+}
+
+case class HealEnemy(id : Int, heal : Int) extends Action {
+  private def updateWorld(w: World, enemy: Enemy): Seq[Action] = {
+    val trueHeal = if(enemy.hp + heal > enemy.fortifiedHp) enemy.fortifiedHp - heal else heal
+    enemy.hp += trueHeal
+    w.logs = PlainLog(s"${enemy.name} has been healed for ${trueHeal} health.") +: w.logs
+    Seq()
+  }
+
+  override def updateWorld(w: World): Seq[Action] = {
+    w.enemy(id) match {
+      case Some(enemy) => updateWorld(w,enemy)
+      case None => Seq()
+    }
+  }
+}
+
+/**
+  * Shared Actions
+  */
 case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
     w.addItem(WeaponItem(weapon,c))
