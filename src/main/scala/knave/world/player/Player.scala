@@ -19,8 +19,6 @@ sealed class Player(var pos : Coord) {
 
   var hp = maxHp
 
-  var hidden = true
-
   var speed : Speed = Normal
 
   private var equippedWeapon : Option[Weapon] = None

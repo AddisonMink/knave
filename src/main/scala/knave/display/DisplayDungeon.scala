@@ -11,7 +11,7 @@ object DisplayDungeon extends Display {
       for(x <- 0 until width)
         setTile(d, Coord(x,y),true)
 
-  override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
+  override def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
     setDungeon(w.dungeon)
   }
 

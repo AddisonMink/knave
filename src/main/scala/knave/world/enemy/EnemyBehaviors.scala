@@ -10,7 +10,7 @@ import Vector.empty
 /**
   * Attack the player if he's in range. Otherwise do nothing.
   */
-trait AttackingEnemy extends Enemy {
+protected trait AttackingEnemy extends Enemy {
 
   protected val attackRange: Int
 
@@ -25,7 +25,7 @@ trait AttackingEnemy extends Enemy {
 /**
   * Attack the player if he's in range. Otherwise try to move towards him.
   */
-trait PursuingEnemy extends Enemy with AttackingEnemy {
+protected trait PursuingEnemy extends Enemy with AttackingEnemy {
 
   private def moveTowardPlayer(w: World): Vector[Action] = {
     import w.dungeon
@@ -35,36 +35,28 @@ trait PursuingEnemy extends Enemy with AttackingEnemy {
     }
   }
 
-  protected def pursue(w: World): Vector[Action] =
-    attack(w) tryOrElse moveTowardPlayer(w)
+  protected def pursue(w: World): Seq[Action] = {
+    if(fieldOfVision.contains(w.player.pos)) {
+      lastKnownPlayerPos = Some(w.player.pos)
+      attack(w) tryOrElse moveTowardPlayer(w)
+    }
+    else { awareness = Cautious; Seq() }
+  }
 }
 
 /**
   * Choose a random coord in your starting room and move along a path to that coord.
   * When you reach it, pause for 1 turn, then choose another coord and repeat.
   */
-trait WanderingEnemy extends Enemy {
+protected trait WanderingEnemy extends Enemy {
 
-  protected var dest : Coord
+  protected var wanderDest: Option[Coord] = None
 
-  protected def wander(w : World) : Vector[Action] = {
-    import w.dungeon
-
-    if(pos == dest) { dest = room.randomCoord; empty }
-    else pos.nextOnPathTo(dest).filter(w.checkCollision(_) == NoCollision) match {
-      case Some(c) => Vector(EnemyMove(id,c,canOpenDoors))
-      case None => dest = room.randomCoord; empty
+  protected def wander(w : World) : Seq[Action] = {
+    import w.dungeon.rng
+    wanderDest match {
+      case None => wanderDest = Some(room.randomCoord); empty
+      case Some(dest) => goToDestination(w,dest) tryOrElse {wanderDest = Some(room.randomCoord); empty}
     }
-  }
-}
-
-/**
-  * Find a path to the player and follow that path.
-  */
-trait TrackingEnemy extends Enemy {
-
-  protected def track(w: World): Vector[Action] = {
-    import w.dungeon
-    pos.nextOnPathTo(w.player.pos, canOpenDoors).map(EnemyMove(id,_,canOpenDoors)).toVector
   }
 }

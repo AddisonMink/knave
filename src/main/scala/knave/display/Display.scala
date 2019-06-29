@@ -7,7 +7,7 @@ import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
-import knave.world.enemy.Enemy
+import knave.world.enemy.{Alerted, Cautious, Enemy}
 import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.{Fist, Ray, Use}
@@ -120,16 +120,16 @@ trait Display {
     show(e.pos, e.symbol.toString, e.color)
   }
 
-  private var fullLog = List[String]()
-  protected final def createLog(logs : List[String]) : String = {
+  private var fullLog = Seq[String]()
+  protected final def createLog(logs : Seq[String]) : String = {
     fullLog = logs
     val ls = logs.length match {
       case l if l > 4 => logs.drop(l - 3) :+ "Press 'm' for more."
       case 4 => logs
-      case 3 => " " :: logs
-      case 2 => " " :: " " :: logs
-      case 1 => " " :: " " :: " " :: logs
-      case 0 => " " :: " " :: " " :: " " :: Nil
+      case 3 => " " +: logs
+      case 2 => " " +: " " +: logs
+      case 1 => " " +: " " +: " " +: logs
+      case 0 => " " +: " " +: " " +: " " :: Nil
     }
 
     val str = new StringBuilder
@@ -138,15 +138,19 @@ trait Display {
     str.toString
   }
 
-  def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
+  def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
     clearMap
     map.style.display = "inline-block"
   }
 
-  protected final def createHud(p : Player) : String = {
+  protected final def createHud(w : World) : String = {
     val str = new StringBuilder
+    val p = w.player
 
-    val hidden = if(p.hidden) color("Hidden", green) else color("Alert",red)
+    val hidden =
+      if(w.getEnemies.exists(_.awareness == Alerted)) color("Alert",red)
+      else if(w.getEnemies.exists(_.awareness == Cautious)) color("Caution",orange)
+      else color("Hidden",green)
 
     str ++= s"Knave\t${hidden}\n"
 

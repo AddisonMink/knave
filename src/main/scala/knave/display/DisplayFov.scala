@@ -3,7 +3,7 @@ import knave.display.Palette.{orange, red}
 import knave.world.World
 import knave.world.dungeon.Dungeon
 import knave.world.dungeon.Dungeon._
-import knave.world.enemy.Enemy
+import knave.world.enemy.{Alerted, Enemy}
 import knave.world.player.Player
 
 object DisplayFov extends Display {
@@ -13,15 +13,15 @@ object DisplayFov extends Display {
     p.fieldOfVision.foreach(setTile(d, _, true))
   }
 
-  private def setEnemyFov(e : Enemy, w : World) : Unit =
-    if(w.player.hidden)
-      e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(orange)))
-    else {
-      import w.dungeon
-      e.pos.walkableDisk(e.vision*2).toSet.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(red)))
+  private def setEnemyFov(e : Enemy, w : World) : Unit = {
+    val color = e.awareness match {
+      case Alerted => red
+      case _ => orange
     }
+    e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(color)))
+  }
 
-  override def display(w : World, logs : List[String] = List(), speedRound : Boolean) : Unit = {
+  override def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
     super.display(w,logs,speedRound)
     setDungeon(w.dungeon, w.player)
     val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
@@ -30,7 +30,7 @@ object DisplayFov extends Display {
     setPlayer(w.player)
     enemies.foreach(setEnemy(_,speedRound))
     log.innerHTML = createLog(logs)
-    hud.innerHTML = createHud(w.player)
+    hud.innerHTML = createHud(w)
     inventory.innerHTML = createInventory(w.player) ++ s"\n\nLevel: ${w.depth}"
   }
 }

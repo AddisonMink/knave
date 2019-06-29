@@ -8,13 +8,13 @@ import knave.world.item.WeaponItem
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import knave.display.Palette._
+import knave.world.enemy.Alerted
 import knave.world.player.weapon.{Fist, Weapon}
 
-import Vector.empty
 import scala.annotation.tailrec
 
 sealed trait Action {
-  def updateWorld(w : World) : Vector[Action]
+  def updateWorld(w : World) : Seq[Action]
 
   final protected def addLog(l : String) : Unit =
     Action.logs += l
@@ -24,7 +24,7 @@ sealed trait Action {
 }
 
 case class PlayerMove(c : Coord) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     import w.dungeon
     w.checkCollision(c) match {
       case NoCollision =>
@@ -34,22 +34,22 @@ case class PlayerMove(c : Coord) extends Action {
           addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
         if(w.dungeon.isStairs(c))
           addLog(s"You have reached the stairs. Press '<' to ascend.")
-        empty
+        Seq()
 
-      case EnemyCollision(id) => Vector(w.player.weapon.attack(id))
+      case EnemyCollision(id) => w.player.weapon.attack(id) +: Seq()
 
       case BarrierCollision if w.dungeon.isDoor(c) =>
         w.dungeon.openDoor(c)
         w.player.refreshFieldOfVision
-        empty
+        Seq()
 
-      case _ => empty
+      case _ => Seq()
     }
   }
 }
 
 case class PickUpItem(c : Coord) extends  Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     (w.itemAt(c), w.player.weapon) match {
       case (Some(WeaponItem(weapon,_)), Fist) =>
         w.player.equipWeapon(weapon)
@@ -63,16 +63,16 @@ case class PickUpItem(c : Coord) extends  Action {
           w.removeItemAt(c)
           addLog(s"You pick up the ${weapon.name} and put it in your bag.")
         }
-        else addLog(s"Your inventory is full! Use 't' to drop one of your items on an empty tile.")
+        else addLog(s"Your inventory is full! Use 't' to drop one of your items on an Seq() tile.")
 
       case _ =>
     }
-    empty
+    Seq()
   }
 }
 
 case class EquipFromInventory(index : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     (w.player.inventory(index), w.player.weapon) match {
       case (Some(weapon), Fist) =>
         w.player.equipWeapon(weapon)
@@ -85,35 +85,35 @@ case class EquipFromInventory(index : Int) extends Action {
 
       case _ =>
     }
-    empty
+    Seq()
   }
 }
 
 case class DropWeapon(index : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] =
+  override def updateWorld(w: World): Seq[Action] =
     w.player.inventory(index) match {
       case Some(weapon) =>
         w.player.inventory(index) = None
         addLog(s"You drop the ${weapon.name}.")
-        Vector(SpawnWeapon(weapon,w.player.pos))
+        SpawnWeapon(weapon,w.player.pos) +: Seq()
 
-      case None => empty
+      case None => Seq()
     }
 }
 
 case object DropEquippedWeapon extends Action {
-  override def updateWorld(w: World): Vector[Action] =
+  override def updateWorld(w: World): Seq[Action] =
     if(w.player.weapon != Fist) {
       val weapon = w.player.weapon
       w.player.equipWeapon(Fist)
       addLog(s"You drop the ${weapon.name}.")
       Vector(SpawnWeapon(weapon,w.player.pos))
     }
-    else empty
+    else Seq()
 }
 
 case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     import w.dungeon
 
     w.checkCollision(c) match {
@@ -121,107 +121,83 @@ case class EnemyMove(id : Int, c : Coord, openDoor : Boolean) extends Action {
         w.enemy(id).foreach(e => {
           e.facing = Direction(e.pos, c)
           e.pos = c
-          e.fieldOfVision = e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-        }); empty
+          e.fieldOfVision = e.awareness match {
+            case Alerted => e.pos.walkableDisk(e.vision).toSet
+            case _ => e.pos.enemyConeOfVision(e.vision, e.facing).toSet
+          }
+        }); Seq()
 
       case BarrierCollision if w.dungeon.isDoor(c) && openDoor =>
         w.dungeon.openDoor(c)
         w.enemy(id).foreach(e => {
           e.fieldOfVision = e.pos.enemyConeOfVision(e.vision, e.facing).toSet
-        }); empty
+        }); Seq()
 
-      case _ => empty
+      case _ => Seq()
     }
   }
 }
 
 case class AttackOnEnemy(id : Int, damage : Int, cost: Int, melee: Boolean) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
-    val isBackstab = w.player.hidden && melee
-    val weaponDamage = if(isBackstab) damage*2 else damage
-
+  override def updateWorld(w: World): Seq[Action] = {
     w.enemy(id).toVector.flatMap(e => {
-      e.hp -= weaponDamage
-      if(isBackstab)
-        addLog(color("[backstab]",yellow) + s" You did ${damage*2} damage to the ${e.description}.")
-      else
-        addLog(s"You did ${damage} damage to the ${e.description}.")
+      e.hp -= damage
+      addLog(s"You did ${damage} damage to the ${e.description}.")
 
       if(e.hp <= 0) Vector(DamagePlayerWeapon(cost), EnemyDeath(id))
-      else if(w.player.hidden) Vector(DamagePlayerWeapon(cost), SpotSplayer)
       else Vector(DamagePlayerWeapon(cost))
     })
   }
 }
 
 case class EnemyDeath(id : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = w.enemy(id).toVector.flatMap(enemy => {
+  override def updateWorld(w: World): Seq[Action] = w.enemy(id).toVector.flatMap(enemy => {
       w.destroyEnemy(id)
       w.dungeon.createCorpse(enemy.pos)
-      for(c <- Random.shuffle(enemy.pos.adjacent).take(enemy.blood))
-        w.dungeon.bloodyTile(c)
-      if(Random.nextDouble <= enemy.dropRate)
-        Vector(SpawnWeapon(enemy.drop, enemy.pos))
-      else
-        empty
+      Random.shuffle(enemy.pos.adjacent).take(enemy.blood).foreach(w.dungeon.bloodyTile)
+      enemy.maybeDrop.filter(_._1 >= w.rng.nextDouble).map(it => SpawnWeapon(it._2,enemy.pos))
     })
 }
 
 case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     w.player.hp -= damage
     addLog(s"${enemyName} did ${damage} damage to you.")
     if(w.player.hp <= 0) addLog(color("You have been slain!", red))
-    empty
+    Seq()
   }
 }
 
 case class DamagePlayerWeapon(damage : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     w.player.weapon.durability -= damage
     if(w.player.weapon.durability <= 0) {
       w.player.destroyWeapon
       addLog(color("Your weapon broke!", red))
     }
-    empty
+    Seq()
   }
 }
 
 case object AscendStairs extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     if(w.dungeon.isStairs(w.player.pos))
       w.player.ascended = true
-    empty
-  }
-}
-
-case object SpotSplayer extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
-    w.player.hidden = false
-    addLog(color("You have been spotted!", red))
-    empty
-  }
-}
-
-case object HidePlayer extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
-    w.player.hidden = true
-    addLog(color("You've managed to lose your pursuers.",green))
-    empty
+    Seq()
   }
 }
 
 case class HealPlayer(heal : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     val trueHeal = if(w.player.hp + heal > w.player.maxHp) w.player.maxHp - w.player.hp else heal
     w.player.hp += trueHeal
     addLog(s"You have been healed for ${trueHeal} health.")
-    empty
+    Seq()
   }
 }
 
 case class HealEnemy(id : Int, heal : Int) extends Action {
-  override def updateWorld(w: World): Vector[Action] = w.enemy(id).flatMap(enemy => {
+  override def updateWorld(w: World): Seq[Action] = w.enemy(id).flatMap(enemy => {
     val trueHeal =
       if(enemy.hp + heal > enemy.fortifiedHp) enemy.fortifiedHp - enemy.hp
       else heal
@@ -234,16 +210,16 @@ case class HealEnemy(id : Int, heal : Int) extends Action {
 }
 
 case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     w.addItem(WeaponItem(weapon,c))
-    empty
+    Seq()
   }
 }
 
 case class Log(message : String, color : String) extends Action {
-  override def updateWorld(w: World): Vector[Action] = {
+  override def updateWorld(w: World): Seq[Action] = {
     addLog(color(message,color))
-    empty
+    Seq()
   }
 }
 
@@ -251,22 +227,14 @@ object Action {
 
   private val logs = new ListBuffer[String]
 
-  def applyActions(w : World, actions : Vector[Action]) : List[String] = {
-    logs.clear()
-
-    @tailrec
-    def loop(as : Vector[Action]) : Unit =
-      if(as.nonEmpty) {
-        val newActions = as.head.updateWorld(w)
-        loop(newActions ++ as.tail)
-      }
-    loop(actions)
-
-    logs.toList
+  @tailrec
+  def applyActions(w : World, actions : Seq[Action]) : Seq[String] = actions match {
+    case a +: as => applyActions(w, a.updateWorld(w) ++ as)
+    case Seq() => logs.toList  
   }
 
-  implicit class ActionAlternative(as: Vector[Action]) {
-    def tryOrElse(bs: Vector[Action]): Vector[Action] = {
+  implicit class ActionAlternative(as: Seq[Action]) {
+    def tryOrElse(bs: Seq[Action]): Seq[Action] = {
       if(as.nonEmpty) as else bs
     }
   }

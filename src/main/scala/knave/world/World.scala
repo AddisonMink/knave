@@ -20,7 +20,7 @@ sealed trait World {
 
   def addEnemy(enemy : Enemy) : Unit
 
-  def getEnemies : Iterable[Enemy]
+  def getEnemies : Seq[Enemy]
 
   def destroyEnemy(id : Int) : Unit
 
@@ -40,13 +40,6 @@ sealed trait World {
       else if(c.isWalkable || dungeon.doorAt(c).exists(_.open)) NoCollision
       else BarrierCollision
     }
-
-  final lazy val nextLevel = depth match {
-    case 1 => Levels2And3(rng.nextInt,this)
-    case 2 => Levels2And3(rng.nextInt,this)
-    case 3 => Levels4And5(rng.nextInt,this)
-    case _ => Levels4And5(rng.nextInt,this)
-  }
 }
 
 protected sealed class InnerWorld(val depth: Int, implicit val dungeon : Dungeon, val player: Player, es: Map[Int,Enemy], is: Map[Coord,Item]) extends World {
@@ -64,8 +57,8 @@ protected sealed class InnerWorld(val depth: Int, implicit val dungeon : Dungeon
   override def destroyEnemy(id: Int): Unit =
     enemies = enemies - id
 
-  override def getEnemies: Iterable[Enemy] =
-    enemies.values
+  override def getEnemies: Seq[Enemy] =
+    enemies.values.toSeq
 
   override def addItem(i: Item): Unit =
     items = items + ((i.pos, i))

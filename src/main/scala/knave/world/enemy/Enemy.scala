@@ -1,7 +1,7 @@
 package knave.world.enemy
 
 import knave.game.{Action, EnemyMove, Speed}
-import knave.world.World
+import knave.world.{NoCollision, World}
 import knave.world.dungeon.{Coord, Direction, Room}
 import knave.world.dungeon.Dungeon._
 import knave.display.Palette._
@@ -9,19 +9,12 @@ import knave.world.player.weapon.Weapon
 
 import scala.util.Random
 
-abstract class Enemy {
+abstract class Enemy(val id: Int, c: Coord, protected val room: Room) {
 
-  val id : Int
-
-  var pos : Coord
-
-  var facing : Direction = Direction(0,0)
-
+  // Immutable Values
   val maxHp : Int
 
   val fortifiedHp : Int
-
-  var hp : Int
 
   val symbol : Char
 
@@ -29,29 +22,58 @@ abstract class Enemy {
 
   val name : String
 
+  val flavorText : String
+
   val blood : Int
 
-  val vision : Int
-
-  var fieldOfVision : Set[Coord] = Set()
-
-  var speed : Speed
-
-  val drop : Weapon
-
-  val dropRate : Double
+  def vision : Int
 
   protected val canOpenDoors : Boolean
 
-  protected val room : Room
+  val maybeDrop: Option[(Double,Weapon)] = None
 
-  protected implicit val rng : Random
+  // Variables
+  var pos: Coord = c
 
-  def flavorText : String
+  var facing : Direction = Direction(0,0)
 
-  def onAlert : Vector[Action] = Vector()
+  var hp : Int = maxHp
 
-  def onHidden : Vector[Action] = Vector()
+  var fieldOfVision : Set[Coord] = Set()
+
+  def speed : Speed
+
+  var awareness: Awareness = Unaware
+
+  var lastKnownPlayerPos: Option[Coord] = None
+
+  // Methods
+  def act(w: World): Seq[Action]
+
+  // Final methods.
+  final def spotPlayer(w: World): Seq[Action] = {
+    if(fieldOfVision.contains(w.player.pos)) {
+      println("ALERT!")
+      awareness = Alerted
+      lastKnownPlayerPos = Some(w.player.pos)
+      Seq()
+    }
+    else Seq()
+  }
+
+  protected final def goToDestination(w: World, dest: Coord): Seq[Action] = {
+    import w.dungeon
+    if(pos == dest) Seq()
+    else pos.nextOnPathTo(dest).filter(w.checkCollision(_) == NoCollision) match {
+      case Some(c) => Vector(EnemyMove(id,c,canOpenDoors))
+      case None => Seq()
+    }
+  }
+
+  protected final def investigate(w: World): Seq[Action] = lastKnownPlayerPos match {
+    case None => Seq()
+    case Some(dest) => goToDestination(w,dest) tryOrElse { awareness = Unaware; Seq() }
+  }
 
   final def description : String = {
     def color(str : String, color : String) =
@@ -69,31 +91,12 @@ abstract class Enemy {
     s"${name} (${status})"
   }
 
-  final def fullDescription : String =
+  final val fullDescription : String =
     s"${description}" +
       s"\n${flavorText}"
-
-  final protected def randomMove(rng : Random): EnemyMove = {
-    val i = rng.nextInt(4)
-    val c = i match {
-      case 0 => pos.copy(y = pos.y - 1)
-      case 1 => pos.copy(y = pos.y + 1)
-      case 2 => pos.copy(x = pos.x - 1)
-      case 3 => pos.copy(x = pos.x + 1)
-    }
-    EnemyMove(id,c,false)
-  }
-
-  final def canSeePlayer(w : World) : Boolean = {
-    import w.dungeon
-    if(w.player.hidden) fieldOfVision.contains(w.player.pos)
-    else pos.hasWalkableLineTo(w.player.pos, vision*2)
-  }
-
-  def act(w : World) : Vector[Action] =
-    if(w.player.hidden) normalBehavior(w) else alertedBehavior(w)
-
-  protected def normalBehavior(w : World) : Vector[Action]
-
-  protected def alertedBehavior(w : World) : Vector[Action]
 }
+
+sealed trait Awareness
+case object Unaware extends Awareness
+case object Cautious extends Awareness
+case object Alerted extends Awareness
