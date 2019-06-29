@@ -2,7 +2,7 @@ package knave.display
 
 import knave.display.Palette._
 import knave.game.{Fast, Slow}
-import knave.world.{EnemyCollision, PlayerCollision, World}
+import knave.world._
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import org.scalajs.dom.document
@@ -14,6 +14,8 @@ import knave.world.player.weapon.{Fist, Ray, Use}
 
 trait Display {
   import Dungeon.{width,height}
+
+  protected val prompt = document.getElementById("prompt").asInstanceOf[Div]
 
   protected val log = document.getElementById("log").asInstanceOf[Div]
 
@@ -120,26 +122,19 @@ trait Display {
     show(e.pos, e.symbol.toString, e.color)
   }
 
-  private var fullLog = Seq[String]()
-  protected final def createLog(logs : Seq[String]) : String = {
-    fullLog = logs
-    val ls = logs.length match {
-      case l if l > 4 => logs.drop(l - 3) :+ "Press 'm' for more."
-      case 4 => logs
-      case 3 => " " +: logs
-      case 2 => " " +: " " +: logs
-      case 1 => " " +: " " +: " " +: logs
-      case 0 => " " +: " " +: " " +: " " :: Nil
-    }
-
-    val str = new StringBuilder
-    for(l <- ls)
-      str ++= l + "\n"
-    str.toString
+  protected final def createLog(logs : Seq[Log]) : String = {
+    val logsToShow = logs.take(4).map(showLog).reverse
+    (Seq.fill(4 - logsToShow.length)(" ") ++ logsToShow).mkString("\n")
   }
 
-  def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
+  protected final def showLog(log: Log): String = log match {
+    case PlainLog(msg, clr) => color(msg,clr)
+    case _ => ""
+  }
+
+  def display(w : World, speedRound : Boolean, promptStr: String = "") : Unit = {
     clearMap
+    prompt.innerHTML = promptStr
     map.style.display = "inline-block"
   }
 
@@ -201,29 +196,23 @@ trait Display {
         case _ if w.itemAt(mouse).nonEmpty => s"A ${w.itemAt(mouse).get.name} lies on the ground." + " Press 'm' for more."
         case _ => ""
       }
-      if(log.nonEmpty) display(w, List(log, "You are in look mode. Look at points of interest with your mouse. Press 'esc' to exit."), speedRound)
-      else display(w, List("You are in look mode. Look at points of interest with your mouse. Press 'esc' to exit."), speedRound)
+      display(w, speedRound)
+      prompt.innerHTML = "You are in look mode. Press 'esc' to exit."
     }
 
   final def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
       import w.dungeon
-      display(w, List("Select target with mouse. Press 'f' to confirm or 'esc' to cancel."), speedRound)
+      display(w, speedRound)
       val ray = w.player.pos.walkableLineTo(mouse).take(range)
       for(c <- ray)
         show(c, "*", white)
+      prompt.innerHTML = "Select target with mouse. Press 'f' to confirm or 'esc' to cancel."
     }
 
-  final def displayLogMore : Unit = {
+  final def displayLogMore(w: World): Unit = {
     map.style.display = "none"
-
-    val str = new StringBuilder
-    for(l <- fullLog)
-      str ++= (l + "\n")
-    str ++= "You are in log mode. Press 'esc' to exit."
-    for(_ <- 0 until 4 - fullLog.length)
-      str += '\n'
-    log.innerHTML = str.toString
+    log.innerHTML = (w.logs.map(showLog) :+ "You are in log mode. Pres 'esc' to exit.").mkString("\n")
   }
 
   final def displayLookMore(w : World, stateChanged : Boolean) : Unit =

@@ -1,5 +1,6 @@
 package knave.world
 
+import knave.display.Palette
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import knave.world.enemy.Enemy
@@ -40,6 +41,8 @@ sealed trait World {
       else if(c.isWalkable || dungeon.doorAt(c).exists(_.open)) NoCollision
       else BarrierCollision
     }
+
+  var logs: Seq[Log] = Seq()
 }
 
 protected sealed class InnerWorld(val depth: Int, implicit val dungeon : Dungeon, val player: Player, es: Map[Int,Enemy], is: Map[Coord,Item]) extends World {
@@ -82,3 +85,8 @@ case object PlayerCollision extends Collision
 case class EnemyCollision(id : Int) extends Collision
 case object NoCollision extends Collision
 case object BarrierCollision extends Collision
+
+sealed trait Log
+case class PlainLog(msg: String, color: String = Palette.white) extends Log
+case class AttackOnPlayerLog(name: String, damage: Int) extends Log
+case class AttackOnEnemyLog(name: String, damage: Int, percentHealth: Double) extends Log

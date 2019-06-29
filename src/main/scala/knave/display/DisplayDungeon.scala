@@ -1,6 +1,6 @@
 package knave.display
 
-import knave.world.{World}
+import knave.world.{Log, World}
 import knave.world.dungeon.{Coord, Dungeon}
 
 object DisplayDungeon extends Display {
@@ -11,7 +11,7 @@ object DisplayDungeon extends Display {
       for(x <- 0 until width)
         setTile(d, Coord(x,y),true)
 
-  override def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
+  override def display(w : World, speedRound : Boolean = false, prompt: String = "") : Unit = {
     setDungeon(w.dungeon)
   }
 

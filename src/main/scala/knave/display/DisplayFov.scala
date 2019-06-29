@@ -21,15 +21,15 @@ object DisplayFov extends Display {
     e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(color)))
   }
 
-  override def display(w : World, logs : Seq[String] = List(), speedRound : Boolean) : Unit = {
-    super.display(w,logs,speedRound)
+  override def display(w : World, speedRound : Boolean, prompt: String = "") : Unit = {
+    super.display(w,speedRound,prompt)
     setDungeon(w.dungeon, w.player)
     val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
     enemies.foreach(setEnemyFov(_,w))
     w.getItems.filter(i => w.player.fieldOfVision.contains(i.pos)).foreach(setItem(_))
     setPlayer(w.player)
     enemies.foreach(setEnemy(_,speedRound))
-    log.innerHTML = createLog(logs)
+    log.innerHTML = createLog(w.logs)
     hud.innerHTML = createHud(w)
     inventory.innerHTML = createInventory(w.player) ++ s"\n\nLevel: ${w.depth}"
   }

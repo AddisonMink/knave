@@ -1,6 +1,6 @@
 package knave.game
 
-import knave.world.{BarrierCollision, EnemyCollision, NoCollision, World}
+import knave.world._
 import knave.world.dungeon.{Coord, Direction}
 import knave.world.dungeon.Dungeon._
 import knave.world.item.WeaponItem
@@ -8,6 +8,7 @@ import knave.world.item.WeaponItem
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import knave.display.Palette._
+import knave.world
 import knave.world.enemy.Alerted
 import knave.world.player.weapon.{Fist, Weapon}
 
@@ -15,12 +16,6 @@ import scala.annotation.tailrec
 
 sealed trait Action {
   def updateWorld(w : World) : Seq[Action]
-
-  final protected def addLog(l : String) : Unit =
-    Action.logs += l
-
-  final protected def color(message : String, color : String) : String =
-    "<span style=\"color : " + color + "\">" + message + "</span>"
 }
 
 case class PlayerMove(c : Coord) extends Action {
@@ -31,9 +26,9 @@ case class PlayerMove(c : Coord) extends Action {
         w.player.pos = c
         w.player.refreshFieldOfVision
         if(w.itemAt(c).isDefined)
-          addLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.")
+          w.logs = PlainLog(s"A ${w.itemAt(c).get.name} lies at your feet. Press 'g' to pick it up.") +: w.logs
         if(w.dungeon.isStairs(c))
-          addLog(s"You have reached the stairs. Press '<' to ascend.")
+          w.logs = PlainLog(s"You have reached the stairs. Press '<' to ascend.") +: w.logs
         Seq()
 
       case EnemyCollision(id) => w.player.weapon.attack(id) +: Seq()
@@ -54,16 +49,16 @@ case class PickUpItem(c : Coord) extends  Action {
       case (Some(WeaponItem(weapon,_)), Fist) =>
         w.player.equipWeapon(weapon)
         w.removeItemAt(c)
-        addLog(s"You pick up the ${weapon.name}. Press 'f' to use its special attack.")
+        w.logs = PlainLog(s"You pick up the ${weapon.name}. Press 'f' to use its special attack.") +: w.logs
 
       case (Some(WeaponItem(weapon,_)), _) =>
-        val i = w.player.inventory.indexWhere(_ == None)
+        val i = w.player.inventory.indexWhere(_.isEmpty)
         if(i > -1) {
           w.player.inventory(i) = Some(weapon)
           w.removeItemAt(c)
-          addLog(s"You pick up the ${weapon.name} and put it in your bag.")
+          w.logs = PlainLog(s"You pick up the ${weapon.name} and put it in your bag.") +: w.logs
         }
-        else addLog(s"Your inventory is full! Use 't' to drop one of your items on an Seq() tile.")
+        else w.logs = PlainLog(s"Your inventory is full! Use 't' to drop one of your items on an Seq() tile.") +: w.logs
 
       case _ =>
     }
@@ -94,7 +89,7 @@ case class DropWeapon(index : Int) extends Action {
     w.player.inventory(index) match {
       case Some(weapon) =>
         w.player.inventory(index) = None
-        addLog(s"You drop the ${weapon.name}.")
+        w.logs = PlainLog(s"You drop the ${weapon.name}.") +: w.logs
         SpawnWeapon(weapon,w.player.pos) +: Seq()
 
       case None => Seq()
@@ -106,7 +101,7 @@ case object DropEquippedWeapon extends Action {
     if(w.player.weapon != Fist) {
       val weapon = w.player.weapon
       w.player.equipWeapon(Fist)
-      addLog(s"You drop the ${weapon.name}.")
+      w.logs = PlainLog(s"You drop the ${weapon.name}.") +: w.logs
       Vector(SpawnWeapon(weapon,w.player.pos))
     }
     else Seq()
@@ -142,7 +137,7 @@ case class AttackOnEnemy(id : Int, damage : Int, cost: Int, melee: Boolean) exte
   override def updateWorld(w: World): Seq[Action] = {
     w.enemy(id).toVector.flatMap(e => {
       e.hp -= damage
-      addLog(s"You did ${damage} damage to the ${e.description}.")
+      w.logs = PlainLog(s"You did ${damage} damage to the ${e.description}.") +: w.logs
 
       if(e.hp <= 0) Vector(DamagePlayerWeapon(cost), EnemyDeath(id))
       else Vector(DamagePlayerWeapon(cost))
@@ -162,8 +157,8 @@ case class EnemyDeath(id : Int) extends Action {
 case class AttackOnPlayer(enemyName : String, damage : Int) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
     w.player.hp -= damage
-    addLog(s"${enemyName} did ${damage} damage to you.")
-    if(w.player.hp <= 0) addLog(color("You have been slain!", red))
+    w.logs = PlainLog(s"${enemyName} did ${damage} damage to you.") +: w.logs
+    if(w.player.hp <= 0) w.logs = PlainLog("You have been slain!", red) +: w.logs
     Seq()
   }
 }
@@ -173,7 +168,7 @@ case class DamagePlayerWeapon(damage : Int) extends Action {
     w.player.weapon.durability -= damage
     if(w.player.weapon.durability <= 0) {
       w.player.destroyWeapon
-      addLog(color("Your weapon broke!", red))
+      w.logs = PlainLog("Your weapon broke!",red) +: w.logs
     }
     Seq()
   }
@@ -191,7 +186,7 @@ case class HealPlayer(heal : Int) extends Action {
   override def updateWorld(w: World): Seq[Action] = {
     val trueHeal = if(w.player.hp + heal > w.player.maxHp) w.player.maxHp - w.player.hp else heal
     w.player.hp += trueHeal
-    addLog(s"You have been healed for ${trueHeal} health.")
+    w.logs = PlainLog(s"You have been healed for ${trueHeal} health.") +: w.logs
     Seq()
   }
 }
@@ -203,7 +198,7 @@ case class HealEnemy(id : Int, heal : Int) extends Action {
       else heal
     enemy.hp += trueHeal
     if(trueHeal > 0 &&  w.player.fieldOfVision.contains(enemy.pos))
-      addLog(s"${enemy.name} has been healed for ${trueHeal} health.")
+      w.logs = PlainLog(s"${enemy.name} has been healed for ${trueHeal} health.") +: w.logs
     None
   }).toVector
 
@@ -216,21 +211,12 @@ case class SpawnWeapon(weapon : Weapon, c : Coord) extends Action {
   }
 }
 
-case class Log(message : String, color : String) extends Action {
-  override def updateWorld(w: World): Seq[Action] = {
-    addLog(color(message,color))
-    Seq()
-  }
-}
-
 object Action {
 
-  private val logs = new ListBuffer[String]
-
   @tailrec
-  def applyActions(w : World, actions : Seq[Action]) : Seq[String] = actions match {
+  def applyActions(w : World, actions : Seq[Action]): Unit = actions match {
     case a +: as => applyActions(w, a.updateWorld(w) ++ as)
-    case Seq() => logs.toList  
+    case Seq() =>
   }
 
   implicit class ActionAlternative(as: Seq[Action]) {
