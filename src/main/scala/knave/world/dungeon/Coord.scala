@@ -45,8 +45,9 @@ case class Coord(x : Int, y : Int) {
         Seq.range(dir, dy+dir, dir).map(y => Coord((y.toDouble/slope).toInt, y) + (this.x, this.y))
 
       case None =>
-        val dir = (c.y - this.y).signum
-        Seq.range(this.y, c.y+dir, dir).map(Coord(this.x,_))
+        val dy = c.y - this.y
+        val dir = dy.signum
+        Seq.range(dir, dy+dir, dir).map(y => Coord(0,y) + (this.x,this.y))
     }
   }
 

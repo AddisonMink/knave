@@ -1,6 +1,6 @@
 V0.4
 ----
-BUG* - Sometimes enemies cant move while alerted.
+BUG* - Top log isn't displayed correctly.
 
 FEATURE* - Re-implement look mode.
 - use cursor instead of mouse. use space to enter look more mode.
@@ -8,7 +8,7 @@ FEATURE* - Re-implement look mode.
 FEATURE* - Re-implement ray attack mode.
 - use cursor instead of mouse.
 
-FEATURE - Improve Hub Dungeon
+FEATURE* - Improve Hub Dungeon
 * Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
 * After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
 
@@ -16,6 +16,8 @@ FEATURE* - Improved Investigation
 -Instead of giving up when they reach the coord where they last saw the player, the cautious enemy should
 take a few steps foward and look around in a circle.
 -Enemies should turn while wandering as well. Before going to their next destination, they should turn1 direction at a time.
+
+REFACTOR* - Enemy behaviors should be implemented as actions.
 
 FEATURE - Cleric
 

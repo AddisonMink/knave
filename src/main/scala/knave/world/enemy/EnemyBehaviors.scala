@@ -5,8 +5,6 @@ import knave.world.{NoCollision, World}
 import knave.world.dungeon.Coord
 import knave.world.dungeon.Dungeon.DungeonCoord
 
-import Vector.empty
-
 /**
   * Attack the player if he's in range. Otherwise do nothing.
   */
@@ -16,10 +14,9 @@ protected trait AttackingEnemy extends Enemy {
 
   protected val attackDamage: Int
 
-  protected def attack(w: World): Vector[Action] =
-    if(pos.distance(w.player.pos) <= attackRange)
-      Vector(AttackOnPlayer(name,attackDamage))
-    else empty
+  protected def attack(w: World): Seq[Action] =
+    if(pos.distance(w.player.pos) <= attackRange) AttackOnPlayer(name,attackDamage) +: Seq()
+    else Seq()
 }
 
 /**
@@ -27,13 +24,12 @@ protected trait AttackingEnemy extends Enemy {
   */
 protected trait PursuingEnemy extends Enemy with AttackingEnemy {
 
-  private def moveTowardPlayer(w: World): Vector[Action] = {
+  private def moveTowardPlayer(w: World): Seq[Action] = {
     import w.dungeon
+    println(pos.walkableLineTo(w.player.pos))
     pos.walkableLineTo(w.player.pos) match {
-      case _ +: c +: cs if cs.contains(w.player.pos) =>
-        println(s"Pursuing: ${pos} -> ${c} +: ${cs}")
-        Vector(EnemyMove(id,c,canOpenDoors))
-      case _ => empty
+      case c +: cs if cs.contains(w.player.pos) => EnemyMove(id,c,canOpenDoors) +: Seq()
+      case _ => Seq()
     }
   }
 
@@ -57,8 +53,8 @@ protected trait WanderingEnemy extends Enemy {
   protected def wander(w : World) : Seq[Action] = {
     import w.dungeon.rng
     wanderDest match {
-      case None => wanderDest = Some(room.randomCoord); empty
-      case Some(dest) => goToDestination(w,dest) tryOrElse {wanderDest = Some(room.randomCoord); empty}
+      case None => wanderDest = Some(room.randomCoord); Seq()
+      case Some(dest) => goToDestination(w,dest) tryOrElse {wanderDest = Some(room.randomCoord); Seq()}
     }
   }
 }
