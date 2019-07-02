@@ -1,3 +1,12 @@
+V0.4
+----
+BUG* - Enemy is not alerted when attacked.
+
+BUG* - Enemy field of vision is not updated when alerted.
+
+FEATURE* - Re-implement look mode.
+- use cursor instead of mouse. use space to enter look more mode.
+
 FEATURE - Improve Hub Dungeon
 * Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
 * After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
@@ -18,6 +27,7 @@ FEATURE - Gargoyle
 
 FEATURE - Level Generation
 
-FEATURE* - Re-implement look mode.
-- use cursor instead of mouse. use space to enter look more mode.
+
+
+
 

@@ -30,7 +30,9 @@ protected trait PursuingEnemy extends Enemy with AttackingEnemy {
   private def moveTowardPlayer(w: World): Vector[Action] = {
     import w.dungeon
     pos.walkableLineTo(w.player.pos) match {
-      case c +: cs if cs.contains(w.player.pos) => Vector(EnemyMove(id,c,canOpenDoors))
+      case _ +: c +: cs if cs.contains(w.player.pos) =>
+        println(s"Pursuing: ${pos} -> ${c} +: ${cs}")
+        Vector(EnemyMove(id,c,canOpenDoors))
       case _ => empty
     }
   }
