@@ -19,14 +19,8 @@ object Display {
 
   private val log = document.getElementById("log").asInstanceOf[Div]
 
-  private var oldMouse = Coord(0,0)
-
-  private var mouse = Coord(0,0)
-
-  def mousePos : Coord =
-    mouse
-
   private var cursor = Coord(0,0)
+  def cursorPos: Coord = cursor
 
   val map = document.getElementById("map").asInstanceOf[Div]
   for(y <- 0 until height) {
@@ -34,10 +28,6 @@ object Display {
     for(x <- 0 until width) {
       val col = document.createElement("span").asInstanceOf[Span]
       col.id = x.toString + "-" + y.toString
-      col.onmousemove = { e => {
-        oldMouse = mouse
-        mouse = Coord(x,y)
-      }}
       row.appendChild(col)
     }
     map.appendChild(row)
@@ -203,7 +193,7 @@ object Display {
 
   def display(w : World, speedRound : Boolean, promptStr: String = " ") : Unit = {
     clearMap
-    prompt.innerHTML = promptStr + "\n"
+    prompt.innerHTML = "> " + promptStr + "\n"
     map.style.display = "inline-block"
     setDungeon(w.dungeon, w.player)
     val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
@@ -217,7 +207,7 @@ object Display {
   }
 
   def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean, input: String) : Unit = {
-    val defaultMessage = "You are in look mode. Pres 'wasdqezc' to move the cursor. Press 'esc' to exit."
+    val defaultMessage = "You are in look mode. Press 'wasdqezc' to move the cursor. Press 'esc' to exit."
     val instructions = "Press 'space' for more. Press 'esc' to exit."
     if(stateChanged)
       cursor = w.player.pos
@@ -248,15 +238,20 @@ object Display {
     tile.style.backgroundColor = white
   }
 
-  def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
-    if(mouse != oldMouse || stateChanged) {
-      import w.dungeon
-      display(w, speedRound)
-      val ray = w.player.pos.walkableLineTo(mouse).take(range)
-      for(c <- ray)
-        show(c, "*", white)
-      prompt.innerHTML = "Select target with mouse. Press 'f' to confirm or 'esc' to cancel."
+  def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean, input: String) : Unit = {
+    import w.dungeon
+    val instructions = "Select a target with 'wasdgezc' and press 'f' to confirm the attack."
+    displayLook(w,stateChanged,speedRound,input)
+    if(w.player.pos.hasWalkableLineTo(cursor) && w.player.pos.distance(cursor) <= range)
+      w.player.pos.lineTo(cursor).foreach(show(_,"*","white",None))
+
+    if(stateChanged) {
+      val maybeNearestEnemy = w.getEnemies.filter(e => e.pos.hasWalkableLineTo(w.player.pos) && e.pos.distance(w.player.pos) <= range).sortBy(_.pos.distance(w.player.pos)).headOption
+      maybeNearestEnemy.foreach(e => cursor = e.pos)
     }
+
+    prompt.innerHTML = ">" + instructions
+  }
 
   def displayLogMore(w: World): Unit = {
     val divider = Seq.fill(Dungeon.width)('=').mkString + "\n"

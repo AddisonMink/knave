@@ -98,16 +98,17 @@ object InputProcessor {
       case _ => Seq()
     }
 
-  def processRayAttack(w : World, input : String, mouse : Coord, range : Int, damage : Int, cost : Int) : Seq[Action] =
+  def processRayAttack(w: World, input: String, cursor: Coord, range: Int, damage: Int, cost: Int) : Seq[Action] =
     input match {
       case "escape" => {
         internalState = Start
         Seq()
       }
       case "f" => {
+        println("fire")
         import w.dungeon
         internalState = Start
-        w.player.pos.walkableLineTo(mouse).take(range).map(w.checkCollision).collectFirst {
+        w.player.pos.walkableLineTo(cursor).take(range).map(w.checkCollision).collectFirst {
           case EnemyCollision(id) => AttackOnEnemy(id, damage, cost, false)
         }.toSeq
       }

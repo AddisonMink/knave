@@ -23,7 +23,7 @@ object Main extends App {
   
   display(game.world, false)
   js.timers.setInterval(10)({
-    game.run(input, mousePos)
+    game.run(input)
     input = ""
   })
 }

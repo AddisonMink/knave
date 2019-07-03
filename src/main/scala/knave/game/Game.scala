@@ -3,7 +3,6 @@ package knave.game
 import InputProcessor._
 import knave.main._
 import knave.world.World
-import knave.world.dungeon.Coord
 import knave.display.Display._
 
 import scala.util.Random
@@ -15,11 +14,11 @@ class Game(seed : Int = Random.nextInt) {
 
   private var state : GameState = Ongoing
 
-  def run(input : String, mousePos : Coord): Unit = state match {
+  def run(input : String): Unit = state match {
     case Ongoing =>
       val oldState = InputProcessor.state
 
-      val playerActions = InputProcessor.process(world, input, mousePos)
+      val playerActions = InputProcessor.process(world, input, cursorPos)
       if(playerActions.nonEmpty) {
         world.run(playerActions)
         if(world.player.hp <= 0) state = Dead
@@ -29,7 +28,7 @@ class Game(seed : Int = Random.nextInt) {
       InputProcessor.state match {
         case Start => display(world, world.speedRound)
         case Look => displayLook(world, InputProcessor.state != oldState, world.speedRound, input)
-        case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, world.speedRound)
+        case RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state != oldState, world.speedRound, input)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore(world)
         case LookMore => displayLookMore(world, InputProcessor.state == oldState)
         case Drop => if (InputProcessor.state != oldState) display(world, world.speedRound, "Drop which item? (1,2,3 for inventory or 0 for equipped item.). Press 'esc' to cancel.")
