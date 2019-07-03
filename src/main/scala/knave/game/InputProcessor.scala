@@ -58,7 +58,7 @@ object InputProcessor {
       case "<" =>
         if(w.dungeon.isStairs(w.player.pos)) Seq(AscendStairs)
         else Seq()
-      case "m" => {
+      case "v" => {
         internalState = LogMore
         Seq()
       }

@@ -259,8 +259,10 @@ object Display {
     }
 
   def displayLogMore(w: World): Unit = {
+    val divider = Seq.fill(Dungeon.width)('=').mkString + "\n"
     map.style.display = "none"
-    log.innerHTML = (w.logs.map(showLog) :+ "You are in log mode. Pres 'esc' to exit.").mkString("\n")
+    prompt.innerHTML = "You are in log mode. Pres 'esc' to exit."
+    log.innerHTML = divider + w.logs.take(Dungeon.height).map(showLog).mkString("\n")
   }
 
   def displayLookMore(w : World, stateChanged : Boolean) : Unit = {
