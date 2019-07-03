@@ -1,11 +1,5 @@
 V0.4
 ----
-FEATURE* - Re-implement log-more mode.
-- bind log-more to v.
-
-FEATURE* - Re-implement ray attack mode.
-- use cursor instead of mouse.
-
 FEATURE* - Improve Hub Dungeon
 * Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
 * After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
