@@ -3,7 +3,7 @@ package knave.display
 import knave.display.Palette._
 import knave.game.{Fast, Slow}
 import knave.world._
-import knave.world.dungeon.{Coord, Dungeon}
+import knave.world.dungeon._
 import knave.world.dungeon.Dungeon._
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
@@ -12,16 +12,16 @@ import knave.world.item.{Item, WeaponItem}
 import knave.world.player.Player
 import knave.world.player.weapon.{Fist, Ray, Use}
 
-trait Display {
+object Display {
   import Dungeon.{width,height}
 
-  protected val prompt = document.getElementById("prompt").asInstanceOf[Div]
+  private val prompt = document.getElementById("prompt").asInstanceOf[Div]
 
-  protected val log = document.getElementById("log").asInstanceOf[Div]
+  private val log = document.getElementById("log").asInstanceOf[Div]
 
-  protected var oldMouse = Coord(0,0)
+  private var oldMouse = Coord(0,0)
 
-  protected var mouse = Coord(0,0)
+  private var mouse = Coord(0,0)
 
   def mousePos : Coord =
     mouse
@@ -41,63 +41,60 @@ trait Display {
     map.appendChild(row)
   }
 
-  protected final val hud = document.getElementById("hud").asInstanceOf[Div]
+  private val hud = document.getElementById("hud").asInstanceOf[Div]
 
-  protected final val inventory = document.getElementById("inventory").asInstanceOf[Div]
+  private val inventory = document.getElementById("inventory").asInstanceOf[Div]
 
-  protected final val tileWidth = 10
-
-  protected final val tileHeight = 16
-
-  protected final def clearMap : Unit =
+  private def clearMap : Unit =
     for(y <- 0 until height)
       for(x <- 0 until width) {
-        show(Coord(x, y), " ", white, Some(black))
         document.getElementById(x + "-" + y).asInstanceOf[Span].style.fontWeight = "normal"
+        show(Coord(x, y), " ", white, Some(black))
       }
 
-  protected final def show(c : Coord, symbol : String, color : String, backgroundColor : Option[String] = None) : Unit = {
+  private def show(c : Coord, symbol : String, color : String, backgroundColor : Option[String] = None) : Unit = {
     val tile = document.getElementById(c.x.toString + "-" + c.y.toString).asInstanceOf[Span]
-    if(backgroundColor.isEmpty) {
-      val bgc = tile.style.backgroundColor
-      tile.style.color = color
-      tile.style.backgroundColor = bgc
-    }
-    else {
-      tile.style.color = color
-      tile.style.backgroundColor = backgroundColor.get
+    backgroundColor match {
+      case Some(bgc) =>
+        tile.style.color = color
+        tile.style.backgroundColor = bgc
+
+      case None =>
+        val bgc = tile.style.backgroundColor
+        tile.style.color = color
+        tile.style.backgroundColor = bgc
     }
     tile.innerHTML = symbol
   }
 
-  protected final def color(symbol : String, color : String) : String =
+  private def color(symbol : String, color : String) : String =
     "<span style=\"color : " + color + "\">" + symbol + "</span>"
 
-  protected final def setTile(d : Dungeon, c : Coord, light : Boolean = true, color : Option[String] = None, backgroundColor : Option[String] = None) : Unit = {
-    lazy val floor = d.floorAt(c)
-    lazy val wall = d.wallAt(c)
-    lazy val door = d.doorAt(c)
-    if(floor.isDefined)
-      if(light) show(c, floor.get.symbol, color.getOrElse(floor.get.color),backgroundColor)
-      else show(c, floor.get.symbol, floor.get.darkColor)
-    else if(wall.isDefined)
-      if(light) show(c, wall.get.symbol, color.getOrElse(wall.get.color),backgroundColor.orElse(wall.map(_.color)))
-      else show(c, wall.get.symbol, wall.get.darkColor, Some(wall.get.darkColor))
-    else if(door.isDefined)
-      if(light) show(c, door.get.symbol, color.getOrElse(door.get.color),backgroundColor)
-      else show(c, door.get.symbol, door.get.darkColor)
+  private def setTile(d : Dungeon, c : Coord, light : Boolean = true, color : Option[String] = None, backgroundColor : Option[String] = None) : Unit = {
+    d.floorAt(c) orElse d.wallAt(c) orElse d.doorAt(c) match {
+
+      case Some(Wall(clr,darkColor,symbol)) =>
+        val cl = if(light) clr else darkColor
+        show(c,symbol,cl,backgroundColor.orElse(Some(cl)))
+
+      case Some(t: Tile) => {
+        val clr = if(light) t.color else t.darkColor
+        show(c,t.symbol,clr,backgroundColor)
+      }
+      case _ =>
+    }
   }
 
-  protected final def setItem(i : Item) : Unit =
+  private def setItem(i : Item) : Unit =
     i match {
-      case WeaponItem(w, c) => show(c, WeaponItem(w, c).symbol, w.color)
-      case _ => ()
+      case wi @ WeaponItem(w, c) => show(c, wi.symbol, w.color)
+      case _ =>
     }
 
-  protected final def setPlayer(p : Player) : Unit =
+  private def setPlayer(p : Player) : Unit =
     show(p.pos, "@", white)
 
-  protected final def setEnemy(e : Enemy, speedRound : Boolean) : Unit = {
+  private def setEnemy(e : Enemy, speedRound : Boolean) : Unit = {
     val style = document.getElementById(e.pos.x.toString + "-" + e.pos.y.toString).asInstanceOf[Span].style
     if(speedRound && e.speed == Fast) {
       style.fontWeight = "bold"
@@ -115,12 +112,12 @@ trait Display {
     show(e.pos, e.symbol.toString, e.color)
   }
 
-  protected final def createLog(logs : Seq[Log]) : String = {
+  private def createLog(logs : Seq[Log]) : String = {
     val logsToShow = logs.take(4).map(showLog).reverse
     (Seq.fill(4 - logsToShow.length)(" ") ++ logsToShow).mkString("\n")
   }
 
-  protected final def showLog(log: Log): String = log match {
+  private def showLog(log: Log): String = log match {
     case PlainLog(msg, clr) => color(msg, clr)
     case AttackOnEnemyLog(name, damage, percentHealth) =>
       val condition = percentHealth match {
@@ -137,13 +134,20 @@ trait Display {
     case _ => ""
   }
 
-  def display(w : World, speedRound : Boolean, promptStr: String = " ") : Unit = {
-    clearMap
-    prompt.innerHTML = promptStr
-    map.style.display = "inline-block"
+  private def setDungeon(d : Dungeon, p : Player) : Unit = {
+    p.visitedTiles.foreach(setTile(d, _, false))
+    p.fieldOfVision.foreach(setTile(d, _, true))
   }
 
-  protected final def createHud(w : World) : String = {
+  private def setEnemyFov(e : Enemy, w : World) : Unit = {
+    val color = e.awareness match {
+      case Alerted => red
+      case _ => orange
+    }
+    e.fieldOfVision.intersect(w.player.fieldOfVision).foreach(setTile(w.dungeon,_,true,None,Some(color)))
+  }
+
+  private def createHud(w : World) : String = {
     val str = new StringBuilder
     val p = w.player
 
@@ -187,15 +191,30 @@ trait Display {
     str.toString
   }
 
-  protected final def createInventory(p : Player) : String = {
-      s"""Inventory
-        |1. ${p.inventory(0).map(_.name).getOrElse("no item")}
-        |2. ${p.inventory(1).map(_.name).getOrElse("no item")}
-        |3. ${p.inventory(2).map(_.name).getOrElse("no item")}
+  private def createInventory(p : Player) : String = {
+    s"""Inventory
+       |1. ${p.inventory(0).map(_.name).getOrElse("no item")}
+       |2. ${p.inventory(1).map(_.name).getOrElse("no item")}
+       |3. ${p.inventory(2).map(_.name).getOrElse("no item")}
       """.stripMargin
   }
 
-  final def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
+  def display(w : World, speedRound : Boolean, promptStr: String = " ") : Unit = {
+    clearMap
+    prompt.innerHTML = promptStr
+    map.style.display = "inline-block"
+    setDungeon(w.dungeon, w.player)
+    val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
+    enemies.foreach(setEnemyFov(_,w))
+    w.getItems.filter(i => w.player.fieldOfVision.contains(i.pos)).foreach(setItem(_))
+    setPlayer(w.player)
+    enemies.foreach(setEnemy(_,speedRound))
+    log.innerHTML = createLog(w.logs)
+    hud.innerHTML = createHud(w)
+    inventory.innerHTML = createInventory(w.player) ++ s"\n\nLevel: ${w.depth}"
+  }
+
+  def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if((mouse != oldMouse || stateChanged) && w.player.fieldOfVision.contains(mouse)) {
       val maybeLog = w.checkCollision(mouse) match {
         case PlayerCollision => Some(PlainLog("You are here."))
@@ -210,7 +229,7 @@ trait Display {
       display(w, speedRound, "You are in look mode. Press 'esc' to exit.")
     }
 
-  final def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
+  def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {
       import w.dungeon
       display(w, speedRound)
@@ -220,12 +239,12 @@ trait Display {
       prompt.innerHTML = "Select target with mouse. Press 'f' to confirm or 'esc' to cancel."
     }
 
-  final def displayLogMore(w: World): Unit = {
+  def displayLogMore(w: World): Unit = {
     map.style.display = "none"
     log.innerHTML = (w.logs.map(showLog) :+ "You are in log mode. Pres 'esc' to exit.").mkString("\n")
   }
 
-  final def displayLookMore(w : World, stateChanged : Boolean) : Unit =
+  def displayLookMore(w : World, stateChanged : Boolean) : Unit =
     if(stateChanged && w.player.fieldOfVision.contains(mouse)) {
       val text = w.checkCollision(mouse) match {
         case PlayerCollision => "You are here."
@@ -236,4 +255,13 @@ trait Display {
       map.style.display = "none"
       log.innerHTML = text + "\nPress 'esc' to exit."
     }
+
+  private def setFullDungeon(d : Dungeon) : Unit =
+    for(y <- 0 until height)
+      for(x <- 0 until width)
+        setTile(d, Coord(x,y),true)
+
+  def displayFullDungeon(w : World, speedRound : Boolean = false, prompt: String = "") : Unit = {
+    setFullDungeon(w.dungeon)
+  }
 }

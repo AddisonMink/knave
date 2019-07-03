@@ -1,18 +1,15 @@
 package knave.main
 
-import knave.display.DisplayDungeon
 import org.scalajs.dom.document
 import knave.game._
-import knave.display.DisplayFov._
-import knave.world.dungeon.HubDungeon
-
+import knave.display.Display._
 import scala.scalajs.js
-import scala.util.Random
 
 sealed trait GameState
 case object Ongoing extends GameState
 case object Dead extends GameState
 case object Ascended extends GameState
+
 
 object Main extends App {
 
