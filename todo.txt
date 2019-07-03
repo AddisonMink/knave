@@ -1,9 +1,7 @@
 V0.4
 ----
-BUG* - Top log isn't displayed correctly.
-
-FEATURE* - Re-implement look mode.
-- use cursor instead of mouse. use space to enter look more mode.
+FEATURE* - Re-implement log-more mode.
+- bind log-more to v.
 
 FEATURE* - Re-implement ray attack mode.
 - use cursor instead of mouse.

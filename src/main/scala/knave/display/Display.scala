@@ -203,7 +203,7 @@ object Display {
 
   def display(w : World, speedRound : Boolean, promptStr: String = " ") : Unit = {
     clearMap
-    prompt.innerHTML = promptStr
+    prompt.innerHTML = promptStr + "\n"
     map.style.display = "inline-block"
     setDungeon(w.dungeon, w.player)
     val enemies = w.getEnemies.filter(e => w.player.fieldOfVision.contains(e.pos))
@@ -263,17 +263,18 @@ object Display {
     log.innerHTML = (w.logs.map(showLog) :+ "You are in log mode. Pres 'esc' to exit.").mkString("\n")
   }
 
-  def displayLookMore(w : World, stateChanged : Boolean) : Unit =
-    if(stateChanged && w.player.fieldOfVision.contains(mouse)) {
-      val text = w.checkCollision(mouse) match {
-        case PlayerCollision => "You are here."
-        case EnemyCollision(id) => w.enemy(id).get.fullDescription
-        case _ if w.itemAt(mouse).nonEmpty => w.itemAt(mouse).get.description
-        case _ => "There is nothing here."
-      }
-      map.style.display = "none"
-      log.innerHTML = text + "\nPress 'esc' to exit."
-    }
+  def displayLookMore(w : World, stateChanged : Boolean) : Unit = {
+    val divider = Seq.fill(Dungeon.width)('=').mkString + "\n"
+    val instructions = "Press escape to exit."
+    val defaultText = s"There is nothing here\n${instructions}"
+    val text = divider + (w.checkCollision(cursor) match {
+      case EnemyCollision(id) => w.enemy(id).map(_.fullDescription + "\n" + instructions)
+      case NoCollision => w.itemAt(cursor).map(_.description + "\n" + instructions)
+      case _ => None
+    }).getOrElse(defaultText)
+    map.style.display = "none"
+    log.innerHTML = text
+  }
 
   private def setFullDungeon(d : Dungeon) : Unit =
     for(y <- 0 until height)
