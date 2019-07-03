@@ -28,7 +28,7 @@ class Game(seed : Int = Random.nextInt) {
 
       InputProcessor.state match {
         case Start => display(world, world.speedRound)
-        case Look => displayLook(world, InputProcessor.state == oldState, world.speedRound)
+        case Look => displayLook(world, InputProcessor.state != oldState, world.speedRound, input)
         case InputProcessor.RayAttack(range, _, _) => displayRayAttack(world, range, InputProcessor.state == oldState, world.speedRound)
         case LogMore => if(InputProcessor.state != oldState) displayLogMore(world)
         case LookMore => displayLookMore(world, InputProcessor.state == oldState)

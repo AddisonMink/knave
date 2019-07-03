@@ -26,6 +26,8 @@ object Display {
   def mousePos : Coord =
     mouse
 
+  private var cursor = Coord(0,0)
+
   val map = document.getElementById("map").asInstanceOf[Div]
   for(y <- 0 until height) {
     val row = document.createElement("div").asInstanceOf[Div]
@@ -214,20 +216,37 @@ object Display {
     inventory.innerHTML = createInventory(w.player) ++ s"\n\nLevel: ${w.depth}"
   }
 
-  def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean) : Unit =
-    if((mouse != oldMouse || stateChanged) && w.player.fieldOfVision.contains(mouse)) {
-      val maybeLog = w.checkCollision(mouse) match {
-        case PlayerCollision => Some(PlainLog("You are here."))
-        case EnemyCollision(id) => Some(PlainLog(w.enemy(id).map(_.description).getOrElse("") + " Press 'm' for more."))
-        case _ if w.itemAt(mouse).nonEmpty => Some(PlainLog(s"A ${w.itemAt(mouse).get.name} lies on the ground." + " Press 'm' for more."))
-        case _ => None
-      }
+  def displayLook(w : World, stateChanged : Boolean, speedRound : Boolean, input: String) : Unit = {
+    val defaultMessage = "You are in look mode. Pres 'wasdqezc' to move the cursor. Press 'esc' to exit."
+    val instructions = "Press 'space' for more. Press 'esc' to exit."
+    if(stateChanged)
+      cursor = w.player.pos
+    val newCursor = cursor + (input match {
+      case "w" => (0,-1)
+      case "a" => (-1,0)
+      case "s" => (0,1)
+      case "d" => (1,0)
+      case "q" => (-1,-1)
+      case "e" => (1,-1)
+      case "z" => (-1,1)
+      case "c" => (1,1)
+      case _ => (0,0)
+    })
+    if(newCursor.inBounds)
+      cursor = newCursor
 
-      // This is the ONLY place where any public state changes are made out side of an Action (Actually not quite true. Enemy.spotPlayer makes public state changes. That shouldn't be!)
-      w.logs = maybeLog.toSeq ++ w.logs
-
-      display(w, speedRound, "You are in look mode. Press 'esc' to exit.")
+    val maybeMessage = w.checkCollision(cursor) match {
+      case PlayerCollision => Some("You are here." + " " + instructions)
+      case EnemyCollision(id) => w.enemy(id).map(e => e.description + " " + instructions)
+      case NoCollision => w.itemAt(cursor).map(i => s"A ${i.name}." + " " + instructions)
+      case _ => None
     }
+    val message = maybeMessage.filter(_ => w.player.fieldOfVision.contains(cursor)).getOrElse(defaultMessage)
+
+    display(w,speedRound,message)
+    val tile = document.getElementById(cursor.x.toString + "-" + cursor.y.toString).asInstanceOf[Span]
+    tile.style.backgroundColor = white
+  }
 
   def displayRayAttack(w : World, range : Int, stateChanged : Boolean, speedRound : Boolean) : Unit =
     if(mouse != oldMouse || stateChanged) {

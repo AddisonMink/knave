@@ -5,6 +5,7 @@ import Math.{abs, ceil, max}
 case class Coord(x : Int, y : Int) {
 
   def +(cx: Int, cy: Int) = Coord(x+cx,y+cy)
+  def +(tup: (Int,Int)) = Coord(x+tup._1, y+tup._2)
 
   lazy val adjacent = Seq(Coord(x-1, y-1), Coord(x,y-1), Coord(x+1,y-1), Coord(x-1,y), Coord(x+1,y), Coord(x-1, y+1), Coord(x,y+1), Coord(x+1,y+1))
 

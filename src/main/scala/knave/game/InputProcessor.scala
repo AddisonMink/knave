@@ -42,13 +42,10 @@ object InputProcessor {
       case "z" => move(Coord(pos.x - 1, pos.y + 1))
       case "c" => move(Coord(pos.x + 1, pos.y + 1))
       case "g" => if(w.itemAt(w.player.pos).nonEmpty) Seq(PickUpItem(w.player.pos)) else Seq()
-      /*
       case "space" => {
         internalState = Look
         Seq()
       }
-      */
-      case "space" => Seq()
       case "f" => w.player.weapon.special match {
           case NoSpecial => Seq()
           case Ray(range, damage, cost) => {
@@ -94,7 +91,7 @@ object InputProcessor {
         internalState = Start
         Seq()
       }
-      case "m" => {
+      case "space" => {
         internalState = LookMore
         Seq()
       }
