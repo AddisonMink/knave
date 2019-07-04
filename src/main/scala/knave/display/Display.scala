@@ -278,7 +278,7 @@ object Display {
       for(x <- 0 until width)
         setTile(d, Coord(x,y),true)
 
-  def displayFullDungeon(w : World, speedRound : Boolean = false, prompt: String = "") : Unit = {
-    setFullDungeon(w.dungeon)
+  def displayFullDungeon(dungeon: Dungeon) : Unit = {
+    setFullDungeon(dungeon)
   }
 }

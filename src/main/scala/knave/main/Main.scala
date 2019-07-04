@@ -3,7 +3,10 @@ package knave.main
 import org.scalajs.dom.document
 import knave.game._
 import knave.display.Display._
+import knave.world.dungeon.BSPDungeon
+
 import scala.scalajs.js
+import scala.util.Random
 
 sealed trait GameState
 case object Ongoing extends GameState
@@ -16,8 +19,12 @@ object Main extends App {
   var input = ""
   document.onkeydown = { e => input = if(e.keyCode == 32) "space" else if (e.keyCode == 27) "escape" else e.key }
 
-  val seed = -451063954
+  val seed = Random.nextInt
   println(seed)
+  val dungeon = BSPDungeon(seed)
+  displayFullDungeon(dungeon)
+
+  /*
   val game = new Game(seed)
 
   
@@ -26,4 +33,5 @@ object Main extends App {
     game.run(input)
     input = ""
   })
+  */
 }
