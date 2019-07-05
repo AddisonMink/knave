@@ -51,6 +51,11 @@ trait Rectangle {
     left && up || left && down || right && up || right && down
   }
 
+  def adjacent(c: Coord): Boolean = {
+    val r = Rect(c.x,c.y,1,1)
+    cardinalAdjacent(r) || diagonalAdjacent(r)
+  }
+
   val area = width*height
 
   lazy val fill = for {

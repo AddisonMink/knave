@@ -15,9 +15,13 @@ object BSPDungeon extends {
 
     val partitions = computePartitions
 
+    val graph = computeGraph(partitions)
 
+    val corridors = computeCorridors(partitions,graph)
 
-    val floors = partitions.flatMap(_.fill)
+    val fusedRooms = computeFusedRooms(partitions)
+
+    val floors = partitions.flatMap(_.fill) ++ corridors.flatten ++ fusedRooms.flatMap(_.fill)
     floors.foreach(c => tileArray(c.x)(c.y) = new PlainFloor)
 
     new InnerDungeon(tileArray,Nil,Map(),rng)
@@ -27,16 +31,17 @@ object BSPDungeon extends {
 private object BSPDungeonGen {
   import Dungeon.{width,height}
 
-  val minWidth = 5
-  val minHeight = 3
+  case class Edge(from: Rectangle, to: Rectangle) {
+    lazy val reverse = Edge(to,from)
+  }
+
+  type Corridor = Seq[Coord]
 
   def computePartitions(implicit rng: Random): Seq[Rectangle] = {
+    val minWidth = 5
+    val minHeight = 3
 
     def partitionHorizontally(rect: Rect): Seq[Rect] = {
-      // 20
-      // dy = 13
-      // left(0,13) right(14,6)
-
       if(rect.width < 2*minWidth+1) Seq(rect)
       else {
         val dx = rng.nextInt(rect.width - minWidth*2) + minWidth
@@ -61,21 +66,95 @@ private object BSPDungeonGen {
     @tailrec
     def loop(parts: Seq[Rect]): Seq[Rect] = {
       val newParts = parts.flatMap(partitionHorizontally).flatMap(partitionVertically)
-      if(newParts.length == parts.length) newParts
+      if(newParts.length == parts.length) rng.shuffle(newParts).drop(newParts.length / 4)
       else loop(newParts)
     }
     loop(Seq(start))
   }
 
-  // chapel
+  def computeGraph(rects: Seq[Rectangle]): Seq[Edge] = {
+    @tailrec
+    def loop(rects: Seq[Rectangle], edges: Seq[Edge]): Seq[Edge] = rects match {
+      case r1 +: r2 +: r3 +: rs => loop(r2 +: r3 +: rs, Edge(r1,r3) +: Edge(r2,r3) +: edges)
+      case r1 +: r2 +: Seq() => Edge(r1,r2) +: edges
+      case _ => Nil
+    }
+    val r1 +: r2 +: rs = rects.sortBy(_.x)
+    loop(rects, Seq(Edge(r1,r2)))
+  }
 
-  // rotunda
+  // Corridors only run along odd rows and columns. This guarantees that they won't run adjacent to each other.
+  private def computeCorridor(from: Rectangle, to: Rectangle): Corridor = {
+    def makeOdd(c: Coord): Coord = {
+      val newX = if(c.x % 2 == 0) c.x+1 else c.x
+      val newY = if(c.y % 2 == 0) c.y+1 else c.y
+      Coord(newX,newY)
+    }
 
-  // archive
+    val xIntersection = (from.x until from.x + from.width).intersect(to.x until to.x + to.width).filter(_ % 2 == 1)
+    val yIntersection = (from.y until from.y + from.height).intersect(to.y until to.y + to.height).filter(_ % 2 == 1)
 
-  // plain
-  def computePlainRoom(partition: Rectangle, id: Int): (Room,Rectangle) = {
+    val coords =
+      if(xIntersection.nonEmpty) {
+        val x = xIntersection(xIntersection.length/2)
+        Coord(x,from.midpoint.y).lineTo(Coord(x,to.midpoint.y))
+      }
+      else if(yIntersection.nonEmpty) {
+        val y = yIntersection(yIntersection.length/2)
+        Coord(from.midpoint.x,y).lineTo(Coord(to.midpoint.x,y))
+      }
+      else {
+        val c1 = makeOdd(from.midpoint)
+        val c2 = makeOdd(to.midpoint)
+        c1.ellTo(c2)
+      }
 
-    null
+    coords.dropWhile(from.contains).takeWhile(!to.contains(_))
+  }
+
+  def computeCorridors(rects: Seq[Rectangle], graph: Seq[Edge]): Seq[Corridor] = {
+    def isIntermediateRect(c: Coord, edge: Edge)(rect: Rectangle): Boolean = {
+      val intersects = rect.contains(c)
+      val adjacent = rect.adjacent(c)
+      rect != edge.from && rect != edge.to && (intersects || adjacent)
+    }
+
+    @tailrec
+    def loop(edges: Seq[Edge], considered: Set[Edge], processed: Set[Edge] = Set(), acc: Seq[Corridor] = Nil): Seq[Corridor] = edges match {
+      case e +: es if processed.intersect(Set(e,e.reverse)).nonEmpty => loop(es,considered,processed,acc)
+      case (e @ Edge(from,to)) +: es =>
+        val corridor = computeCorridor(from,to)
+        corridor.flatMap(c => rects.find(isIntermediateRect(c,e))).headOption match {
+          case None => loop(es, considered + e + e.reverse, processed + e + e.reverse, corridor +: acc)
+          case Some(rect) =>
+            val newEdges = Seq(Edge(from,rect), Edge(rect,to)).filterNot(it => processed.contains(it) || considered.contains(it))
+            loop(newEdges ++ es, considered ++ newEdges, processed, acc)
+        }
+      case _ => acc
+    }
+    loop(graph,graph.headOption.toSet)
+  }
+
+  def computeFusedRooms(rects: Seq[Rectangle]): Seq[Rectangle] = {
+    val rows = rects.groupBy(_.y).values
+    val cohorts = rows.flatMap(_.groupBy(_.height).filterKeys(_ >= 5).values)
+
+    @tailrec
+    def findSequences(rects: Seq[Rectangle], acc : Seq[Seq[Rectangle]] = Nil): Seq[Seq[Rectangle]] = rects match {
+      case r1 +: r2 +: r3 +: rs =>
+        val isSequence = (r1.x + r1.width + 1) == r2.x && (r2.x + r2.width + 1) == r3.x
+        if(isSequence) findSequences(rs, Seq(r1,r2,r3) +: acc)
+        else findSequences(r2 +: r3 +: rs, acc)
+      case _ => acc
+    }
+    val sequences = cohorts.flatMap(cohort => findSequences(cohort.sortBy(_.x)))
+
+    sequences.flatMap{ seq =>
+      val Seq(r1,r2,r3) = seq
+      val w = r1.width + r2.width + r3.width + 2
+      if(w >= 18)
+        Seq(Rect(r1.x,r1.y,w,r1.height))
+      else Seq()
+    }.toSeq
   }
 }
