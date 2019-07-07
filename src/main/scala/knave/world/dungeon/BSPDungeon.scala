@@ -11,17 +11,17 @@ object BSPDungeon extends {
 
     implicit val rng = new Random(seed)
 
-    implicit val tileArray = Array.fill[Array[InnerTile]](width)(Array.fill[InnerTile](height)(new InnerWall))
+    val tileArray = Array.fill[Array[InnerTile]](width)(Array.fill[InnerTile](height)(new InnerWall))
 
-    val partitions = computePartitions
+    val initialPartitions = computePartitions
 
-    val graph = computeGraph(partitions)
+    val graph = computeGraph(initialPartitions)
 
-    val corridors = computeCorridors(partitions,graph)
+    val corridors = computeCorridors(initialPartitions,graph)
 
-    val fusedRooms = computeFusedRooms(partitions)
+    val finalPartitions = fusePartitionSequences(initialPartitions)
 
-    val floors = partitions.flatMap(_.fill) ++ corridors.flatten ++ fusedRooms.flatMap(_.fill)
+    val floors = corridors.flatten ++ finalPartitions.flatMap(_.fill)
     floors.foreach(c => tileArray(c.x)(c.y) = new PlainFloor)
 
     new InnerDungeon(tileArray,Nil,Map(),rng)
@@ -61,15 +61,13 @@ private object BSPDungeonGen {
       }
     }
 
-    val start = Rect(1,1,width-2,height-2)
-
     @tailrec
     def loop(parts: Seq[Rect]): Seq[Rect] = {
       val newParts = parts.flatMap(partitionHorizontally).flatMap(partitionVertically)
       if(newParts.length == parts.length) rng.shuffle(newParts).drop(newParts.length / 4)
       else loop(newParts)
     }
-    loop(Seq(start))
+    loop(Seq(Rect(1,1,width-2,height-2)))
   }
 
   def computeGraph(rects: Seq[Rectangle]): Seq[Edge] = {
@@ -79,8 +77,8 @@ private object BSPDungeonGen {
       case r1 +: r2 +: Seq() => Edge(r1,r2) +: edges
       case _ => Nil
     }
-    val r1 +: r2 +: rs = rects.sortBy(_.x)
-    loop(rects, Seq(Edge(r1,r2)))
+    val rect1 +: rect2 +: _ = rects // There will always be 3 or more partitions so this is safe.
+    loop(rects, Seq(Edge(rect1,rect2)))
   }
 
   // Corridors only run along odd rows and columns. This guarantees that they won't run adjacent to each other.
@@ -127,6 +125,7 @@ private object BSPDungeonGen {
         corridor.flatMap(c => rects.find(isIntermediateRect(c,e))).headOption match {
           case None => loop(es, considered + e + e.reverse, processed + e + e.reverse, corridor +: acc)
           case Some(rect) =>
+            // Keeping track of which edges have been considered prevents infinite cycles.
             val newEdges = Seq(Edge(from,rect), Edge(rect,to)).filterNot(it => processed.contains(it) || considered.contains(it))
             loop(newEdges ++ es, considered ++ newEdges, processed, acc)
         }
@@ -135,26 +134,31 @@ private object BSPDungeonGen {
     loop(graph,graph.headOption.toSet)
   }
 
-  def computeFusedRooms(rects: Seq[Rectangle]): Seq[Rectangle] = {
+  def fusePartitionSequences(rects: Seq[Rectangle]): Seq[Rectangle] = {
     val rows = rects.groupBy(_.y).values
-    val cohorts = rows.flatMap(_.groupBy(_.height).filterKeys(_ >= 5).values)
+    val cohorts = rows.flatMap(_.groupBy(_.height).values).map(_.sortBy(_.x))
 
     @tailrec
-    def findSequences(rects: Seq[Rectangle], acc : Seq[Seq[Rectangle]] = Nil): Seq[Seq[Rectangle]] = rects match {
+    def findSequences(rects: Seq[Rectangle], sequences: Seq[Seq[Rectangle]] = Nil, singles: Seq[Rectangle] = Nil): (Seq[Seq[Rectangle]], Seq[Rectangle]) = rects match {
       case r1 +: r2 +: r3 +: rs =>
         val isSequence = (r1.x + r1.width + 1) == r2.x && (r2.x + r2.width + 1) == r3.x
-        if(isSequence) findSequences(rs, Seq(r1,r2,r3) +: acc)
-        else findSequences(r2 +: r3 +: rs, acc)
-      case _ => acc
+        if(isSequence) findSequences(rs, Seq(r1,r2,r3) +: sequences, singles)
+        else findSequences(r2 +: r3 +: rs, sequences, r1 +: singles)
+      case rs => (sequences, rs ++ singles)
     }
-    val sequences = cohorts.flatMap(cohort => findSequences(cohort.sortBy(_.x)))
+
+    val (sequences, singles) = cohorts.map(findSequences(_)).foldLeft((Seq[Seq[Rectangle]](), Seq[Rectangle]()))((acc, it) => {
+      val (sequences, singles) = acc
+      val (newSequences, newSingles) = it
+      (newSequences ++ sequences, newSingles ++ singles)
+    })
 
     sequences.flatMap{ seq =>
       val Seq(r1,r2,r3) = seq
       val w = r1.width + r2.width + r3.width + 2
       if(w >= 18)
         Seq(Rect(r1.x,r1.y,w,r1.height))
-      else Seq()
-    }.toSeq
+      else seq
+    } ++ singles
   }
 }
