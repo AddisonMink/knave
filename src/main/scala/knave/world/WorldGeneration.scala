@@ -1,6 +1,6 @@
 package knave.world
 
-import knave.world.dungeon.{Coord, Dungeon, Room}
+import knave.world.dungeon.{BSPDungeon, Coord, Dungeon, Room}
 import knave.world.dungeon.Dungeon._
 import knave.world.enemy.{Enemy, LostAcolyte}
 import knave.world.item.WeaponItem
@@ -10,11 +10,6 @@ import knave.world.player.weapon.{Knife, Staff, Weapon}
 import scala.util.Random
 
 private object WorldGenHelpers {
-
-  def makeDungeon(seed: Int): (Dungeon, Random) = {
-    val dungeon = Dungeon(seed)
-    (dungeon, dungeon.rng)
-  }
 
   def copyPlayerToDungeon(d: Dungeon, room: Room, player: Player): Player = {
     implicit val (dungeon, rng) = (d, d.rng)
@@ -46,7 +41,8 @@ protected object Level_1 {
     import WorldGenHelpers._
 
     // Create dungeon and rng.
-    implicit val (dungeon, rng) = makeDungeon(seed)
+    implicit val dungeon = BSPDungeon(seed)
+    implicit val rng = dungeon.rng
 
     // Partition rooms.
     val partition = partitionDungeon(dungeon)

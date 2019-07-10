@@ -19,12 +19,24 @@ object BSPDungeon extends {
 
     val corridors = computeCorridors(initialPartitions,graph)
 
-    val finalPartitions = fusePartitionSequences(initialPartitions)
+    val (fusedPartitions, singlePartitions) = fusePartitionSequences(initialPartitions)
+    val finalPartitions = fusedPartitions ++ singlePartitions
 
-    val floors = corridors.flatten ++ finalPartitions.flatMap(_.fill)
+    val finalCorridors = corridors.filterNot(corridor => corridor.exists(c => fusedPartitions.exists(_.contains(c))))
+
+    val doors = computeDoors(finalCorridors)
+
+    val partitionRooms = flavorPartitions(finalPartitions)
+
+    val floors = finalCorridors.flatten ++ partitionRooms.flatMap(_.floors)
     floors.foreach(c => tileArray(c.x)(c.y) = new PlainFloor)
+    doors.foreach(c => tileArray(c.x)(c.y) = new InnerDoor)
 
-    new InnerDungeon(tileArray,Nil,Map(),rng)
+    val rooms = partitionRooms.zipWithIndex.map{
+      case (r,i) => new Room(i, r.floors.toSet)
+    }
+
+    new InnerDungeon(tileArray,rooms,Map(),rng)
   }
 }
 
@@ -134,7 +146,7 @@ private object BSPDungeonGen {
     loop(graph,graph.headOption.toSet)
   }
 
-  def fusePartitionSequences(rects: Seq[Rectangle]): Seq[Rectangle] = {
+  def fusePartitionSequences(rects: Seq[Rectangle]): (Seq[Rectangle], Seq[Rectangle]) = {
     val rows = rects.groupBy(_.y).values
     val cohorts = rows.flatMap(_.groupBy(_.height).values).map(_.sortBy(_.x))
 
@@ -153,12 +165,124 @@ private object BSPDungeonGen {
       (newSequences ++ sequences, newSingles ++ singles)
     })
 
-    sequences.flatMap{ seq =>
+    val fusedRects = sequences.flatMap{ seq =>
       val Seq(r1,r2,r3) = seq
       val w = r1.width + r2.width + r3.width + 2
       if(w >= 18)
         Seq(Rect(r1.x,r1.y,w,r1.height))
       else seq
-    } ++ singles
+    }
+    (fusedRects, singles)
+  }
+
+  def computeDoors(corridors: Seq[Corridor]): Seq[Coord] = {
+    corridors.flatMap { corr =>
+      (corr.headOption.toSeq ++ corr.lastOption.toSeq).distinct
+    }
+  }
+
+  // TODO Expose partition rooms to help with world generation.
+  def flavorPartitions(rects: Seq[Rectangle])(implicit rng: Random): Seq[PartitionRoom] = rects.map{
+    case rect if rect.height == 3 && rect.width >= 18 => Hallway(rect)
+
+    case rect if rect.height == 4 && rect.width >= 18 => RectRoom(rect) // TODO Some special room.
+
+    case rect if rect.height == 6 && rect.width >= 18 => Chapel(rect)
+
+    case rect if rect.height == 5 && rect.width >= 18 => RectRoom(rect) // TODO Summoning chamber.
+
+    case rect if rect.height >= 4 && rect.width >= 8 => RectRoom(rect) // TODO Library or alchemy lab.
+
+    case rect => RectRoom(rect) // TODO Vault or plainroom.
   }
 }
+
+sealed trait PartitionRoom {
+  val rect: Rectangle
+  val floors: Seq[Coord]
+}
+
+sealed case class RectRoom(rect: Rectangle) extends PartitionRoom {
+  override val floors = rect.fill
+}
+
+// A long hallway supported by 3 columns. (long medium room)
+sealed case class Hallway(rect: Rectangle) extends PartitionRoom {
+
+  val columns = {
+    val y = rect.y + rect.height / 2
+    val xs = Seq(rect.x + rect.width/4, rect.x + rect.width/2, rect.x + rect.width - 1 - rect.width/4)
+    xs.map(Coord(_,y))
+  }
+
+  override val floors = rect.fill.diff(columns)
+}
+
+// A big room lined with marble columns. Has a golden altar with a red carpet leading up to it. Also marble floors. (large room)
+sealed case class Chapel(rect: Rectangle)(implicit rng: Random) extends PartitionRoom {
+
+  val columns = {
+    val ys = Seq(rect.y + 1, rect.y + rect.height - 2)
+    val xs = Seq(rect.x + rect.width/4, rect.x + rect.width/2, rect.x + rect.width - 1 - rect.width/4)
+    ys.flatMap(y => xs.map(Coord(_,y)))
+  }
+
+  val alter = {
+    val x = if(rng.nextBoolean) rect.x + rect.width - 3 else rect.x + 2
+    val ys = Seq(rect.y + rect.height/2, rect.y + rect.height/2 - 1)
+    ys.map(Coord(x,_))
+  }
+
+  val carpet = Rect(rect.x+1,rect.y+1,rect.width-2,rect.height-2).fill
+
+  val floors = rect.fill.diff(columns).diff(alter)
+}
+
+// A cramped room filled with brown bookcases. Has a tan floor. (medium room)
+sealed case class Library(rect: Rectangle) extends PartitionRoom {
+
+  val bookcases = Seq[Seq[Coord]]()
+
+  val floors = rect.fill.diff(bookcases.flatten)
+}
+
+// A treasure vault. Golden floors and a golden vault. (small room)
+sealed case class Vault(rect: Rectangle) extends  PartitionRoom {
+
+  val vault = Seq()
+
+  val nook: Coord = null
+
+  val floors = rect.fill.diff(vault)
+}
+
+// Room containing a staircase. (small room)
+sealed case class StairsRoom(rect: Rectangle) extends PartitionRoom {
+
+  val stairs: Coord = null
+
+  val floors = rect.fill
+}
+
+// TODO Make another large room. (summoning chamber?)
+
+// TODO Make another medium room.(alchemy lab?)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

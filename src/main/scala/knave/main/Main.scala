@@ -21,10 +21,7 @@ object Main extends App {
 
   val seed = Random.nextInt
   println(seed)
-  val dungeon = BSPDungeon(seed)
-  displayFullDungeon(dungeon)
 
-  /*
   val game = new Game(seed)
 
   
@@ -33,5 +30,4 @@ object Main extends App {
     game.run(input)
     input = ""
   })
-  */
 }

@@ -56,6 +56,8 @@ sealed trait Dungeon {
   }
 }
 
+protected trait IDungeon extends Dungeon
+
 protected class InnerDungeon(val tileArray: Array[Array[InnerTile]], val rooms: Seq[Room], val graph: RoomGraph, implicit val rng: Random) extends Dungeon
 
 object Dungeon {
