@@ -1,21 +1,48 @@
 V0.4
 ----
-FEATURE* - Improve Hub Dungeon
-* Disallow side rects that are adjacent to an existing rect but overlap at only 1 coord.
-* After calculating initial side rects to include, run the corridor algorithm again to get saner corridors.
-
 FEATURE* - Improved Investigation
 -Instead of giving up when they reach the coord where they last saw the player, the cautious enemy should
 take a few steps foward and look around in a circle.
 -Enemies should turn while wandering as well. Before going to their next destination, they should turn1 direction at a time.
 
+(-1,-1) (+0,-1) (+1,-1)
+(-1,+0) (+0,+0) (+1,+0)
+(-1,+1) (+0,+1) (+1,+1)
+
+- Enemies should be able to turn a maximum of 90 degrees per round when wandering.
+- If the enemy is facing a cardinal direction (x1,y1) and the dest direction is (x2,y2)
+	- If x or y is non-zero and reversed then new facing is (y1,x1)
+	- Else new facing is (x2,y2)
+- If the enemy is facing an ordinal direction (x1,y1) and the dest direction is (x2,y2)
+	- If manhattan((x1,y1), (x2,y2)) > 2 then new facing is (y1,-x1)
+	- Else new facing is (x2,y2)
+
 REFACTOR* - Enemy behaviors should be implemented as actions.
 
-FEATURE - Cleric
+FEATURE* - Cleric
+- Strong enemy that spawns in a large room surrounded by Frenzied Acolytes
+- Can open doors.
+- When it sees a player, alerts his Frenzied Acolytes and summons nearby lost acolytes.
+- Can use his turn to heal a nearby acolyte.
+- Drops staff.
+
+
+FEATURE* - Cherub
+- Fast, weak enemy that patrols around the dungeon.
+- Large field of vision.
+- Can move over closed doors.
+- When it sees the player, alert nearby enemies.
+- Does not attack the player directly.
+- Tries to stay in sight of the player while keeping away from him.
+- Drops chime
+	- Single-use item that alerts nearby enemies and lures them to your current location.
+
+FEATURE* - Improved world generation.
+- Make new prefab rooms and decorate the existing ones.
+- Implement room graph and include list of lockable room
+- Implement locked rooms and keys.
 
 FEATURE - Hunter
-
-FEATURE - Locked Room and Key
 
 FEATURE - Gargoyle
 
