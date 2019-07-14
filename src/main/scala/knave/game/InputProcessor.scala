@@ -1,5 +1,7 @@
 package knave.game
 
+import knave.game.PlayerActions._
+import knave.game.SharedActions.Wait
 import knave.world.dungeon.Coord
 import knave.world.dungeon.Dungeon._
 import knave.world.player.weapon.{Circle, NoSpecial, Ray, Use}
@@ -32,7 +34,7 @@ object InputProcessor {
     val pos = w.player.pos
     def move(c : Coord) = Seq(PlayerMove(c))
     input match {
-      case "r" => Noop +: Seq()
+      case "r" => Wait +: Seq()
       case "w" => move(pos.copy(y = pos.y - 1))
       case "s" => move(pos.copy(y = pos.y + 1))
       case "a" => move(pos.copy(x = pos.x - 1))

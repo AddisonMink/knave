@@ -4,14 +4,13 @@ import knave.display.Palette
 import knave.game._
 import knave.world.World
 import knave.world.dungeon.{Coord, Room}
-import knave.world.player.weapon.{Weapon}
+import knave.world.player.weapon.Weapon
 
-class LostAcolyte(override val id: Int, c: Coord, override protected val room: Room)
-  extends Enemy(id,c,room) with WanderingEnemy with AttackingEnemy with PursuingEnemy {
+class LostAcolyte(override val id: Int, c: Coord, override val room: Room)
+  extends Enemy(id,c,room) with AttackingEnemy {
 
   override val maxHp: Int = 20
   override var hp: Int = maxHp
-  override val fortifiedHp: Int = 30
   override val symbol: Char = 'a'
   override val color: String = Palette.white
   override val name: String = "lost acolyte"
@@ -27,18 +26,15 @@ class LostAcolyte(override val id: Int, c: Coord, override protected val room: R
     case Alerted => Fast
   }
   override val maybeDrop: Option[(Double, Weapon)] = None
-  override protected val canOpenDoors: Boolean = false
+  override val canOpenDoors: Boolean = false
 
   override val flavorText: String = "[Flavor text goes here.]"
 
-  override protected val attackRange: Int = 1
-  override protected val attackDamage: Int = 10
+  override val attackDamage: Int = 10
 
-  def act(w: World): Seq[Action] = awareness match {
-    case Unaware => wander(w) :+ SpotPlayer(id)
-    case Cautious => investigate(w) :+ SpotPlayer(id)
-
-    // TODO Broadcast to enemies in the same room.
-    case Alerted => pursue(w) :+ SpotPlayer(id)
+  override def act(w: World): Action = awareness match {
+    case Unaware => patrol >> spot
+    case Cautious => (investigate | patrol) >> spot
+    case Alerted => (attack(w) | chase) >> spot
   }
 }

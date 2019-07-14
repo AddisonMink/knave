@@ -1,8 +1,8 @@
 package knave.world.player.weapon
 
-import knave.game.{Action, AttackOnEnemy}
+import knave.game.Action
+import knave.game.PlayerActions.AttackOnEnemy
 import knave.world.World
-import knave.world.dungeon.Coord
 
 abstract class Weapon {
 

@@ -1,7 +1,7 @@
 package knave.world
 
 import knave.display.Palette
-import knave.game.{Action, Fast, Slow, SpotPlayer}
+import knave.game._
 import knave.world.dungeon.{Coord, Dungeon}
 import knave.world.dungeon.Dungeon._
 import knave.world.enemy.Enemy
@@ -53,7 +53,10 @@ sealed trait World {
 
   @tailrec
   protected final def applyActions(actions: Seq[Action]): Unit = actions match {
-    case a +: as => applyActions(a.updateWorld(this) ++ as)
+    case a +: as => a.applyToWorld(this) match {
+      case newActions: NewActions => applyActions(newActions.actions ++ as)
+      case _ => applyActions(as)
+    }
     case Seq() =>
   }
 
@@ -62,11 +65,11 @@ sealed trait World {
       val (slowEnemies, nonSlowEnemies) = getEnemies.partition(_.speed == Slow)
       val fastEnemies = nonSlowEnemies.filter(_.speed == Fast)
 
-      applyActions(playerActions ++ nonSlowEnemies.flatMap(_.act(this)))
-      applyActions(fastEnemies.flatMap(_.act(this)))
-      applyActions(slowEnemies.map(e => SpotPlayer(e.id)))
+      applyActions(playerActions ++ nonSlowEnemies.map(_.act(this)))
+      applyActions(fastEnemies.map(_.act(this)))
+      applyActions(slowEnemies.map(e => e.spot))
     } else {
-      applyActions(playerActions ++ getEnemies.flatMap(_.act(this)))
+      applyActions(playerActions ++ getEnemies.map(_.act(this)))
     }
     round += 1
   }
